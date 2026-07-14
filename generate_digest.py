@@ -73,17 +73,19 @@ def rsi_color(rsi):
         return "black"      # Neutral
 
 # ---------------------------------------------------------
-# Build HTML Dashboard
+# Build HTML Dashboard (f-string FIXES KeyError)
 # ---------------------------------------------------------
-html = """
+timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+
+html = f"""
 <html>
 <head>
 <title>Daily Stock Digest</title>
 <style>
-body { font-family: Arial; padding: 20px; }
-table { border-collapse: collapse; width: 100%; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-th { background-color: #f2f2f2; }
+body {{ font-family: Arial; padding: 20px; }}
+table {{ border-collapse: collapse; width: 100%; }}
+th, td {{ border: 1px solid #ddd; padding: 8px; text-align: center; }}
+th {{ background-color: #f2f2f2; }}
 </style>
 </head>
 <body>
@@ -97,7 +99,7 @@ th { background-color: #f2f2f2; }
 <th>% Change</th>
 <th>RSI</th>
 </tr>
-""".format(timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M"))
+"""
 
 for _, row in df.iterrows():
     html += f"""
