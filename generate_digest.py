@@ -60,3 +60,106 @@ for name, symbol in INDEXES:
     r = fetch_simple_price(symbol)
     if r:
         index_rows.append({"name": name, **r})
+commodity_rows = []
+for name, symbol in COMMODITIES:
+    r = fetch_simple_price(symbol)
+    if r:
+        commodity_rows.append({"name": name, **r})
+
+oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
+overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
+top_mover = max(rows, key=lambda r: abs(r["pct"])) if rows else None
+
+def pct_color(pct):
+    if pct > 0:
+        return "#1a8a3d"
+    if pct < 0:
+        return "#c0392b"
+    return "#666"
+
+def rsi_style(rsi):
+    if rsi <= RSI_OVERSOLD:
+        return "background:#fbe0dd;color:#c0392b;font-weight:600;"
+    if rsi >= RSI_OVERBOUGHT:
+        return "background:#fdf1d0;color:#a5720b;font-weight:600;"
+    return ""
+
+def stock_table_rows(items):
+    out = ""
+    for r in items:
+        out += f"""
+    <tr>
+      <td style="font-weight:600;">{r['ticker']}</td>
+      <td style="text-align:right;">${r['price']:.2f}</td>
+      <td style="text-align:right;color:{pct_color(r['pct'])};">{r['pct']:+.2f}%</td>
+      <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;{rsi_style(r['rsi'])}">{r['rsi']:.2f}</span></td>
+    </tr>"""
+    return out
+
+def simple_cards(items):
+    out = ""
+    for i in items:
+        out += f"""
+    <div class="card">
+      <p class="label">{i['name']}</p>
+      <p class="value">${i['price']:,.2f}</p>
+      <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}%</p>
+    </div>"""
+    return out
+
+table_rows_html = stock_table_rows(rows)
+index_cards_html = simple_cards(index_rows)
+commodity_cards_html = simple_cards(commodity_rows)
+top_mover_html = f"{top_mover['ticker']} ({top_mover['pct']:+.2f}%)" if top_mover else "-"
+
+html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Stock Digest</title>
+<style>
+body {{ font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }}
+h1 {{ font-size:20px; margin:0 0 4px; }}
+h2 {{ font-size:15px; margin:24px 0 10px; color:#333; }}
+.timestamp {{ color:#666; font-size:13px; margin:0 0 20px; }}
+.summary {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }}
+.row {{ display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }}
+.card {{ background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:130px; }}
+.label {{ font-size:12px; color:#666; margin:0 0 4px; }}
+.value {{ font-size:20px; font-weight:600; margin:0; }}
+table {{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }}
+th {{ text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; }}
+td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; }}
+</style>
+</head>
+<body>
+<h1>Daily Stock Digest</h1>
+<p class="timestamp">Updated {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</p>
+
+<div class="summary">
+  <div class="card"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
+  <div class="card"><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">{oversold_count}</p></div>
+  <div class="card"><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">{overbought_count}</p></div>
+  <div class="card"><p class="label">Top mover</p><p class="value">{top_mover_html}</p></div>
+</div>
+
+<h2>Market Indexes</h2>
+<div class="row">{index_cards_html}</div>
+
+<h2>Commodities</h2>
+<div class="row">{commodity_cards_html}</div>
+
+<h2>Watchlist</h2>
+<table>
+<tr><th>Ticker</th><th style="text-align:right;">Price</th><th style="text-align:right;">Change</th><th style="text-align:right;">RSI</th></tr>
+{table_rows_html}
+</table>
+
+</body>
+</html>"""
+
+with open("index.html", "w") as f:
+    f.write(html)
+
+print("index.html generated successfully")        
