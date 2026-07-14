@@ -1,125 +1,62 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import yfinance as yf
-import pandas as pd
 from datetime import datetime
 
-# ---------------------------------------------------------
-# TICKERS: Stocks + Major Indexes
-# ---------------------------------------------------------
-tickers = [
-    # Your stocks
-    "AAPL", "MSFT", "TSLA", "NVDA", "AMZN",
+WATCHLIST = ["AAPL", "GOOGL", "VTI", "QCOM", "TSM", "META", "TSLA", "MSFT", "INTC", "NVDA", "AMD", "ORCL", "DRIV", "ARTY", "ROBO", "SHOP", "SNPS", "VHT", "CRDO", "RMBS", "SDY", "VYM", "IVE", "AVGO", "JNJ", "AMZN", "BMY", "MRVL", "SCHD", "SPY", "WM", "RSG", "IDU", "MKC", "MRK", "ADM", "GIS", "BRK-B", "LLY", "VOO", "QQQ", "TQQQ", "SQQQ", "SDS", "CSCO", "WMT", "DE", "PEP", "KO", "V", "MA", "CMI", "CAT", "UNP", "CSX", "NSC", "PLTR", "DELL", "MU", "SNDK", "LMT", "AMGN", "ABBV", "RTX", "IONQ", "KEEL", "JCI", "HONA", "HON"]
 
-    # Major U.S. Indexes
-    "^DJI",   # Dow Jones Industrial Average
-    "^GSPC",  # S&P 500
-    "^IXIC",  # Nasdaq Composite
-    "^RUT",   # Russell 2000 (Small Cap)
-    "^VIX"    # Volatility Index
+INDEXES = [
+    ("Dow Jones", "^DJI"),
+    ("S&P 500", "^GSPC"),
+    ("Nasdaq", "^IXIC"),
+    ("Russell 2000", "^RUT"),
+    ("VIX (Volatility)", "^VIX"),
 ]
 
-# ---------------------------------------------------------
-# RSI Calculation
-# ---------------------------------------------------------
+COMMODITIES = [
+    ("Oil (WTI)", "CL=F"),
+    ("Gold", "GC=F"),
+    ("Silver", "SI=F"),
+]
+
+RSI_OVERSOLD = 30
+RSI_OVERBOUGHT = 70
+
 def compute_rsi(series, period=14):
     delta = series.diff()
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
+    gain = delta.where(delta > 0, 0).rolling(period).mean()
+    loss = -delta.where(delta < 0, 0).rolling(period).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
 
-    avg_gain = gain.rolling(period).mean()
-    avg_loss = loss.rolling(period).mean()
-
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
-
-# ---------------------------------------------------------
-# Fetch Data + Build Digest
-# ---------------------------------------------------------
-rows = []
-
-for ticker in tickers:
-    data = yf.download(ticker, period="3mo", interval="1d", progress=False)
-
+def fetch_stock(ticker):
+    data = yf.download(ticker, period="3mo", interval="1d", progress=False, auto_adjust=True)
     if data.empty:
-        continue
+        return None
+    price = round(data['Close'].iloc[-1].item(), 2)
+    prev = round(data['Close'].iloc[-2].item(), 2)
+    pct = round((price - prev) / prev * 100, 2)
+    rsi = round(compute_rsi(data['Close']).iloc[-1].item(), 2)
+    return {"ticker": ticker, "price": price, "pct": pct, "rsi": rsi}
 
-    close = data["Close"]
-    rsi = compute_rsi(close).iloc[-1]
+def fetch_simple_price(symbol):
+    data = yf.download(symbol, period="5d", interval="1d", progress=False, auto_adjust=True)
+    if data.empty:
+        return None
+    price = round(data['Close'].iloc[-1].item(), 2)
+    prev = round(data['Close'].iloc[-2].item(), 2)
+    pct = round((price - prev) / prev * 100, 2)
+    return {"price": price, "pct": pct}
 
-    latest_close = close.iloc[-1]
-    prev_close = close.iloc[-2]
-    change = latest_close - prev_close
-    pct_change = (change / prev_close) * 100
+rows = []
+for t in WATCHLIST:
+    r = fetch_stock(t)
+    if r:
+        rows.append(r)
 
-    rows.append({
-        "Ticker": ticker,
-        "Price": round(latest_close, 2),
-        "Change": round(change, 2),
-        "PctChange": round(pct_change, 2),
-        "RSI": round(rsi, 2)
-    })
-
-df = pd.DataFrame(rows)
-
-# ---------------------------------------------------------
-# Color Coding for RSI
-# ---------------------------------------------------------
-def rsi_color(rsi):
-    if rsi < 30:
-        return "green"      # Oversold
-    elif rsi > 70:
-        return "red"        # Overbought
-    else:
-        return "black"      # Neutral
-
-# ---------------------------------------------------------
-# Build HTML Dashboard (f-string FIXES KeyError)
-# ---------------------------------------------------------
-timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
-
-html = f"""
-<html>
-<head>
-<title>Daily Stock Digest</title>
-<style>
-body {{ font-family: Arial; padding: 20px; }}
-table {{ border-collapse: collapse; width: 100%; }}
-th, td {{ border: 1px solid #ddd; padding: 8px; text-align: center; }}
-th {{ background-color: #f2f2f2; }}
-</style>
-</head>
-<body>
-<h2>Daily Stock Digest</h2>
-<p>Updated {timestamp} UTC</p>
-<table>
-<tr>
-<th>Ticker</th>
-<th>Price</th>
-<th>Change</th>
-<th>% Change</th>
-<th>RSI</th>
-</tr>
-"""
-
-for _, row in df.iterrows():
-    html += f"""
-    <tr>
-        <td>{row['Ticker']}</td>
-        <td>{row['Price']}</td>
-        <td>{row['Change']}</td>
-        <td>{row['PctChange']}%</td>
-        <td style="color:{rsi_color(row['RSI'])};">{row['RSI']}</td>
-    </tr>
-    """
-
-html += """
-</table>
-</body>
-</html>
-"""
-
-# ---------------------------------------------------------
-# Save HTML
-# ---------------------------------------------------------
-with open("index.html", "w") as f:
-    f.write(html)
+index_rows = []
+for name, symbol in INDEXES:
+    r = fetch_simple_price(symbol)
+    if r:
+        index_rows.append({"name": name, **r})
