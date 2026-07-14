@@ -1,124 +1,123 @@
-import warnings
-warnings.filterwarnings("ignore")
-
 import yfinance as yf
+import pandas as pd
 from datetime import datetime
 
-WATCHLIST = ["AAPL", "GOOGL", "VTI", "QCOM", "TSM", "META", "TSLA", "MSFT", "INTC", "NVDA", "AMD", "ORCL", "DRIV", "ARTY", "ROBO", "SHOP", "SNPS", "VHT", "CRDO", "RMBS", "SDY", "VYM", "IVE", "AVGO", "JNJ", "AMZN", "BMY", "MRVL", "SCHD", "SPY", "WM", "RSG", "IDU", "MKC", "MRK", "ADM", "GIS", "BRK-B", "LLY", "VOO", "QQQ", "TQQQ", "SQQQ", "SDS", "CSCO", "WMT", "DE", "PEP", "KO", "V", "MA", "CMI", "CAT", "UNP", "CSX", "NSC", "PLTR", "DELL", "MU", "SNDK", "LMT", "AMGN", "ABBV", "RTX", "IONQ", "KEEL", "JCI", "HONA", "HON"]
+# ---------------------------------------------------------
+# TICKERS: Stocks + Major Indexes
+# ---------------------------------------------------------
+tickers = [
+    # Your stocks
+    "AAPL", "MSFT", "TSLA", "NVDA", "AMZN",
 
-RSI_OVERSOLD = 30
-RSI_OVERBOUGHT = 70
+    # Major U.S. Indexes
+    "^DJI",   # Dow Jones Industrial Average
+    "^GSPC",  # S&P 500
+    "^IXIC",  # Nasdaq Composite
+    "^RUT",   # Russell 2000 (Small Cap)
+    "^VIX"    # Volatility Index
+]
 
+# ---------------------------------------------------------
+# RSI Calculation
+# ---------------------------------------------------------
 def compute_rsi(series, period=14):
     delta = series.diff()
-    gain = delta.where(delta > 0, 0).rolling(period).mean()
-    loss = -delta.where(delta < 0, 0).rolling(period).mean()
-    rs = gain / loss
-    return 100 - (100 / (1 + rs))
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
 
-def fetch_stock(ticker):
-    data = yf.download(ticker, period="3mo", interval="1d", progress=False, auto_adjust=True)
-    if data.empty:
-        return None
-    price = round(data['Close'].iloc[-1].item(), 2)
-    prev = round(data['Close'].iloc[-2].item(), 2)
-    pct = round((price - prev) / prev * 100, 2)
-    rsi = round(compute_rsi(data['Close']).iloc[-1].item(), 2)
-    return {"ticker": ticker, "price": price, "pct": pct, "rsi": rsi}
+    avg_gain = gain.rolling(period).mean()
+    avg_loss = loss.rolling(period).mean()
 
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+# ---------------------------------------------------------
+# Fetch Data + Build Digest
+# ---------------------------------------------------------
 rows = []
-for t in WATCHLIST:
-    r = fetch_stock(t)
-    if r:
-        rows.append(r)
 
-commodities = []
-for name, symbol in [("Oil (WTI)", "CL=F"), ("Gold", "GC=F"), ("Silver", "SI=F")]:
-    data = yf.download(symbol, period="5d", interval="1d", progress=False, auto_adjust=True)
-    if not data.empty:
-        price = round(data['Close'].iloc[-1].item(), 2)
-        commodities.append({"name": name, "price": price})
+for ticker in tickers:
+    data = yf.download(ticker, period="3mo", interval="1d", progress=False)
 
-oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
-overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
-top_mover = max(rows, key=lambda r: abs(r["pct"])) if rows else None
+    if data.empty:
+        continue
 
-def pct_color(pct):
-    if pct > 0:
-        return "#1a8a3d"
-    if pct < 0:
-        return "#c0392b"
-    return "#666"
+    close = data["Close"]
+    rsi = compute_rsi(close).iloc[-1]
 
-def rsi_style(rsi):
-    if rsi <= RSI_OVERSOLD:
-        return "background:#fbe0dd;color:#c0392b;font-weight:600;"
-    if rsi >= RSI_OVERBOUGHT:
-        return "background:#fdf1d0;color:#a5720b;font-weight:600;"
-    return ""
+    latest_close = close.iloc[-1]
+    prev_close = close.iloc[-2]
+    change = latest_close - prev_close
+    pct_change = (change / prev_close) * 100
 
-table_rows = ""
-for r in rows:
-    table_rows += f"""
-    <tr>
-      <td style="font-weight:600;">{r['ticker']}</td>
-      <td style="text-align:right;">${r['price']:.2f}</td>
-      <td style="text-align:right;color:{pct_color(r['pct'])};">{r['pct']:+.2f}%</td>
-      <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;{rsi_style(r['rsi'])}">{r['rsi']:.2f}</span></td>
-    </tr>"""
+    rows.append({
+        "Ticker": ticker,
+        "Price": round(latest_close, 2),
+        "Change": round(change, 2),
+        "PctChange": round(pct_change, 2),
+        "RSI": round(rsi, 2)
+    })
 
-commodity_cards = ""
-for c in commodities:
-    commodity_cards += f"""
-    <div class="card">
-      <p class="label">{c['name']}</p>
-      <p class="value">${c['price']:,.2f}</p>
-    </div>"""
+df = pd.DataFrame(rows)
 
-top_mover_html = f"{top_mover['ticker']} ({top_mover['pct']:+.2f}%)" if top_mover else "-"
+# ---------------------------------------------------------
+# Color Coding for RSI
+# ---------------------------------------------------------
+def rsi_color(rsi):
+    if rsi < 30:
+        return "green"      # Oversold
+    elif rsi > 70:
+        return "red"        # Overbought
+    else:
+        return "black"      # Neutral
 
-html = f"""<!DOCTYPE html>
+# ---------------------------------------------------------
+# Build HTML Dashboard
+# ---------------------------------------------------------
+html = """
 <html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Stock Digest</title>
 <style>
-body {{ font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }}
-h1 {{ font-size:20px; margin:0 0 4px; }}
-.timestamp {{ color:#666; font-size:13px; margin:0 0 20px; }}
-.summary {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }}
-.commodities {{ display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }}
-.card {{ background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:120px; }}
-.label {{ font-size:12px; color:#666; margin:0 0 4px; }}
-.value {{ font-size:22px; font-weight:600; margin:0; }}
-table {{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }}
-th {{ text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; }}
-td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; }}
+body { font-family: Arial; padding: 20px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+th { background-color: #f2f2f2; }
 </style>
 </head>
 <body>
-<h1>Daily Stock Digest</h1>
-<p class="timestamp">Updated {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</p>
-
-<div class="summary">
-  <div class="card"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
-  <div class="card"><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">{oversold_count}</p></div>
-  <div class="card"><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">{overbought_count}</p></div>
-  <div class="card"><p class="label">Top mover</p><p class="value">{top_mover_html}</p></div>
-</div>
-
-<div class="commodities">{commodity_cards}</div>
-
+<h2>Daily Stock Digest</h2>
+<p>Updated {timestamp} UTC</p>
 <table>
-<tr><th>Ticker</th><th style="text-align:right;">Price</th><th style="text-align:right;">Change</th><th style="text-align:right;">RSI</th></tr>
-{table_rows}
+<tr>
+<th>Ticker</th>
+<th>Price</th>
+<th>Change</th>
+<th>% Change</th>
+<th>RSI</th>
+</tr>
+""".format(timestamp=datetime.utcnow().strftime("%Y-%m-%d %H:%M"))
+
+for _, row in df.iterrows():
+    html += f"""
+    <tr>
+        <td>{row['Ticker']}</td>
+        <td>{row['Price']}</td>
+        <td>{row['Change']}</td>
+        <td>{row['PctChange']}%</td>
+        <td style="color:{rsi_color(row['RSI'])};">{row['RSI']}</td>
+    </tr>
+    """
+
+html += """
 </table>
-
 </body>
-</html>"""
+</html>
+"""
 
+# ---------------------------------------------------------
+# Save HTML
+# ---------------------------------------------------------
 with open("index.html", "w") as f:
     f.write(html)
-
-print("index.html generated successfully")
