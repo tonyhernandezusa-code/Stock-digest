@@ -7,12 +7,13 @@
 <style>
 body { font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }
 h1 { font-size:20px; margin:0 0 4px; }
+h2 { font-size:15px; margin:24px 0 10px; color:#333; }
 .timestamp { color:#666; font-size:13px; margin:0 0 20px; }
-.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
-.commodities { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
-.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:120px; }
+.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
+.row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:130px; }
 .label { font-size:12px; color:#666; margin:0 0 4px; }
-.value { font-size:22px; font-weight:600; margin:0; }
+.value { font-size:20px; font-weight:600; margin:0; }
 table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
 th { text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; }
 td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; }
@@ -20,7 +21,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; }
 </head>
 <body>
 <h1>Daily Stock Digest</h1>
-<p class="timestamp">Updated 2026-07-14 00:57 UTC</p>
+<p class="timestamp">Updated 2026-07-14 02:07 UTC</p>
 
 <div class="summary">
   <div class="card"><p class="label">Watchlist</p><p class="value">69</p></div>
@@ -29,20 +30,53 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; }
   <div class="card"><p class="label">Top mover</p><p class="value">SNDK (-12.63%)</p></div>
 </div>
 
-<div class="commodities">
+<h2>Market Indexes</h2>
+<div class="row">
+    <div class="card">
+      <p class="label">Dow Jones</p>
+      <p class="value">$52,498.64</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.26%</p>
+    </div>
+    <div class="card">
+      <p class="label">S&P 500</p>
+      <p class="value">$7,515.34</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.79%</p>
+    </div>
+    <div class="card">
+      <p class="label">Nasdaq</p>
+      <p class="value">$25,873.18</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-1.55%</p>
+    </div>
+    <div class="card">
+      <p class="label">Russell 2000</p>
+      <p class="value">$2,953.17</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.83%</p>
+    </div>
+    <div class="card">
+      <p class="label">VIX (Volatility)</p>
+      <p class="value">$17.16</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+14.17%</p>
+    </div></div>
+
+<h2>Commodities</h2>
+<div class="row">
     <div class="card">
       <p class="label">Oil (WTI)</p>
-      <p class="value">$79.77</p>
+      <p class="value">$79.44</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+11.24%</p>
     </div>
     <div class="card">
       <p class="label">Gold</p>
-      <p class="value">$4,008.20</p>
+      <p class="value">$4,009.40</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-2.31%</p>
     </div>
     <div class="card">
       <p class="label">Silver</p>
-      <p class="value">$57.74</p>
+      <p class="value">$57.53</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-3.81%</p>
     </div></div>
 
+<h2>Watchlist</h2>
 <table>
 <tr><th>Ticker</th><th style="text-align:right;">Price</th><th style="text-align:right;">Change</th><th style="text-align:right;">RSI</th></tr>
 
