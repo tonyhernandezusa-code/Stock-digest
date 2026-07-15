@@ -29,6 +29,9 @@ FRED_RATES = [
     ("2-Yr Treasury", "DGS2"),
     ("10-Yr Treasury", "DGS10"),
     ("30-Yr Mortgage", "MORTGAGE30US"),
+    ("Natl Avg Savings (FDIC)", "SNDR"),
+    ("Natl Avg Money Market (FDIC)", "MMNDR"),
+    ("Natl Avg 12-Mo CD (FDIC)", "NDR12MCD"),
 ]
 
 # Curated bank rates - UPDATE THESE MANUALLY (rates as of July 2026, verify before relying on them)
