@@ -2,7 +2,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 import yfinance as yf
+import requests
 from datetime import datetime
+
+FRED_API_KEY = "d6150924a7a201d4e891d082f7123818"
 
 WATCHLIST = ["AAPL", "GOOGL", "VTI", "QCOM", "TSM", "META", "TSLA", "MSFT", "INTC", "NVDA", "AMD", "ORCL", "DRIV", "ARTY", "ROBO", "SHOP", "SNPS", "VHT", "CRDO", "RMBS", "SDY", "VYM", "IVE", "AVGO", "JNJ", "AMZN", "BMY", "MRVL", "SCHD", "SPY", "WM", "RSG", "IDU", "MKC", "MRK", "ADM", "GIS", "BRK-B", "LLY", "VOO", "QQQ", "TQQQ", "SQQQ", "SDS", "CSCO", "WMT", "DE", "PEP", "KO", "V", "MA", "CMI", "CAT", "UNP", "CSX", "NSC", "PLTR", "DELL", "MU", "SNDK", "LMT", "AMGN", "ABBV", "RTX", "IONQ", "KEEL", "JCI", "HONA", "HON"]
 
@@ -18,6 +21,28 @@ COMMODITIES = [
     ("Oil (WTI)", "CL=F"),
     ("Gold", "GC=F"),
     ("Silver", "SI=F"),
+]
+
+# FRED series IDs for interest rates
+FRED_RATES = [
+    ("Fed Funds Rate", "DFF"),
+    ("2-Yr Treasury", "DGS2"),
+    ("10-Yr Treasury", "DGS10"),
+    ("30-Yr Mortgage", "MORTGAGE30US"),
+]
+
+# Curated bank rates - UPDATE THESE MANUALLY (rates as of July 2026, verify before relying on them)
+BANK_RATES = [
+    ("CIT Bank (Savings)", "TBD"),
+    ("Marcus by Goldman (Savings)", "TBD"),
+    ("Ally Bank (Savings)", "TBD"),
+    ("Discover (Savings)", "TBD"),
+    ("SoFi (Savings)", "TBD"),
+    ("Synchrony (Savings)", "TBD"),
+    ("Capital One 360 (Savings)", "TBD"),
+    ("American Express (Savings)", "TBD"),
+    ("Barclays (Savings)", "TBD"),
+    ("Bread Savings (Savings)", "TBD"),
 ]
 
 RSI_OVERSOLD = 30
@@ -49,6 +74,22 @@ def fetch_simple_price(symbol):
     pct = round((price - prev) / prev * 100, 2)
     return {"price": price, "pct": pct}
 
+def fetch_fred_rate(series_id):
+    try:
+        url = "https://api.stlouisfed.org/fred/series/observations"
+        params = {
+            "series_id": series_id,
+            "api_key": FRED_API_KEY,
+            "file_type": "json",
+            "sort_order": "desc",
+            "limit": 1,
+        }
+        resp = requests.get(url, params=params, timeout=15)
+        obs = resp.json()["observations"][0]
+        return {"value": float(obs["value"]), "date": obs["date"]}
+    except Exception:
+        return None
+
 rows = []
 for t in WATCHLIST:
     r = fetch_stock(t)
@@ -60,11 +101,18 @@ for name, symbol in INDEXES:
     r = fetch_simple_price(symbol)
     if r:
         index_rows.append({"name": name, **r})
+
 commodity_rows = []
 for name, symbol in COMMODITIES:
     r = fetch_simple_price(symbol)
     if r:
         commodity_rows.append({"name": name, **r})
+
+rate_rows = []
+for name, series_id in FRED_RATES:
+    r = fetch_fred_rate(series_id)
+    if r:
+        rate_rows.append({"name": name, **r})
 
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
@@ -107,9 +155,32 @@ def simple_cards(items):
     </div>"""
     return out
 
+def rate_cards(items):
+    out = ""
+    for i in items:
+        out += f"""
+    <div class="card">
+      <p class="label">{i['name']}</p>
+      <p class="value">{i['value']:.2f}%</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+    </div>"""
+    return out
+
+def bank_rate_rows(items):
+    out = ""
+    for name, rate in items:
+        out += f"""
+    <tr>
+      <td>{name}</td>
+      <td style="text-align:right;font-weight:600;">{rate}</td>
+    </tr>"""
+    return out
+
 table_rows_html = stock_table_rows(rows)
 index_cards_html = simple_cards(index_rows)
 commodity_cards_html = simple_cards(commodity_rows)
+rate_cards_html = rate_cards(rate_rows)
+bank_rates_html = bank_rate_rows(BANK_RATES)
 top_mover_html = f"{top_mover['ticker']} ({top_mover['pct']:+.2f}%)" if top_mover else "-"
 
 html = f"""<!DOCTYPE html>
@@ -131,6 +202,7 @@ h2 {{ font-size:15px; margin:24px 0 10px; color:#333; }}
 table {{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }}
 th {{ text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; }}
 td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; }}
+.note {{ font-size:11px; color:#999; margin:6px 0 0; }}
 </style>
 </head>
 <body>
@@ -144,11 +216,21 @@ td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; }}
   <div class="card"><p class="label">Top mover</p><p class="value">{top_mover_html}</p></div>
 </div>
 
+<h2>Interest Rates</h2>
+<div class="row">{rate_cards_html}</div>
+
 <h2>Market Indexes</h2>
 <div class="row">{index_cards_html}</div>
 
 <h2>Commodities</h2>
 <div class="row">{commodity_cards_html}</div>
+
+<h2>Top Savings Rates (updated manually)</h2>
+<table>
+<tr><th>Bank</th><th style="text-align:right;">APY</th></tr>
+{bank_rates_html}
+</table>
+<p class="note">Bank rates are entered manually and may be out of date. Verify with each bank before making decisions.</p>
 
 <h2>Watchlist</h2>
 <table>
@@ -162,4 +244,4 @@ td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; }}
 with open("index.html", "w") as f:
     f.write(html)
 
-print("index.html generated successfully")        
+print("index.html generated successfully")
