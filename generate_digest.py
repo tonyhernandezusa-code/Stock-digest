@@ -34,18 +34,18 @@ FRED_RATES = [
     ("Natl Avg 12-Mo CD (FDIC)", "NDR12MCD"),
 ]
 
-# Curated bank rates - UPDATE THESE MANUALLY (rates as of July 2026, verify before relying on them)
+# Rates from NerdWallet as of July 14, 2026 - verify before relying on them
 BANK_RATES = [
-    ("CIT Bank (Savings)", "TBD"),
-    ("Marcus by Goldman (Savings)", "TBD"),
-    ("Ally Bank (Savings)", "TBD"),
-    ("Discover (Savings)", "TBD"),
-    ("SoFi (Savings)", "TBD"),
-    ("Synchrony (Savings)", "TBD"),
-    ("Capital One 360 (Savings)", "TBD"),
-    ("American Express (Savings)", "TBD"),
-    ("Barclays (Savings)", "TBD"),
-    ("Bread Savings (Savings)", "TBD"),
+    ("Forbright Bank (Savings)", "Up to 4.15%*"),
+    ("CIT Bank Platinum (Savings)", "Up to 4.10%*"),
+    ("Climate First Bank (Savings)", "4.01%"),
+    ("Vio Bank (Savings)", "4.01%"),
+    ("Peak Bank (Savings)", "4.01%"),
+    ("Happen Bank (Savings)", "4.00%*"),
+    ("E*TRADE Premium (Savings)", "4.00% promo*"),
+    ("EverBank (Savings)", "3.90%"),
+    ("Marcus by Goldman (Savings)", "3.40%"),
+    ("Capital One 360 (Savings)", "3.00%"),
 ]
 
 RSI_OVERSOLD = 30
