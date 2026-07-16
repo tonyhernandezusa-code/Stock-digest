@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real Estate Dashboard</title>
+<style>
+body { font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }
+h1 { font-size:20px; margin:0 0 4px; }
+h2 { font-size:15px; margin:24px 0 10px; color:#333; }
+.timestamp { color:#666; font-size:13px; margin:0 0 20px; }
+.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
+.row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:130px; }
+.label { font-size:12px; color:#666; margin:0 0 4px; }
+.value { font-size:20px; font-weight:600; margin:0; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
+th { text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }
+td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:nowrap; }
+.note { font-size:11px; color:#999; margin:6px 0 0; }
+</style>
+</head>
+<body>
+
+<div style="margin-bottom:16px;">
+  <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
+  <a href="realestate.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
+</div>
+
+<h1>Real Estate Dashboard</h1>
+<p class="timestamp">Updated 2026-07-16 02:31 UTC</p>
+
+<h2>National Housing Indicators</h2>
+<div class="row">
+    <div class="card">
+      <p class="label">Mortgage Delinquency Rate</p>
+      <p class="value">1.89%</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-01-01</p>
+    </div>
+    <div class="card">
+      <p class="label">Housing Starts (annualized)</p>
+      <p class="value">1,177K</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-05-01</p>
+    </div>
+    <div class="card">
+      <p class="label">Building Permits (annualized)</p>
+      <p class="value">1,410K</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-05-01</p>
+    </div>
+    <div class="card">
+      <p class="label">New Home Sales (annualized)</p>
+      <p class="value">580K</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-05-01</p>
+    </div>
+    <div class="card">
+      <p class="label">30-Yr Mortgage Rate</p>
+      <p class="value">6.49%</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-09</p>
+    </div></div>
+<p class="note">Housing starts, permits, and new home sales are seasonally adjusted annual rates in thousands. Source: Federal Reserve (FRED).</p>
+
+<h2>House Price Change by State (1-Year, FHFA Index)</h2>
+<div class="table-wrap">
+<table>
+<tr><th>Rank</th><th>State</th><th style="text-align:right;">1-Yr Change</th><th style="text-align:right;">Data as of</th></tr>
+
+    <tr>
+      <td>1</td>
+      <td style="font-weight:600;">Alaska</td>
+      <td style="text-align:right;color:#1a8a3d;">+7.37%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td style="font-weight:600;">Connecticut</td>
+      <td style="text-align:right;color:#1a8a3d;">+6.55%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td style="font-weight:600;">New York</td>
+      <td style="text-align:right;color:#1a8a3d;">+6.11%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td style="font-weight:600;">Illinois</td>
+      <td style="text-align:right;color:#1a8a3d;">+5.75%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td style="font-weight:600;">New Jersey</td>
+      <td style="text-align:right;color:#1a8a3d;">+5.38%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td style="font-weight:600;">New Hampshire</td>
+      <td style="text-align:right;color:#1a8a3d;">+5.35%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td style="font-weight:600;">Pennsylvania</td>
+      <td style="text-align:right;color:#1a8a3d;">+5.29%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td style="font-weight:600;">Michigan</td>
+      <td style="text-align:right;color:#1a8a3d;">+5.01%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td style="font-weight:600;">Wisconsin</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.90%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td style="font-weight:600;">Maine</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.89%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td style="font-weight:600;">Ohio</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.83%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>12</td>
+      <td style="font-weight:600;">West Virginia</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.82%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>13</td>
+      <td style="font-weight:600;">Rhode Island</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.47%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>14</td>
+      <td style="font-weight:600;">Missouri</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.44%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>15</td>
+      <td style="font-weight:600;">Kentucky</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.37%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>16</td>
+      <td style="font-weight:600;">Indiana</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.31%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>17</td>
+      <td style="font-weight:600;">South Dakota</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.23%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>18</td>
+      <td style="font-weight:600;">Massachusetts</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.21%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>19</td>
+      <td style="font-weight:600;">Nebraska</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.21%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>20</td>
+      <td style="font-weight:600;">Alabama</td>
+      <td style="text-align:right;color:#1a8a3d;">+4.18%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>21</td>
+      <td style="font-weight:600;">Delaware</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.95%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>22</td>
+      <td style="font-weight:600;">Kansas</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.93%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>23</td>
+      <td style="font-weight:600;">Vermont</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.89%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>24</td>
+      <td style="font-weight:600;">Iowa</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.84%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>25</td>
+      <td style="font-weight:600;">Arkansas</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.79%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>26</td>
+      <td style="font-weight:600;">North Dakota</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.79%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>27</td>
+      <td style="font-weight:600;">Minnesota</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.78%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>28</td>
+      <td style="font-weight:600;">Virginia</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.77%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>29</td>
+      <td style="font-weight:600;">Wyoming</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.55%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>30</td>
+      <td style="font-weight:600;">Tennessee</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.51%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>31</td>
+      <td style="font-weight:600;">Mississippi</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.47%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>32</td>
+      <td style="font-weight:600;">South Carolina</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.43%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>33</td>
+      <td style="font-weight:600;">Maryland</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.39%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>34</td>
+      <td style="font-weight:600;">New Mexico</td>
+      <td style="text-align:right;color:#1a8a3d;">+3.03%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>35</td>
+      <td style="font-weight:600;">Utah</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.95%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>36</td>
+      <td style="font-weight:600;">Louisiana</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.94%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>37</td>
+      <td style="font-weight:600;">Montana</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.66%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>38</td>
+      <td style="font-weight:600;">Oklahoma</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.58%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>39</td>
+      <td style="font-weight:600;">Georgia</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.45%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>40</td>
+      <td style="font-weight:600;">North Carolina</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.43%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>41</td>
+      <td style="font-weight:600;">Arizona</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.35%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>42</td>
+      <td style="font-weight:600;">Oregon</td>
+      <td style="text-align:right;color:#1a8a3d;">+2.05%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>43</td>
+      <td style="font-weight:600;">Florida</td>
+      <td style="text-align:right;color:#1a8a3d;">+1.94%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>44</td>
+      <td style="font-weight:600;">California</td>
+      <td style="text-align:right;color:#1a8a3d;">+1.77%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>45</td>
+      <td style="font-weight:600;">Idaho</td>
+      <td style="text-align:right;color:#1a8a3d;">+1.76%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>46</td>
+      <td style="font-weight:600;">Nevada</td>
+      <td style="text-align:right;color:#1a8a3d;">+1.76%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>47</td>
+      <td style="font-weight:600;">Washington</td>
+      <td style="text-align:right;color:#1a8a3d;">+1.73%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>48</td>
+      <td style="font-weight:600;">Hawaii</td>
+      <td style="text-align:right;color:#1a8a3d;">+1.31%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>49</td>
+      <td style="font-weight:600;">Texas</td>
+      <td style="text-align:right;color:#1a8a3d;">+1.24%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+    <tr>
+      <td>50</td>
+      <td style="font-weight:600;">Colorado</td>
+      <td style="text-align:right;color:#1a8a3d;">+0.78%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">2026-01-01</td>
+    </tr>
+</table>
+</div>
+<p class="note">Ranked fastest-appreciating to slowest. Based on the FHFA All-Transactions House Price Index (quarterly). Source: FRED.</p>
+
+<h2>Top Foreclosure States (updated manually)</h2>
+<table>
+<tr><th>State</th><th style="text-align:right;">Foreclosure Rate</th></tr>
+
+    <tr>
+      <td>State</td>
+      <td style="text-align:right;">TBD - ask Claude to update from latest ATTOM report</td>
+    </tr>
+</table>
+<p class="note">Foreclosure data is compiled by private firms (e.g. ATTOM) and entered manually from their public monthly reports. May be out of date.</p>
+
+</body>
+</html>
