@@ -240,7 +240,7 @@ def bank_rate_rows(items):
     return out
 
 table_rows_html = stock_table_rows(rows)
-index_cards_html = simple_cards(index_rows)
+index_cards_html = simple_cards(index_rows, dollar=False)
 commodity_cards_html = simple_cards(commodity_rows)
 rate_cards_html = rate_cards(rate_rows)
 bank_rates_html = bank_rate_rows(BANK_RATES)
