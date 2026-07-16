@@ -47,8 +47,64 @@ BANK_RATES = [
     ("Capital One 360 (Savings)", "3.00%"),
 ]
 
+# Real estate: national indicators from FRED
+RE_NATIONAL = [
+    ("Mortgage Delinquency Rate", "DRSFRMACBS", "%"),
+    ("Housing Starts (annualized)", "HOUST", "K"),
+    ("Building Permits (annualized)", "PERMIT", "K"),
+    ("New Home Sales (annualized)", "HSN1F", "K"),
+    ("30-Yr Mortgage Rate", "MORTGAGE30US", "%"),
+]
+
+# All 50 states: FHFA House Price Index series on FRED follows pattern XXSTHPI
+STATES = [
+    ("Alabama", "AL"), ("Alaska", "AK"), ("Arizona", "AZ"), ("Arkansas", "AR"),
+    ("California", "CA"), ("Colorado", "CO"), ("Connecticut", "CT"), ("Delaware", "DE"),
+    ("Florida", "FL"), ("Georgia", "GA"), ("Hawaii", "HI"), ("Idaho", "ID"),
+    ("Illinois", "IL"), ("Indiana", "IN"), ("Iowa", "IA"), ("Kansas", "KS"),
+    ("Kentucky", "KY"), ("Louisiana", "LA"), ("Maine", "ME"), ("Maryland", "MD"),
+    ("Massachusetts", "MA"), ("Michigan", "MI"), ("Minnesota", "MN"), ("Mississippi", "MS"),
+    ("Missouri", "MO"), ("Montana", "MT"), ("Nebraska", "NE"), ("Nevada", "NV"),
+    ("New Hampshire", "NH"), ("New Jersey", "NJ"), ("New Mexico", "NM"), ("New York", "NY"),
+    ("North Carolina", "NC"), ("North Dakota", "ND"), ("Ohio", "OH"), ("Oklahoma", "OK"),
+    ("Oregon", "OR"), ("Pennsylvania", "PA"), ("Rhode Island", "RI"), ("South Carolina", "SC"),
+    ("South Dakota", "SD"), ("Tennessee", "TN"), ("Texas", "TX"), ("Utah", "UT"),
+    ("Vermont", "VT"), ("Virginia", "VA"), ("Washington", "WA"), ("West Virginia", "WV"),
+    ("Wisconsin", "WI"), ("Wyoming", "WY"),
+]
+
+# Top foreclosure states - UPDATE MANUALLY from ATTOM's monthly report
+# Ask Claude to "update my foreclosure table" to refresh these
+FORECLOSURE_STATES = [
+    ("State", "TBD - ask Claude to update from latest ATTOM report"),
+]
+
 RSI_OVERSOLD = 30
 RSI_OVERBOUGHT = 70
+
+NAV_HTML = """
+<div style="margin-bottom:16px;">
+  <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
+  <a href="realestate.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
+</div>
+"""
+
+PAGE_CSS = """
+body { font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }
+h1 { font-size:20px; margin:0 0 4px; }
+h2 { font-size:15px; margin:24px 0 10px; color:#333; }
+.timestamp { color:#666; font-size:13px; margin:0 0 20px; }
+.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
+.row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:130px; }
+.label { font-size:12px; color:#666; margin:0 0 4px; }
+.value { font-size:20px; font-weight:600; margin:0; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
+th { text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }
+td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:nowrap; }
+.note { font-size:11px; color:#999; margin:6px 0 0; }
+"""
 
 def compute_rsi(series, period=14):
     delta = series.diff()
@@ -87,7 +143,7 @@ def fetch_stock(ticker):
     high_52w = round(data['High'].max().item(), 2)
     low_52w = round(data['Low'].min().item(), 2)
     volume = data['Volume'].iloc[-1].item()
-    avg_volume = data['Volume'].tail(63).mean().item()  # ~3 month average
+    avg_volume = data['Volume'].tail(63).mean().item()
 
     market_cap = None
     pe_ratio = None
@@ -118,7 +174,8 @@ def fetch_simple_price(symbol):
     pct = round((price - prev) / prev * 100, 2)
     return {"price": price, "pct": pct}
 
-def fetch_fred_rate(series_id):
+def fetch_fred(series_id, limit=1):
+    """Fetch the most recent observation(s) for a FRED series, newest first."""
     try:
         url = "https://api.stlouisfed.org/fred/series/observations"
         params = {
@@ -126,13 +183,29 @@ def fetch_fred_rate(series_id):
             "api_key": FRED_API_KEY,
             "file_type": "json",
             "sort_order": "desc",
-            "limit": 1,
+            "limit": limit,
         }
         resp = requests.get(url, params=params, timeout=15)
-        obs = resp.json()["observations"][0]
-        return {"value": float(obs["value"]), "date": obs["date"]}
+        obs = resp.json()["observations"]
+        return [{"value": float(o["value"]), "date": o["date"]} for o in obs if o["value"] != "."]
     except Exception:
         return None
+
+def fetch_fred_rate(series_id):
+    obs = fetch_fred(series_id, limit=1)
+    return obs[0] if obs else None
+
+def fetch_state_hpi(abbr):
+    """FHFA state house price index (quarterly). Returns latest value + 1yr change."""
+    obs = fetch_fred(f"{abbr}STHPI", limit=5)
+    if not obs or len(obs) < 5:
+        return None
+    latest = obs[0]
+    year_ago = obs[4]
+    yoy = (latest["value"] - year_ago["value"]) / year_ago["value"] * 100
+    return {"yoy": round(yoy, 2), "date": latest["date"]}
+
+# ------------------- FETCH EVERYTHING -------------------
 
 rows = []
 for t in WATCHLIST:
@@ -158,9 +231,24 @@ for name, series_id in FRED_RATES:
     if r:
         rate_rows.append({"name": name, **r})
 
+re_national_rows = []
+for name, series_id, unit in RE_NATIONAL:
+    r = fetch_fred_rate(series_id)
+    if r:
+        re_national_rows.append({"name": name, "unit": unit, **r})
+
+state_rows = []
+for state_name, abbr in STATES:
+    r = fetch_state_hpi(abbr)
+    if r:
+        state_rows.append({"state": state_name, **r})
+state_rows.sort(key=lambda x: -x["yoy"])
+
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
 top_mover = max(rows, key=lambda r: abs(r["pct"])) if rows else None
+
+# ------------------- HTML HELPERS -------------------
 
 def pct_color(pct):
     if pct > 0:
@@ -177,7 +265,6 @@ def rsi_style(rsi):
     return ""
 
 def vol_style(volume, avg_volume):
-    """Highlight when today's volume is well above average."""
     try:
         if avg_volume and volume >= 2 * avg_volume:
             return "background:#ddebf7;color:#1f4e79;font-weight:600;"
@@ -229,6 +316,33 @@ def rate_cards(items):
     </div>"""
     return out
 
+def re_national_cards(items):
+    out = ""
+    for i in items:
+        if i["unit"] == "%":
+            val = f"{i['value']:.2f}%"
+        else:
+            val = f"{i['value']:,.0f}K"
+        out += f"""
+    <div class="card">
+      <p class="label">{i['name']}</p>
+      <p class="value">{val}</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+    </div>"""
+    return out
+
+def state_table_rows(items):
+    out = ""
+    for rank, s in enumerate(items, 1):
+        out += f"""
+    <tr>
+      <td>{rank}</td>
+      <td style="font-weight:600;">{s['state']}</td>
+      <td style="text-align:right;color:{pct_color(s['yoy'])};">{s['yoy']:+.2f}%</td>
+      <td style="text-align:right;color:#999;font-size:12px;">{s['date']}</td>
+    </tr>"""
+    return out
+
 def bank_rate_rows(items):
     out = ""
     for name, rate in items:
@@ -239,39 +353,33 @@ def bank_rate_rows(items):
     </tr>"""
     return out
 
-table_rows_html = stock_table_rows(rows)
-index_cards_html = simple_cards(index_rows, dollar=False)
-commodity_cards_html = simple_cards(commodity_rows)
-rate_cards_html = rate_cards(rate_rows)
-bank_rates_html = bank_rate_rows(BANK_RATES)
+def foreclosure_rows(items):
+    out = ""
+    for name, val in items:
+        out += f"""
+    <tr>
+      <td>{name}</td>
+      <td style="text-align:right;">{val}</td>
+    </tr>"""
+    return out
+
+timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
 top_mover_html = f"{top_mover['ticker']} ({top_mover['pct']:+.2f}%)" if top_mover else "-"
 
-html = f"""<!DOCTYPE html>
+# ------------------- PAGE 1: STOCKS -------------------
+
+stocks_html = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Stock Digest</title>
-<style>
-body {{ font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }}
-h1 {{ font-size:20px; margin:0 0 4px; }}
-h2 {{ font-size:15px; margin:24px 0 10px; color:#333; }}
-.timestamp {{ color:#666; font-size:13px; margin:0 0 20px; }}
-.summary {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }}
-.row {{ display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }}
-.card {{ background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:130px; }}
-.label {{ font-size:12px; color:#666; margin:0 0 4px; }}
-.value {{ font-size:20px; font-weight:600; margin:0; }}
-.table-wrap {{ overflow-x:auto; }}
-table {{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }}
-th {{ text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }}
-td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:nowrap; }}
-.note {{ font-size:11px; color:#999; margin:6px 0 0; }}
-</style>
+<style>{PAGE_CSS}</style>
 </head>
 <body>
+{NAV_HTML}
 <h1>Daily Stock Digest</h1>
-<p class="timestamp">Updated {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}</p>
+<p class="timestamp">Updated {timestamp}</p>
 
 <div class="summary">
   <div class="card"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
@@ -281,18 +389,18 @@ td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:n
 </div>
 
 <h2>Interest Rates</h2>
-<div class="row">{rate_cards_html}</div>
+<div class="row">{rate_cards(rate_rows)}</div>
 
 <h2>Market Indexes</h2>
-<div class="row">{index_cards_html}</div>
+<div class="row">{simple_cards(index_rows, dollar=False)}</div>
 
 <h2>Commodities</h2>
-<div class="row">{commodity_cards_html}</div>
+<div class="row">{simple_cards(commodity_rows)}</div>
 
 <h2>Top Savings Rates (updated manually)</h2>
 <table>
 <tr><th>Bank</th><th style="text-align:right;">APY</th></tr>
-{bank_rates_html}
+{bank_rate_rows(BANK_RATES)}
 </table>
 <p class="note">Bank rates are entered manually and may be out of date. Verify with each bank before making decisions.</p>
 
@@ -312,7 +420,7 @@ td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:n
 <th style="text-align:right;">52w High</th>
 <th style="text-align:right;">52w Low</th>
 </tr>
-{table_rows_html}
+{stock_table_rows(rows)}
 </table>
 </div>
 <p class="note">Volume highlighted in blue when today's volume is at least 2x the 3-month average. P/E and Div Yld are blank for ETFs and non-dividend payers.</p>
@@ -320,7 +428,48 @@ td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:n
 </body>
 </html>"""
 
-with open("index.html", "w") as f:
-    f.write(html)
+# ------------------- PAGE 2: REAL ESTATE -------------------
 
-print("index.html generated successfully")
+realestate_html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Real Estate Dashboard</title>
+<style>{PAGE_CSS}</style>
+</head>
+<body>
+{NAV_HTML}
+<h1>Real Estate Dashboard</h1>
+<p class="timestamp">Updated {timestamp}</p>
+
+<h2>National Housing Indicators</h2>
+<div class="row">{re_national_cards(re_national_rows)}</div>
+<p class="note">Housing starts, permits, and new home sales are seasonally adjusted annual rates in thousands. Source: Federal Reserve (FRED).</p>
+
+<h2>House Price Change by State (1-Year, FHFA Index)</h2>
+<div class="table-wrap">
+<table>
+<tr><th>Rank</th><th>State</th><th style="text-align:right;">1-Yr Change</th><th style="text-align:right;">Data as of</th></tr>
+{state_table_rows(state_rows)}
+</table>
+</div>
+<p class="note">Ranked fastest-appreciating to slowest. Based on the FHFA All-Transactions House Price Index (quarterly). Source: FRED.</p>
+
+<h2>Top Foreclosure States (updated manually)</h2>
+<table>
+<tr><th>State</th><th style="text-align:right;">Foreclosure Rate</th></tr>
+{foreclosure_rows(FORECLOSURE_STATES)}
+</table>
+<p class="note">Foreclosure data is compiled by private firms (e.g. ATTOM) and entered manually from their public monthly reports. May be out of date.</p>
+
+</body>
+</html>"""
+
+with open("index.html", "w") as f:
+    f.write(stocks_html)
+
+with open("realestate.html", "w") as f:
+    f.write(realestate_html)
+
+print("index.html and realestate.html generated successfully")
