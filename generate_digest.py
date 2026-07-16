@@ -84,10 +84,7 @@ FORECLOSURE_STATES = [
     ("Florida", "1 in 750"),
     ("Delaware", "1 in 757"),
     ("Illinois", "1 in 833"),
-]
-    ("State", "TBD - ask Claude to update from latest ATTOM report"),
-]
-
+]   
 RSI_OVERSOLD = 30
 RSI_OVERBOUGHT = 70
 
