@@ -206,13 +206,14 @@ def stock_table_rows(items):
     </tr>"""
     return out
 
-def simple_cards(items):
+def simple_cards(items, dollar=True):
     out = ""
+    prefix = "$" if dollar else ""
     for i in items:
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
-      <p class="value">${i['price']:,.2f}</p>
+      <p class="value">{prefix}{i['price']:,.2f}</p>
       <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}%</p>
     </div>"""
     return out
