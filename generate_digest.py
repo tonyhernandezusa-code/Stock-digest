@@ -75,7 +75,16 @@ STATES = [
 
 # Top foreclosure states - UPDATE MANUALLY from ATTOM's monthly report
 # Ask Claude to "update my foreclosure table" to refresh these
+# Top foreclosure states - ATTOM Q1 2026 U.S. Foreclosure Market Report
+# "1 in X" = one foreclosure filing per X housing units (lower X = worse)
+# Ask Claude to "update my foreclosure table" to refresh from the latest report
 FORECLOSURE_STATES = [
+    ("Indiana", "1 in 739"),
+    ("South Carolina", "1 in 743"),
+    ("Florida", "1 in 750"),
+    ("Delaware", "1 in 757"),
+    ("Illinois", "1 in 833"),
+]
     ("State", "TBD - ask Claude to update from latest ATTOM report"),
 ]
 
