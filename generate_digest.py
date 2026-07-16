@@ -23,7 +23,6 @@ COMMODITIES = [
     ("Silver", "SI=F"),
 ]
 
-# FRED series IDs for interest rates
 FRED_RATES = [
     ("Fed Funds Rate", "DFF"),
     ("2-Yr Treasury", "DGS2"),
@@ -58,15 +57,57 @@ def compute_rsi(series, period=14):
     rs = gain / loss
     return 100 - (100 / (1 + rs))
 
+def fmt_big_number(n):
+    if n is None:
+        return "-"
+    try:
+        n = float(n)
+    except (TypeError, ValueError):
+        return "-"
+    if n >= 1e12:
+        return f"{n/1e12:.2f}T"
+    if n >= 1e9:
+        return f"{n/1e9:.2f}B"
+    if n >= 1e6:
+        return f"{n/1e6:.1f}M"
+    if n >= 1e3:
+        return f"{n/1e3:.0f}K"
+    return f"{n:.0f}"
+
 def fetch_stock(ticker):
-    data = yf.download(ticker, period="3mo", interval="1d", progress=False, auto_adjust=True)
-    if data.empty:
+    data = yf.download(ticker, period="1y", interval="1d", progress=False, auto_adjust=True)
+    if data.empty or len(data) < 20:
         return None
-    price = round(data['Close'].iloc[-1].item(), 2)
-    prev = round(data['Close'].iloc[-2].item(), 2)
+    close = data['Close']
+    price = round(close.iloc[-1].item(), 2)
+    prev = round(close.iloc[-2].item(), 2)
     pct = round((price - prev) / prev * 100, 2)
-    rsi = round(compute_rsi(data['Close']).iloc[-1].item(), 2)
-    return {"ticker": ticker, "price": price, "pct": pct, "rsi": rsi}
+    rsi = round(compute_rsi(close).iloc[-1].item(), 2)
+
+    high_52w = round(data['High'].max().item(), 2)
+    low_52w = round(data['Low'].min().item(), 2)
+    volume = data['Volume'].iloc[-1].item()
+    avg_volume = data['Volume'].tail(63).mean().item()  # ~3 month average
+
+    market_cap = None
+    pe_ratio = None
+    div_yield = None
+    try:
+        info = yf.Ticker(ticker).info
+        market_cap = info.get("marketCap")
+        pe_ratio = info.get("trailingPE")
+        div_rate = info.get("dividendRate")
+        if div_rate and price > 0:
+            div_yield = div_rate / price * 100
+    except Exception:
+        pass
+
+    return {
+        "ticker": ticker, "price": price, "pct": pct, "rsi": rsi,
+        "market_cap": market_cap, "pe": pe_ratio, "div_yield": div_yield,
+        "volume": volume, "avg_volume": avg_volume,
+        "high_52w": high_52w, "low_52w": low_52w,
+    }
 
 def fetch_simple_price(symbol):
     data = yf.download(symbol, period="5d", interval="1d", progress=False, auto_adjust=True)
@@ -135,15 +176,33 @@ def rsi_style(rsi):
         return "background:#fdf1d0;color:#a5720b;font-weight:600;"
     return ""
 
+def vol_style(volume, avg_volume):
+    """Highlight when today's volume is well above average."""
+    try:
+        if avg_volume and volume >= 2 * avg_volume:
+            return "background:#ddebf7;color:#1f4e79;font-weight:600;"
+    except Exception:
+        pass
+    return ""
+
 def stock_table_rows(items):
     out = ""
     for r in items:
+        pe_txt = f"{r['pe']:.1f}" if r['pe'] else "-"
+        dy_txt = f"{r['div_yield']:.2f}%" if r['div_yield'] else "-"
         out += f"""
     <tr>
       <td style="font-weight:600;">{r['ticker']}</td>
       <td style="text-align:right;">${r['price']:.2f}</td>
       <td style="text-align:right;color:{pct_color(r['pct'])};">{r['pct']:+.2f}%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;{rsi_style(r['rsi'])}">{r['rsi']:.2f}</span></td>
+      <td style="text-align:right;">{fmt_big_number(r['market_cap'])}</td>
+      <td style="text-align:right;">{pe_txt}</td>
+      <td style="text-align:right;">{dy_txt}</td>
+      <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;{vol_style(r['volume'], r['avg_volume'])}">{fmt_big_number(r['volume'])}</span></td>
+      <td style="text-align:right;">{fmt_big_number(r['avg_volume'])}</td>
+      <td style="text-align:right;">${r['high_52w']:.2f}</td>
+      <td style="text-align:right;">${r['low_52w']:.2f}</td>
     </tr>"""
     return out
 
@@ -202,9 +261,10 @@ h2 {{ font-size:15px; margin:24px 0 10px; color:#333; }}
 .card {{ background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:130px; }}
 .label {{ font-size:12px; color:#666; margin:0 0 4px; }}
 .value {{ font-size:20px; font-weight:600; margin:0; }}
+.table-wrap {{ overflow-x:auto; }}
 table {{ width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }}
-th {{ text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; }}
-td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; }}
+th {{ text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }}
+td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:nowrap; }}
 .note {{ font-size:11px; color:#999; margin:6px 0 0; }}
 </style>
 </head>
@@ -236,10 +296,25 @@ td {{ padding:8px 10px; border-top:1px solid #eee; font-size:13px; }}
 <p class="note">Bank rates are entered manually and may be out of date. Verify with each bank before making decisions.</p>
 
 <h2>Watchlist</h2>
+<div class="table-wrap">
 <table>
-<tr><th>Ticker</th><th style="text-align:right;">Price</th><th style="text-align:right;">Change</th><th style="text-align:right;">RSI</th></tr>
+<tr>
+<th>Ticker</th>
+<th style="text-align:right;">Price</th>
+<th style="text-align:right;">Change</th>
+<th style="text-align:right;">RSI</th>
+<th style="text-align:right;">Mkt Cap</th>
+<th style="text-align:right;">P/E</th>
+<th style="text-align:right;">Div Yld</th>
+<th style="text-align:right;">Volume</th>
+<th style="text-align:right;">Avg Vol</th>
+<th style="text-align:right;">52w High</th>
+<th style="text-align:right;">52w Low</th>
+</tr>
 {table_rows_html}
 </table>
+</div>
+<p class="note">Volume highlighted in blue when today's volume is at least 2x the 3-month average. P/E and Div Yld are blank for ETFs and non-dividend payers.</p>
 
 </body>
 </html>"""
