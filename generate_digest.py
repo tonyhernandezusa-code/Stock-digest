@@ -149,7 +149,8 @@ def def_for(name):
 NAV_HTML = """
 <div style="margin-bottom:16px;">
   <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
-  <a href="realestate.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
+  <a href="realestate.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
+  <a href="calculators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Calculators</a>
 </div>
 """
 
@@ -712,10 +713,165 @@ realestate_html = f"""<!DOCTYPE html>
 </body>
 </html>"""
 
+# ------------------- PAGE 3: CALCULATORS -------------------
+
+CALC_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financial Calculators</title>
+<style>__CSS__
+.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:520px; }
+.calc h3 { margin:0 0 12px; font-size:16px; }
+.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
+.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
+.calc button:hover { background:#163a5c; }
+.result { margin-top:14px; padding:12px; background:#f0f6ec; border-radius:6px; font-size:14px; display:none; }
+.result strong { font-size:17px; }
+</style>
+</head>
+<body>
+__NAV__
+<h1>Financial Calculators</h1>
+<p class="timestamp">These calculators run in your browser - nothing is saved or sent anywhere.</p>
+
+<div class="calc">
+<h3>Mortgage Calculator</h3>
+<label>Home price ($)</label><input type="number" id="m_price" value="400000">
+<label>Down payment ($)</label><input type="number" id="m_down" value="80000">
+<label>Interest rate (% per year)</label><input type="number" id="m_rate" value="6.5" step="0.01">
+<label>Loan term (years)</label><input type="number" id="m_years" value="30">
+<button onclick="calcMortgage()">Calculate</button>
+<div class="result" id="m_result"></div>
+</div>
+
+<div class="calc">
+<h3>Auto Loan Calculator</h3>
+<label>Vehicle price ($)</label><input type="number" id="a_price" value="35000">
+<label>Down payment + trade-in ($)</label><input type="number" id="a_down" value="5000">
+<label>Interest rate (% per year)</label><input type="number" id="a_rate" value="7.0" step="0.01">
+<label>Loan term (months)</label><input type="number" id="a_months" value="60">
+<button onclick="calcAuto()">Calculate</button>
+<div class="result" id="a_result"></div>
+</div>
+
+<div class="calc">
+<h3>Savings Calculator</h3>
+<label>Starting amount ($)</label><input type="number" id="s_start" value="10000">
+<label>Monthly contribution ($)</label><input type="number" id="s_monthly" value="500">
+<label>Interest rate / APY (% per year)</label><input type="number" id="s_rate" value="4.0" step="0.01">
+<label>Years</label><input type="number" id="s_years" value="10">
+<button onclick="calcSavings()">Calculate</button>
+<div class="result" id="s_result"></div>
+</div>
+
+<div class="calc">
+<h3>Credit Card Payoff Calculator</h3>
+<label>Current balance ($)</label><input type="number" id="c_balance" value="5000">
+<label>APR (% per year)</label><input type="number" id="c_apr" value="24.99" step="0.01">
+<label>Monthly payment ($)</label><input type="number" id="c_payment" value="200">
+<button onclick="calcCard()">Calculate</button>
+<div class="result" id="c_result"></div>
+</div>
+
+<script>
+function money(x) {
+  return "$" + x.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function show(id, html) {
+  var el = document.getElementById(id);
+  el.innerHTML = html;
+  el.style.display = "block";
+}
+function calcMortgage() {
+  var price = +document.getElementById("m_price").value;
+  var down = +document.getElementById("m_down").value;
+  var rate = +document.getElementById("m_rate").value / 100 / 12;
+  var n = +document.getElementById("m_years").value * 12;
+  var loan = price - down;
+  if (loan <= 0 || n <= 0) { show("m_result", "Check your inputs."); return; }
+  var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
+  var total = pmt * n;
+  show("m_result",
+    "Monthly payment: <strong>" + money(pmt) + "</strong><br>" +
+    "Loan amount: " + money(loan) + "<br>" +
+    "Total paid over the loan: " + money(total) + "<br>" +
+    "Total interest: " + money(total - loan) +
+    "<br><span style='font-size:11px;color:#888;'>Principal and interest only - taxes, insurance, and HOA are extra.</span>");
+}
+function calcAuto() {
+  var price = +document.getElementById("a_price").value;
+  var down = +document.getElementById("a_down").value;
+  var rate = +document.getElementById("a_rate").value / 100 / 12;
+  var n = +document.getElementById("a_months").value;
+  var loan = price - down;
+  if (loan <= 0 || n <= 0) { show("a_result", "Check your inputs."); return; }
+  var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
+  var total = pmt * n;
+  show("a_result",
+    "Monthly payment: <strong>" + money(pmt) + "</strong><br>" +
+    "Loan amount: " + money(loan) + "<br>" +
+    "Total paid: " + money(total) + "<br>" +
+    "Total interest: " + money(total - loan));
+}
+function calcSavings() {
+  var bal = +document.getElementById("s_start").value;
+  var monthly = +document.getElementById("s_monthly").value;
+  var rate = +document.getElementById("s_rate").value / 100 / 12;
+  var n = +document.getElementById("s_years").value * 12;
+  if (n <= 0) { show("s_result", "Check your inputs."); return; }
+  var contributed = bal;
+  for (var i = 0; i < n; i++) {
+    bal = bal * (1 + rate) + monthly;
+    contributed += monthly;
+  }
+  show("s_result",
+    "Final balance: <strong>" + money(bal) + "</strong><br>" +
+    "Total contributed: " + money(contributed) + "<br>" +
+    "Interest earned: " + money(bal - contributed) +
+    "<br><span style='font-size:11px;color:#888;'>Assumes monthly compounding and a constant rate.</span>");
+}
+function calcCard() {
+  var bal = +document.getElementById("c_balance").value;
+  var rate = +document.getElementById("c_apr").value / 100 / 12;
+  var pmt = +document.getElementById("c_payment").value;
+  if (bal <= 0 || pmt <= 0) { show("c_result", "Check your inputs."); return; }
+  if (pmt <= bal * rate) {
+    show("c_result", "<strong>That payment never pays it off.</strong><br>Your payment must be more than the monthly interest of " + money(bal * rate) + " for the balance to shrink.");
+    return;
+  }
+  var months = 0, interest = 0, b = bal;
+  while (b > 0 && months < 1200) {
+    var int_m = b * rate;
+    interest += int_m;
+    b = b + int_m - pmt;
+    months++;
+  }
+  var years = Math.floor(months / 12), rem = months % 12;
+  var when = (years > 0 ? years + " yr " : "") + rem + " mo";
+  show("c_result",
+    "Time to pay off: <strong>" + when + "</strong> (" + months + " payments)<br>" +
+    "Total interest paid: " + money(interest) + "<br>" +
+    "Total paid: " + money(bal + interest));
+}
+</script>
+
+</body>
+</html>"""
+
+calculators_html = (CALC_TEMPLATE
+                    .replace("__CSS__", PAGE_CSS)
+                    .replace("__NAV__", NAV_HTML))
+
 with open("index.html", "w") as f:
     f.write(stocks_html)
 
 with open("realestate.html", "w") as f:
     f.write(realestate_html)
 
-print("index.html and realestate.html generated successfully")
+with open("calculators.html", "w") as f:
+    f.write(calculators_html)
+
+print("index.html, realestate.html, and calculators.html generated successfully")
