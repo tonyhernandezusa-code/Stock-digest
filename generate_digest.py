@@ -102,6 +102,49 @@ FORECLOSURE_STATES = [
 RSI_OVERSOLD = 30
 RSI_OVERBOUGHT = 70
 
+# Hover definitions shown as tooltips on each card
+DEFINITIONS = {
+    "Watchlist": "Number of stocks being tracked in your watchlist table below.",
+    "Oversold (RSI\u226430)": "Stocks whose RSI is 30 or below - sold off hard and fast, sometimes due for a bounce.",
+    "Overbought (RSI\u226570)": "Stocks whose RSI is 70 or above - bought up hard and fast, sometimes due for a pullback.",
+    "Top mover": "The stock in your watchlist with the biggest price move today, up or down.",
+    "Fed Funds Rate": "The interest rate banks charge each other overnight, set by the Federal Reserve. The base rate that influences all other borrowing costs.",
+    "2-Yr Treasury": "Yield on 2-year US government bonds. Reflects where markets expect Fed policy over the next couple of years.",
+    "10-Yr Treasury": "Yield on 10-year US government bonds. The benchmark long-term rate that drives mortgages and stock valuations.",
+    "30-Yr Mortgage": "Average rate on a 30-year fixed home loan in the US.",
+    "Natl Avg Savings (FDIC)": "The national average interest rate paid on regular savings accounts, per the FDIC. Compare to the high-yield banks below.",
+    "Natl Avg Money Market (FDIC)": "National average rate on money market deposit accounts, per the FDIC.",
+    "Natl Avg 12-Mo CD (FDIC)": "National average rate on 12-month certificates of deposit, per the FDIC.",
+    "10-Yr minus 2-Yr Spread": "Long-term yield minus short-term yield. Negative (inverted) has historically preceded recessions.",
+    "10-Yr minus 3-Mo Spread": "10-year yield minus 3-month yield. The Fed's preferred recession-signal version of the yield curve.",
+    "High-Yield Credit Spread": "Extra yield junk bonds pay over Treasuries. Under ~3.5% = calm markets. 5%+ = credit stress building. 8%+ = crisis territory.",
+    "CPI (Inflation)": "Consumer Price Index - how much prices consumers pay rose vs a year ago. The main inflation gauge.",
+    "PPI (Producer Prices)": "Producer Price Index - how much prices businesses receive rose vs a year ago. Often leads consumer inflation.",
+    "Nonfarm Payrolls": "Jobs added or lost in the US last month, excluding farm work. The headline monthly jobs number.",
+    "Retail Sales": "Change in consumer retail spending vs the prior month. A gauge of consumer health.",
+    "ISM Manufacturing PMI": "Survey of factory purchasing managers. Above 50 = manufacturing expanding, below 50 = contracting.",
+    "Dow Jones": "Price-weighted index of 30 large US blue-chip companies.",
+    "S&P 500": "The 500 largest US companies - the main benchmark for the overall US stock market.",
+    "Nasdaq": "Index of all stocks on the Nasdaq exchange - heavily weighted toward technology.",
+    "Nasdaq-100": "The 100 largest non-financial Nasdaq companies - big tech concentrated.",
+    "Russell 2000": "Index of 2000 small-cap US companies. A gauge of smaller domestic businesses.",
+    "US Dollar (DXY)": "Strength of the US dollar vs a basket of major currencies. Strong dollar pressures multinationals and commodities.",
+    "VIX (Volatility)": "The market's fear gauge - expected S&P 500 volatility. Under 15 = calm, over 25 = fearful, over 35 = panic.",
+    "Oil (WTI)": "West Texas Intermediate crude oil price per barrel - the US oil benchmark.",
+    "Gold": "Gold price per troy ounce. Classic inflation hedge and safe-haven asset.",
+    "Silver": "Silver price per troy ounce. Part precious metal, part industrial metal.",
+    "Mortgage Delinquency Rate": "Share of single-family mortgages 30+ days behind on payments. Rising delinquencies lead foreclosures.",
+    "Housing Starts (annualized)": "New homes that began construction, as an annual pace in thousands. A gauge of builder confidence.",
+    "Building Permits (annualized)": "Permits issued for future construction, annualized in thousands. A leading indicator for housing starts.",
+    "New Home Sales (annualized)": "Newly built homes sold, as an annual pace in thousands.",
+    "30-Yr Mortgage Rate": "Average rate on a 30-year fixed home loan in the US.",
+}
+
+def def_for(name):
+    """Look up a tooltip definition, ignoring any (manual) suffix."""
+    base = name.replace(" (manual)", "")
+    return DEFINITIONS.get(base, "")
+
 NAV_HTML = """
 <div style="margin-bottom:16px;">
   <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
@@ -116,7 +159,7 @@ h2 { font-size:15px; margin:24px 0 10px; color:#333; }
 .timestamp { color:#666; font-size:13px; margin:0 0 20px; }
 .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
 .row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
-.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; }
+.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; cursor:help; }
 .label { font-size:12px; color:#666; margin:0 0 4px; }
 .value { font-size:20px; font-weight:600; margin:0; }
 .sixmo { font-size:11px; color:#888; margin:4px 0 0; }
@@ -157,11 +200,16 @@ def sixmo_line(old, new, unit="", pt_label=False):
         return ""
     try:
         delta = new - old
-        pct = (delta / old * 100) if old != 0 else 0
         color = "#1a8a3d" if delta > 0 else "#c0392b" if delta < 0 else "#888"
         amt_label = " pt" if pt_label else unit
+        # Skip the % change when the base is near zero (it becomes meaningless)
+        if abs(old) > 0.5:
+            pct = delta / old * 100
+            pct_txt = f" ({pct:+.1f}%)"
+        else:
+            pct_txt = ""
         return (f'<p class="sixmo">6 mo ago: {old:,.2f}{unit} &middot; '
-                f'<span style="color:{color};">{delta:+,.2f}{amt_label} ({pct:+.1f}%)</span></p>')
+                f'<span style="color:{color};">{delta:+,.2f}{amt_label}{pct_txt}</span></p>')
     except Exception:
         return ""
 
@@ -412,7 +460,7 @@ def simple_cards(items, dollar=True):
     for i in items:
         six = sixmo_line(i.get("price_6mo"), i["price"], unit="")
         out += f"""
-    <div class="card">
+    <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{prefix}{i['price']:,.2f}</p>
       <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}% today</p>
@@ -425,7 +473,7 @@ def rate_cards(items):
     for i in items:
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
         out += f"""
-    <div class="card">
+    <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{i['value']:.2f}%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
@@ -439,7 +487,7 @@ def curve_cards(items):
         color = "#c0392b" if i["value"] < 0 else "#1a8a3d"
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
         out += f"""
-    <div class="card">
+    <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value" style="color:{color};">{i['value']:+.2f}%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
@@ -454,7 +502,7 @@ def econ_cards(items):
         if i.get("num") is not None and i.get("num_6mo") is not None:
             six = sixmo_line(i["num_6mo"], i["num"], unit="", pt_label=True)
         out += f"""
-    <div class="card">
+    <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{i['display']}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
@@ -472,7 +520,7 @@ def re_national_cards(items):
             val = f"{i['value']:,.0f}K"
             six = sixmo_line(i.get("value_6mo"), i["value"], unit="K")
         out += f"""
-    <div class="card">
+    <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{val}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
@@ -531,10 +579,10 @@ stocks_html = f"""<!DOCTYPE html>
 <p class="timestamp">Updated {timestamp}</p>
 
 <div class="summary">
-  <div class="card"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
-  <div class="card"><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">{oversold_count}</p></div>
-  <div class="card"><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">{overbought_count}</p></div>
-  <div class="card"><p class="label">Top mover</p><p class="value">{top_mover_html}</p></div>
+  <div class="card" title="{DEFINITIONS['Watchlist']}"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
+  <div class="card" title="{DEFINITIONS['Oversold (RSI\u226430)']}"><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">{oversold_count}</p></div>
+  <div class="card" title="{DEFINITIONS['Overbought (RSI\u226570)']}"><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">{overbought_count}</p></div>
+  <div class="card" title="{DEFINITIONS['Top mover']}"><p class="label">Top mover</p><p class="value">{top_mover_html}</p></div>
 </div>
 
 <h2>Interest Rates</h2>
@@ -565,18 +613,18 @@ stocks_html = f"""<!DOCTYPE html>
 <div class="table-wrap">
 <table>
 <tr>
-<th>Ticker</th>
-<th style="text-align:right;">Price</th>
-<th style="text-align:right;">Change</th>
-<th style="text-align:right;">6-Mo Chg</th>
-<th style="text-align:right;">RSI</th>
-<th style="text-align:right;">Mkt Cap</th>
-<th style="text-align:right;">P/E</th>
-<th style="text-align:right;">Div Yld</th>
-<th style="text-align:right;">Volume</th>
-<th style="text-align:right;">Avg Vol</th>
-<th style="text-align:right;">52w High</th>
-<th style="text-align:right;">52w Low</th>
+<th title="Stock symbol">Ticker</th>
+<th style="text-align:right;" title="Latest closing price">Price</th>
+<th style="text-align:right;" title="Price change vs the previous trading day">Change</th>
+<th style="text-align:right;" title="Price change over the past 6 months">6-Mo Chg</th>
+<th style="text-align:right;" title="Relative Strength Index (0-100). Below 30 = oversold (red). Above 70 = overbought (yellow). Around 50 = neutral momentum.">RSI</th>
+<th style="text-align:right;" title="Market capitalization - total value of all the company's shares. T=trillion, B=billion, M=million.">Mkt Cap</th>
+<th style="text-align:right;" title="Price-to-earnings ratio - price divided by yearly profit per share. Higher = more expensive relative to earnings. Blank for ETFs and unprofitable companies.">P/E</th>
+<th style="text-align:right;" title="Dividend yield - yearly dividends as a percent of the stock price. Blank if no dividend.">Div Yld</th>
+<th style="text-align:right;" title="Shares traded today. Highlighted blue when at least 2x the 3-month average - a sign something is happening.">Volume</th>
+<th style="text-align:right;" title="Average daily shares traded over the past 3 months">Avg Vol</th>
+<th style="text-align:right;" title="Highest price in the past 52 weeks">52w High</th>
+<th style="text-align:right;" title="Lowest price in the past 52 weeks">52w Low</th>
 </tr>
 {stock_table_rows(rows)}
 </table>
