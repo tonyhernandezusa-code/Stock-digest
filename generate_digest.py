@@ -105,8 +105,8 @@ RSI_OVERBOUGHT = 70
 # Hover definitions shown as tooltips on each card
 DEFINITIONS = {
     "Watchlist": "Number of stocks being tracked in your watchlist table below.",
-    "Oversold (RSI\u226430)": "Stocks whose RSI is 30 or below - sold off hard and fast, sometimes due for a bounce.",
-    "Overbought (RSI\u226570)": "Stocks whose RSI is 70 or above - bought up hard and fast, sometimes due for a pullback.",
+    "Oversold (RSI≤30)": "Stocks whose RSI is 30 or below - sold off hard and fast, sometimes due for a bounce.",
+    "Overbought (RSI≥70)": "Stocks whose RSI is 70 or above - bought up hard and fast, sometimes due for a pullback.",
     "Top mover": "The stock in your watchlist with the biggest price move today, up or down.",
     "Fed Funds Rate": "The interest rate banks charge each other overnight, set by the Federal Reserve. The base rate that influences all other borrowing costs.",
     "2-Yr Treasury": "Yield on 2-year US government bonds. Reflects where markets expect Fed policy over the next couple of years.",
@@ -579,10 +579,10 @@ stocks_html = f"""<!DOCTYPE html>
 <p class="timestamp">Updated {timestamp}</p>
 
 <div class="summary">
-  <div class="card" title="{DEFINITIONS['Watchlist']}"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
-  <div class="card" title="{DEFINITIONS['Oversold (RSI\u226430)']}"><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">{oversold_count}</p></div>
-  <div class="card" title="{DEFINITIONS['Overbought (RSI\u226570)']}"><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">{overbought_count}</p></div>
-  <div class="card" title="{DEFINITIONS['Top mover']}"><p class="label">Top mover</p><p class="value">{top_mover_html}</p></div>
+  <div class="card" title="{def_for('Watchlist')}"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
+  <div class="card" title="{def_for('Oversold (RSI≤30)')}"><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">{oversold_count}</p></div>
+  <div class="card" title="{def_for('Overbought (RSI≥70)')}"><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">{overbought_count}</p></div>
+  <div class="card" title="{def_for('Top mover')}"><p class="label">Top mover</p><p class="value">{top_mover_html}</p></div>
 </div>
 
 <h2>Interest Rates</h2>
