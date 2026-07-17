@@ -11,7 +11,7 @@ h2 { font-size:15px; margin:24px 0 10px; color:#333; }
 .timestamp { color:#666; font-size:13px; margin:0 0 20px; }
 .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
 .row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
-.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; }
+.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; cursor:help; }
 .label { font-size:12px; color:#666; margin:0 0 4px; }
 .value { font-size:20px; font-weight:600; margin:0; }
 .sixmo { font-size:11px; color:#888; margin:4px 0 0; }
@@ -30,54 +30,54 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 </div>
 
 <h1>Daily Stock Digest</h1>
-<p class="timestamp">Updated 2026-07-17 01:03 UTC</p>
+<p class="timestamp">Updated 2026-07-17 01:40 UTC</p>
 
 <div class="summary">
-  <div class="card"><p class="label">Watchlist</p><p class="value">69</p></div>
-  <div class="card"><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">10</p></div>
-  <div class="card"><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">13</p></div>
-  <div class="card"><p class="label">Top mover</p><p class="value">SNDK (-12.63%)</p></div>
+  <div class="card" title="Number of stocks being tracked in your watchlist table below."><p class="label">Watchlist</p><p class="value">69</p></div>
+  <div class="card" title="Stocks whose RSI is 30 or below - sold off hard and fast, sometimes due for a bounce."><p class="label">Oversold (RSI≤30)</p><p class="value" style="color:#c0392b;">10</p></div>
+  <div class="card" title="Stocks whose RSI is 70 or above - bought up hard and fast, sometimes due for a pullback."><p class="label">Overbought (RSI≥70)</p><p class="value" style="color:#a5720b;">13</p></div>
+  <div class="card" title="The stock in your watchlist with the biggest price move today, up or down."><p class="label">Top mover</p><p class="value">SNDK (-12.63%)</p></div>
 </div>
 
 <h2>Interest Rates</h2>
 <div class="row">
-    <div class="card">
+    <div class="card" title="The interest rate banks charge each other overnight, set by the Federal Reserve. The base rate that influences all other borrowing costs.">
       <p class="label">Fed Funds Rate</p>
       <p class="value">3.63%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-15</p>
       <p class="sixmo">6 mo ago: 3.64% &middot; <span style="color:#c0392b;">-0.01 pt (-0.3%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Yield on 2-year US government bonds. Reflects where markets expect Fed policy over the next couple of years.">
       <p class="label">2-Yr Treasury</p>
       <p class="value">4.13%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-15</p>
       <p class="sixmo">6 mo ago: 3.56% &middot; <span style="color:#1a8a3d;">+0.57 pt (+16.0%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Yield on 10-year US government bonds. The benchmark long-term rate that drives mortgages and stock valuations.">
       <p class="label">10-Yr Treasury</p>
       <p class="value">4.55%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-15</p>
       <p class="sixmo">6 mo ago: 4.17% &middot; <span style="color:#1a8a3d;">+0.38 pt (+9.1%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Average rate on a 30-year fixed home loan in the US.">
       <p class="label">30-Yr Mortgage</p>
       <p class="value">6.55%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-16</p>
       <p class="sixmo">6 mo ago: 6.06% &middot; <span style="color:#1a8a3d;">+0.49 pt (+8.1%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="The national average interest rate paid on regular savings accounts, per the FDIC. Compare to the high-yield banks below.">
       <p class="label">Natl Avg Savings (FDIC)</p>
       <p class="value">0.38%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-06-01</p>
-      <p class="sixmo">6 mo ago: 0.39% &middot; <span style="color:#c0392b;">-0.01 pt (-2.6%)</span></p>
+      <p class="sixmo">6 mo ago: 0.39% &middot; <span style="color:#c0392b;">-0.01 pt</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="National average rate on money market deposit accounts, per the FDIC.">
       <p class="label">Natl Avg Money Market (FDIC)</p>
       <p class="value">0.61%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-06-01</p>
       <p class="sixmo">6 mo ago: 0.56% &middot; <span style="color:#1a8a3d;">+0.05 pt (+8.9%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="National average rate on 12-month certificates of deposit, per the FDIC.">
       <p class="label">Natl Avg 12-Mo CD (FDIC)</p>
       <p class="value">1.65%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-06-01</p>
@@ -86,19 +86,19 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 
 <h2>Yield Curve &amp; Credit</h2>
 <div class="row">
-    <div class="card">
+    <div class="card" title="Long-term yield minus short-term yield. Negative (inverted) has historically preceded recessions.">
       <p class="label">10-Yr minus 2-Yr Spread</p>
       <p class="value" style="color:#1a8a3d;">+0.41%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-16</p>
       <p class="sixmo">6 mo ago: 0.61% &middot; <span style="color:#c0392b;">-0.20 pt (-32.8%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="10-year yield minus 3-month yield. The Fed's preferred recession-signal version of the yield curve.">
       <p class="label">10-Yr minus 3-Mo Spread</p>
       <p class="value" style="color:#1a8a3d;">+0.73%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-16</p>
-      <p class="sixmo">6 mo ago: 0.49% &middot; <span style="color:#1a8a3d;">+0.24 pt (+49.0%)</span></p>
+      <p class="sixmo">6 mo ago: 0.49% &middot; <span style="color:#1a8a3d;">+0.24 pt</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Extra yield junk bonds pay over Treasuries. Under ~3.5% = calm markets. 5%+ = credit stress building. 8%+ = crisis territory.">
       <p class="label">High-Yield Credit Spread</p>
       <p class="value" style="color:#1a8a3d;">+2.71%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-07-15</p>
@@ -108,31 +108,31 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 
 <h2>Economic Indicators</h2>
 <div class="row">
-    <div class="card">
+    <div class="card" title="Consumer Price Index - how much prices consumers pay rose vs a year ago. The main inflation gauge.">
       <p class="label">CPI (Inflation)</p>
       <p class="value">+3.7% YoY</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-06-01</p>
       
     </div>
-    <div class="card">
+    <div class="card" title="Producer Price Index - how much prices businesses receive rose vs a year ago. Often leads consumer inflation.">
       <p class="label">PPI (Producer Prices)</p>
       <p class="value">+10.1% YoY</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-06-01</p>
       <p class="sixmo">6 mo ago: 3.12 &middot; <span style="color:#1a8a3d;">+6.99 pt (+223.9%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Jobs added or lost in the US last month, excluding farm work. The headline monthly jobs number.">
       <p class="label">Nonfarm Payrolls</p>
       <p class="value">+57K jobs</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-06-01</p>
       <p class="sixmo">6 mo ago: -17.00 &middot; <span style="color:#1a8a3d;">+74.00 pt (-435.3%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Change in consumer retail spending vs the prior month. A gauge of consumer health.">
       <p class="label">Retail Sales</p>
       <p class="value">+0.2% MoM</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-06-01</p>
-      <p class="sixmo">6 mo ago: -0.00 &middot; <span style="color:#1a8a3d;">+0.22 pt (-160767.7%)</span></p>
+      <p class="sixmo">6 mo ago: -0.00 &middot; <span style="color:#1a8a3d;">+0.22 pt</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Survey of factory purchasing managers. Above 50 = manufacturing expanding, below 50 = contracting.">
       <p class="label">ISM Manufacturing PMI (manual)</p>
       <p class="value">53.3</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of Jun 2026</p>
@@ -142,43 +142,43 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 
 <h2>Market Indexes</h2>
 <div class="row">
-    <div class="card">
+    <div class="card" title="Price-weighted index of 30 large US blue-chip companies.">
       <p class="label">Dow Jones</p>
       <p class="value">52,552.97</p>
       <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.20% today</p>
       <p class="sixmo">6 mo ago: 48,488.59 &middot; <span style="color:#1a8a3d;">+4,064.38 (+8.4%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="The 500 largest US companies - the main benchmark for the overall US stock market.">
       <p class="label">S&P 500</p>
       <p class="value">7,533.77</p>
       <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.51% today</p>
       <p class="sixmo">6 mo ago: 6,796.86 &middot; <span style="color:#1a8a3d;">+736.91 (+10.8%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Index of all stocks on the Nasdaq exchange - heavily weighted toward technology.">
       <p class="label">Nasdaq</p>
       <p class="value">25,881.95</p>
       <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-1.47% today</p>
       <p class="sixmo">6 mo ago: 22,954.32 &middot; <span style="color:#1a8a3d;">+2,927.63 (+12.8%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="The 100 largest non-financial Nasdaq companies - big tech concentrated.">
       <p class="label">Nasdaq-100</p>
       <p class="value">29,025.77</p>
       <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-1.62% today</p>
       <p class="sixmo">6 mo ago: 24,987.57 &middot; <span style="color:#1a8a3d;">+4,038.20 (+16.2%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Index of 2000 small-cap US companies. A gauge of smaller domestic businesses.">
       <p class="label">Russell 2000</p>
       <p class="value">2,974.57</p>
       <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.06% today</p>
       <p class="sixmo">6 mo ago: 2,645.36 &middot; <span style="color:#1a8a3d;">+329.21 (+12.4%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Strength of the US dollar vs a basket of major currencies. Strong dollar pressures multinationals and commodities.">
       <p class="label">US Dollar (DXY)</p>
-      <p class="value">100.71</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.21% today</p>
-      <p class="sixmo">6 mo ago: 99.39 &middot; <span style="color:#1a8a3d;">+1.32 (+1.3%)</span></p>
+      <p class="value">100.72</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.22% today</p>
+      <p class="sixmo">6 mo ago: 99.39 &middot; <span style="color:#1a8a3d;">+1.33 (+1.3%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="The market's fear gauge - expected S&P 500 volatility. Under 15 = calm, over 25 = fearful, over 35 = panic.">
       <p class="label">VIX (Volatility)</p>
       <p class="value">16.73</p>
       <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+6.76% today</p>
@@ -187,23 +187,23 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 
 <h2>Commodities</h2>
 <div class="row">
-    <div class="card">
+    <div class="card" title="West Texas Intermediate crude oil price per barrel - the US oil benchmark.">
       <p class="label">Oil (WTI)</p>
-      <p class="value">$79.07</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.67% today</p>
-      <p class="sixmo">6 mo ago: 59.44 &middot; <span style="color:#1a8a3d;">+19.63 (+33.0%)</span></p>
+      <p class="value">$79.56</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.05% today</p>
+      <p class="sixmo">6 mo ago: 59.44 &middot; <span style="color:#1a8a3d;">+20.12 (+33.8%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Gold price per troy ounce. Classic inflation hedge and safe-haven asset.">
       <p class="label">Gold</p>
-      <p class="value">$3,992.30</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-1.28% today</p>
-      <p class="sixmo">6 mo ago: 4,588.40 &middot; <span style="color:#c0392b;">-596.10 (-13.0%)</span></p>
+      <p class="value">$3,994.90</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-1.21% today</p>
+      <p class="sixmo">6 mo ago: 4,588.40 &middot; <span style="color:#c0392b;">-593.50 (-12.9%)</span></p>
     </div>
-    <div class="card">
+    <div class="card" title="Silver price per troy ounce. Part precious metal, part industrial metal.">
       <p class="label">Silver</p>
-      <p class="value">$55.95</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-2.03% today</p>
-      <p class="sixmo">6 mo ago: 88.09 &middot; <span style="color:#c0392b;">-32.14 (-36.5%)</span></p>
+      <p class="value">$55.79</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-2.31% today</p>
+      <p class="sixmo">6 mo ago: 88.09 &middot; <span style="color:#c0392b;">-32.30 (-36.7%)</span></p>
     </div></div>
 
 <h2>Top Savings Rates (updated manually)</h2>
@@ -257,18 +257,18 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <div class="table-wrap">
 <table>
 <tr>
-<th>Ticker</th>
-<th style="text-align:right;">Price</th>
-<th style="text-align:right;">Change</th>
-<th style="text-align:right;">6-Mo Chg</th>
-<th style="text-align:right;">RSI</th>
-<th style="text-align:right;">Mkt Cap</th>
-<th style="text-align:right;">P/E</th>
-<th style="text-align:right;">Div Yld</th>
-<th style="text-align:right;">Volume</th>
-<th style="text-align:right;">Avg Vol</th>
-<th style="text-align:right;">52w High</th>
-<th style="text-align:right;">52w Low</th>
+<th title="Stock symbol">Ticker</th>
+<th style="text-align:right;" title="Latest closing price">Price</th>
+<th style="text-align:right;" title="Price change vs the previous trading day">Change</th>
+<th style="text-align:right;" title="Price change over the past 6 months">6-Mo Chg</th>
+<th style="text-align:right;" title="Relative Strength Index (0-100). Below 30 = oversold (red). Above 70 = overbought (yellow). Around 50 = neutral momentum.">RSI</th>
+<th style="text-align:right;" title="Market capitalization - total value of all the company's shares. T=trillion, B=billion, M=million.">Mkt Cap</th>
+<th style="text-align:right;" title="Price-to-earnings ratio - price divided by yearly profit per share. Higher = more expensive relative to earnings. Blank for ETFs and unprofitable companies.">P/E</th>
+<th style="text-align:right;" title="Dividend yield - yearly dividends as a percent of the stock price. Blank if no dividend.">Div Yld</th>
+<th style="text-align:right;" title="Shares traded today. Highlighted blue when at least 2x the 3-month average - a sign something is happening.">Volume</th>
+<th style="text-align:right;" title="Average daily shares traded over the past 3 months">Avg Vol</th>
+<th style="text-align:right;" title="Highest price in the past 52 weeks">52w High</th>
+<th style="text-align:right;" title="Lowest price in the past 52 weeks">52w Low</th>
 </tr>
 
     <tr>
@@ -349,7 +349,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;background:#fdf1d0;color:#a5720b;font-weight:600;">72.95</span></td>
       <td style="text-align:right;">1.69T</td>
       <td style="text-align:right;">24.1</td>
-      <td style="text-align:right;">-</td>
+      <td style="text-align:right;">0.32%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">15.7M</span></td>
       <td style="text-align:right;">17.9M</td>
       <td style="text-align:right;">$793.65</td>
@@ -460,7 +460,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <td style="text-align:right;color:#1a8a3d;">+29.87%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">32.85</span></td>
       <td style="text-align:right;">-</td>
-      <td style="text-align:right;">28.2</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">582K</span></td>
       <td style="text-align:right;">870K</td>
@@ -739,9 +739,9 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <td style="text-align:right;color:#1a8a3d;">+3.89%</td>
       <td style="text-align:right;color:#c0392b;">-20.12%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">64.13</span></td>
-      <td style="text-align:right;">14.22B</td>
-      <td style="text-align:right;">8.8</td>
-      <td style="text-align:right;">3.63%</td>
+      <td style="text-align:right;">-</td>
+      <td style="text-align:right;">-</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">3.5M</span></td>
       <td style="text-align:right;">4.2M</td>
       <td style="text-align:right;">$71.53</td>
@@ -923,7 +923,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">38.63</span></td>
       <td style="text-align:right;">161.68B</td>
       <td style="text-align:right;">34.0</td>
-      <td style="text-align:right;">-</td>
+      <td style="text-align:right;">1.08%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">808K</span></td>
       <td style="text-align:right;">1.3M</td>
       <td style="text-align:right;">$670.49</td>
@@ -965,7 +965,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;background:#fdf1d0;color:#a5720b;font-weight:600;">75.07</span></td>
       <td style="text-align:right;">694.40B</td>
       <td style="text-align:right;">31.8</td>
-      <td style="text-align:right;">-</td>
+      <td style="text-align:right;">0.73%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">5.0M</span></td>
       <td style="text-align:right;">8.3M</td>
       <td style="text-align:right;">$365.14</td>
@@ -1077,7 +1077,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">46.45</span></td>
       <td style="text-align:right;">252.89B</td>
       <td style="text-align:right;">31.2</td>
-      <td style="text-align:right;">-</td>
+      <td style="text-align:right;">0.64%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">5.8M</span></td>
       <td style="text-align:right;">8.8M</td>
       <td style="text-align:right;">$469.47</td>
