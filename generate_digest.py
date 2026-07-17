@@ -3,6 +3,7 @@ warnings.filterwarnings("ignore")
 
 import yfinance as yf
 import requests
+import html as html_escape_mod
 from datetime import datetime, timedelta
 
 FRED_API_KEY = "d6150924a7a201d4e891d082f7123818"
@@ -213,6 +214,44 @@ def sixmo_line(old, new, unit="", pt_label=False):
     except Exception:
         return ""
 
+def fetch_news_tooltip(ticker):
+    """Fetch up to 3 recent headlines for a ticker, formatted for a hover tooltip.
+    Handles both old and new yfinance news formats. Returns '' if unavailable."""
+    try:
+        news = yf.Ticker(ticker).news
+        if not news:
+            return ""
+        lines = []
+        for item in news[:3]:
+            title = None
+            source = ""
+            when = ""
+            if isinstance(item, dict) and "content" in item and isinstance(item["content"], dict):
+                c = item["content"]
+                title = c.get("title")
+                prov = c.get("provider") or {}
+                source = prov.get("displayName") or ""
+                pub = c.get("pubDate") or ""
+                when = pub[:10] if isinstance(pub, str) else ""
+            elif isinstance(item, dict):
+                title = item.get("title")
+                source = item.get("publisher") or ""
+                ts = item.get("providerPublishTime")
+                if ts:
+                    try:
+                        when = datetime.fromtimestamp(int(ts)).strftime("%Y-%m-%d")
+                    except Exception:
+                        when = ""
+            if title:
+                suffix = " - ".join(x for x in [source, when] if x)
+                lines.append(f"{title}" + (f" ({suffix})" if suffix else ""))
+        if not lines:
+            return ""
+        text = "RECENT NEWS:\n" + "\n\n".join(lines)
+        return html_escape_mod.escape(text, quote=True)
+    except Exception:
+        return ""
+
 def fetch_stock(ticker):
     data = yf.download(ticker, period="1y", interval="1d", progress=False, auto_adjust=True)
     if data.empty or len(data) < 20:
@@ -253,6 +292,7 @@ def fetch_stock(ticker):
         "market_cap": market_cap, "pe": pe_ratio, "div_yield": div_yield,
         "volume": volume, "avg_volume": avg_volume,
         "high_52w": high_52w, "low_52w": low_52w,
+        "news": fetch_news_tooltip(ticker),
     }
 
 def fetch_simple_price(symbol):
@@ -439,7 +479,7 @@ def stock_table_rows(items):
         dy_txt = f"{r['div_yield']:.2f}%" if r['div_yield'] else "-"
         out += f"""
     <tr>
-      <td style="font-weight:600;">{r['ticker']}</td>
+      <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/{r['ticker']}" target="_blank" title="{r['news']}" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">{r['ticker']}</a></td>
       <td style="text-align:right;">${r['price']:.2f}</td>
       <td style="text-align:right;color:{pct_color(r['pct'])};">{r['pct']:+.2f}%</td>
       <td style="text-align:right;color:{pct_color(r['chg_6mo'])};">{r['chg_6mo']:+.2f}%</td>
@@ -629,7 +669,7 @@ stocks_html = f"""<!DOCTYPE html>
 {stock_table_rows(rows)}
 </table>
 </div>
-<p class="note">Volume highlighted in blue when today's volume is at least 2x the 3-month average. P/E and Div Yld are blank for ETFs and non-dividend payers.</p>
+<p class="note">Hover a ticker for its latest headlines; click it to open the full Yahoo Finance page with current news. Volume highlighted in blue when today's volume is at least 2x the 3-month average. P/E and Div Yld are blank for ETFs and non-dividend payers.</p>
 
 </body>
 </html>"""
