@@ -13,7 +13,9 @@ INDEXES = [
     ("Dow Jones", "^DJI"),
     ("S&P 500", "^GSPC"),
     ("Nasdaq", "^IXIC"),
+    ("Nasdaq-100", "^NDX"),
     ("Russell 2000", "^RUT"),
+    ("US Dollar (DXY)", "DX-Y.NYB"),
     ("VIX (Volatility)", "^VIX"),
 ]
 
@@ -31,6 +33,19 @@ FRED_RATES = [
     ("Natl Avg Savings (FDIC)", "SNDR"),
     ("Natl Avg Money Market (FDIC)", "MMNDR"),
     ("Natl Avg 12-Mo CD (FDIC)", "NDR12MCD"),
+]
+
+# Yield curve spreads from FRED (negative = inverted curve)
+YIELD_CURVE = [
+    ("10-Yr minus 2-Yr Spread", "T10Y2Y"),
+    ("10-Yr minus 3-Mo Spread", "T10Y3M"),
+    ("High-Yield Credit Spread", "BAMLH0A0HYM2"),
+]
+
+# Manually updated economic indicators (not freely available via API)
+# Ask Claude to "update my PMI" after the 1st of each month
+MANUAL_ECON = [
+    ("ISM Manufacturing PMI", "53.3", "Jun 2026"),
 ]
 
 # Rates from NerdWallet as of July 14, 2026 - verify before relying on them
@@ -73,8 +88,6 @@ STATES = [
     ("Wisconsin", "WI"), ("Wyoming", "WY"),
 ]
 
-# Top foreclosure states - UPDATE MANUALLY from ATTOM's monthly report
-# Ask Claude to "update my foreclosure table" to refresh these
 # Top foreclosure states - ATTOM Q1 2026 U.S. Foreclosure Market Report
 # "1 in X" = one foreclosure filing per X housing units (lower X = worse)
 # Ask Claude to "update my foreclosure table" to refresh from the latest report
@@ -84,7 +97,8 @@ FORECLOSURE_STATES = [
     ("Florida", "1 in 750"),
     ("Delaware", "1 in 757"),
     ("Illinois", "1 in 833"),
-]   
+]
+
 RSI_OVERSOLD = 30
 RSI_OVERBOUGHT = 70
 
@@ -201,6 +215,32 @@ def fetch_fred_rate(series_id):
     obs = fetch_fred(series_id, limit=1)
     return obs[0] if obs else None
 
+def fetch_fred_yoy(series_id):
+    """Year-over-year % change for a monthly FRED series."""
+    obs = fetch_fred(series_id, limit=13)
+    if not obs or len(obs) < 13:
+        return None
+    latest, year_ago = obs[0], obs[12]
+    yoy = (latest["value"] - year_ago["value"]) / year_ago["value"] * 100
+    return {"display": f"{yoy:+.1f}% YoY", "date": latest["date"]}
+
+def fetch_fred_mom(series_id):
+    """Month-over-month % change for a monthly FRED series."""
+    obs = fetch_fred(series_id, limit=2)
+    if not obs or len(obs) < 2:
+        return None
+    latest, prev = obs[0], obs[1]
+    mom = (latest["value"] - prev["value"]) / prev["value"] * 100
+    return {"display": f"{mom:+.1f}% MoM", "date": latest["date"]}
+
+def fetch_payrolls():
+    """Monthly change in nonfarm payrolls (PAYEMS is in thousands)."""
+    obs = fetch_fred("PAYEMS", limit=2)
+    if not obs or len(obs) < 2:
+        return None
+    change = obs[0]["value"] - obs[1]["value"]
+    return {"display": f"{change:+,.0f}K jobs", "date": obs[0]["date"]}
+
 def fetch_state_hpi(abbr):
     """FHFA state house price index (quarterly). Returns latest value + 1yr change."""
     obs = fetch_fred(f"{abbr}STHPI", limit=5)
@@ -236,6 +276,28 @@ for name, series_id in FRED_RATES:
     r = fetch_fred_rate(series_id)
     if r:
         rate_rows.append({"name": name, **r})
+
+curve_rows = []
+for name, series_id in YIELD_CURVE:
+    r = fetch_fred_rate(series_id)
+    if r:
+        curve_rows.append({"name": name, **r})
+
+econ_rows = []
+cpi = fetch_fred_yoy("CPIAUCSL")
+if cpi:
+    econ_rows.append({"name": "CPI (Inflation)", **cpi})
+ppi = fetch_fred_yoy("PPIACO")
+if ppi:
+    econ_rows.append({"name": "PPI (Producer Prices)", **ppi})
+payrolls = fetch_payrolls()
+if payrolls:
+    econ_rows.append({"name": "Nonfarm Payrolls", **payrolls})
+retail = fetch_fred_mom("RSAFS")
+if retail:
+    econ_rows.append({"name": "Retail Sales", **retail})
+for name, value, asof in MANUAL_ECON:
+    econ_rows.append({"name": f"{name} (manual)", "display": value, "date": asof})
 
 re_national_rows = []
 for name, series_id, unit in RE_NATIONAL:
@@ -322,6 +384,29 @@ def rate_cards(items):
     </div>"""
     return out
 
+def curve_cards(items):
+    out = ""
+    for i in items:
+        color = "#c0392b" if i["value"] < 0 else "#1a8a3d"
+        out += f"""
+    <div class="card">
+      <p class="label">{i['name']}</p>
+      <p class="value" style="color:{color};">{i['value']:+.2f}%</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+    </div>"""
+    return out
+
+def econ_cards(items):
+    out = ""
+    for i in items:
+        out += f"""
+    <div class="card">
+      <p class="label">{i['name']}</p>
+      <p class="value">{i['display']}</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+    </div>"""
+    return out
+
 def re_national_cards(items):
     out = ""
     for i in items:
@@ -396,6 +481,14 @@ stocks_html = f"""<!DOCTYPE html>
 
 <h2>Interest Rates</h2>
 <div class="row">{rate_cards(rate_rows)}</div>
+
+<h2>Yield Curve &amp; Credit</h2>
+<div class="row">{curve_cards(curve_rows)}</div>
+<p class="note">Negative Treasury spread (red) = inverted yield curve, historically a recession warning. High-yield credit spread: under ~3.5% = calm, 5%+ = stress building, 8%+ = crisis territory. Source: FRED.</p>
+
+<h2>Economic Indicators</h2>
+<div class="row">{econ_cards(econ_rows)}</div>
+<p class="note">CPI and PPI shown as year-over-year change. Retail sales month-over-month. PMI above 50 = manufacturing expansion (entered manually from ISM's monthly release).</p>
 
 <h2>Market Indexes</h2>
 <div class="row">{simple_cards(index_rows, dollar=False)}</div>
