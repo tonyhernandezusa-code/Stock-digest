@@ -48,6 +48,9 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <label>Down payment ($)</label><input type="number" id="m_down" value="80000">
 <label>Interest rate (% per year)</label><input type="number" id="m_rate" value="6.5" step="0.01">
 <label>Loan term (years)</label><input type="number" id="m_years" value="30">
+<label>Estimated property taxes ($ per year)</label><input type="number" id="m_tax" value="4800">
+<label>Estimated home insurance ($ per year)</label><input type="number" id="m_ins" value="2400">
+<label>HOA dues ($ per month, 0 if none)</label><input type="number" id="m_hoa" value="0">
 <button onclick="calcMortgage()">Calculate</button>
 <div class="result" id="m_result"></div>
 </div>
@@ -95,16 +98,24 @@ function calcMortgage() {
   var down = +document.getElementById("m_down").value;
   var rate = +document.getElementById("m_rate").value / 100 / 12;
   var n = +document.getElementById("m_years").value * 12;
+  var tax_m = (+document.getElementById("m_tax").value || 0) / 12;
+  var ins_m = (+document.getElementById("m_ins").value || 0) / 12;
+  var hoa_m = (+document.getElementById("m_hoa").value || 0);
   var loan = price - down;
   if (loan <= 0 || n <= 0) { show("m_result", "Check your inputs."); return; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
+  var full = pmt + tax_m + ins_m + hoa_m;
   var total = pmt * n;
+  var hoa_line = hoa_m > 0 ? "&nbsp;&nbsp;HOA dues: " + money(hoa_m) + " /mo<br>" : "";
   show("m_result",
-    "Monthly payment: <strong>" + money(pmt) + "</strong><br>" +
+    "Total monthly payment: <strong>" + money(full) + "</strong><br>" +
+    "&nbsp;&nbsp;Principal &amp; interest: " + money(pmt) + "<br>" +
+    "&nbsp;&nbsp;Property taxes: " + money(tax_m) + " /mo<br>" +
+    "&nbsp;&nbsp;Insurance: " + money(ins_m) + " /mo<br>" +
+    hoa_line +
     "Loan amount: " + money(loan) + "<br>" +
-    "Total paid over the loan: " + money(total) + "<br>" +
-    "Total interest: " + money(total - loan) +
-    "<br><span style='font-size:11px;color:#888;'>Principal and interest only - taxes, insurance, and HOA are extra.</span>");
+    "Total interest over the loan: " + money(total - loan) +
+    "<br><span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra.</span>");
 }
 function calcAuto() {
   var price = +document.getElementById("a_price").value;
