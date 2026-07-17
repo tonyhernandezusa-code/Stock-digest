@@ -3,7 +3,7 @@ warnings.filterwarnings("ignore")
 
 import yfinance as yf
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 FRED_API_KEY = "d6150924a7a201d4e891d082f7123818"
 
@@ -116,9 +116,10 @@ h2 { font-size:15px; margin:24px 0 10px; color:#333; }
 .timestamp { color:#666; font-size:13px; margin:0 0 20px; }
 .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
 .row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
-.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:130px; }
+.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; }
 .label { font-size:12px; color:#666; margin:0 0 4px; }
 .value { font-size:20px; font-weight:600; margin:0; }
+.sixmo { font-size:11px; color:#888; margin:4px 0 0; }
 .table-wrap { overflow-x:auto; }
 table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
 th { text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }
@@ -150,6 +151,20 @@ def fmt_big_number(n):
         return f"{n/1e3:.0f}K"
     return f"{n:.0f}"
 
+def sixmo_line(old, new, unit="", pt_label=False):
+    """Build the '6 months ago' comparison line: amount change + (% change)."""
+    if old is None or new is None:
+        return ""
+    try:
+        delta = new - old
+        pct = (delta / old * 100) if old != 0 else 0
+        color = "#1a8a3d" if delta > 0 else "#c0392b" if delta < 0 else "#888"
+        amt_label = " pt" if pt_label else unit
+        return (f'<p class="sixmo">6 mo ago: {old:,.2f}{unit} &middot; '
+                f'<span style="color:{color};">{delta:+,.2f}{amt_label} ({pct:+.1f}%)</span></p>')
+    except Exception:
+        return ""
+
 def fetch_stock(ticker):
     data = yf.download(ticker, period="1y", interval="1d", progress=False, auto_adjust=True)
     if data.empty or len(data) < 20:
@@ -159,6 +174,13 @@ def fetch_stock(ticker):
     prev = round(close.iloc[-2].item(), 2)
     pct = round((price - prev) / prev * 100, 2)
     rsi = round(compute_rsi(close).iloc[-1].item(), 2)
+
+    # ~126 trading days = 6 months
+    if len(close) > 126:
+        price_6mo = close.iloc[-127].item()
+    else:
+        price_6mo = close.iloc[0].item()
+    chg_6mo = round((price - price_6mo) / price_6mo * 100, 2)
 
     high_52w = round(data['High'].max().item(), 2)
     low_52w = round(data['Low'].min().item(), 2)
@@ -179,32 +201,36 @@ def fetch_stock(ticker):
         pass
 
     return {
-        "ticker": ticker, "price": price, "pct": pct, "rsi": rsi,
+        "ticker": ticker, "price": price, "pct": pct, "chg_6mo": chg_6mo, "rsi": rsi,
         "market_cap": market_cap, "pe": pe_ratio, "div_yield": div_yield,
         "volume": volume, "avg_volume": avg_volume,
         "high_52w": high_52w, "low_52w": low_52w,
     }
 
 def fetch_simple_price(symbol):
-    data = yf.download(symbol, period="5d", interval="1d", progress=False, auto_adjust=True)
-    if data.empty:
+    data = yf.download(symbol, period="6mo", interval="1d", progress=False, auto_adjust=True)
+    if data.empty or len(data) < 2:
         return None
-    price = round(data['Close'].iloc[-1].item(), 2)
-    prev = round(data['Close'].iloc[-2].item(), 2)
+    close = data['Close']
+    price = round(close.iloc[-1].item(), 2)
+    prev = round(close.iloc[-2].item(), 2)
     pct = round((price - prev) / prev * 100, 2)
-    return {"price": price, "pct": pct}
+    old = round(close.iloc[0].item(), 2)
+    return {"price": price, "pct": pct, "price_6mo": old}
 
-def fetch_fred(series_id, limit=1):
-    """Fetch the most recent observation(s) for a FRED series, newest first."""
+def fetch_fred(series_id, limit=1, sort_order="desc", observation_start=None):
+    """Fetch observations for a FRED series."""
     try:
         url = "https://api.stlouisfed.org/fred/series/observations"
         params = {
             "series_id": series_id,
             "api_key": FRED_API_KEY,
             "file_type": "json",
-            "sort_order": "desc",
+            "sort_order": sort_order,
             "limit": limit,
         }
+        if observation_start:
+            params["observation_start"] = observation_start
         resp = requests.get(url, params=params, timeout=15)
         obs = resp.json()["observations"]
         return [{"value": float(o["value"]), "date": o["date"]} for o in obs if o["value"] != "."]
@@ -212,34 +238,51 @@ def fetch_fred(series_id, limit=1):
         return None
 
 def fetch_fred_rate(series_id):
+    """Latest value plus the value from ~6 months ago."""
     obs = fetch_fred(series_id, limit=1)
-    return obs[0] if obs else None
+    if not obs:
+        return None
+    result = obs[0]
+    six_months_ago = (datetime.now() - timedelta(days=183)).strftime("%Y-%m-%d")
+    old_obs = fetch_fred(series_id, limit=1, sort_order="asc", observation_start=six_months_ago)
+    result = {**result, "value_6mo": old_obs[0]["value"] if old_obs else None}
+    return result
 
 def fetch_fred_yoy(series_id):
-    """Year-over-year % change for a monthly FRED series."""
-    obs = fetch_fred(series_id, limit=13)
+    """Year-over-year % change now, and what it was 6 months ago."""
+    obs = fetch_fred(series_id, limit=19)
     if not obs or len(obs) < 13:
         return None
-    latest, year_ago = obs[0], obs[12]
-    yoy = (latest["value"] - year_ago["value"]) / year_ago["value"] * 100
-    return {"display": f"{yoy:+.1f}% YoY", "date": latest["date"]}
+    yoy_now = (obs[0]["value"] - obs[12]["value"]) / obs[12]["value"] * 100
+    yoy_6mo = None
+    if len(obs) >= 19:
+        yoy_6mo = (obs[6]["value"] - obs[18]["value"]) / obs[18]["value"] * 100
+    return {"display": f"{yoy_now:+.1f}% YoY", "num": yoy_now, "num_6mo": yoy_6mo,
+            "date": obs[0]["date"]}
 
 def fetch_fred_mom(series_id):
-    """Month-over-month % change for a monthly FRED series."""
-    obs = fetch_fred(series_id, limit=2)
+    """Month-over-month % change now, and what it was 6 months ago."""
+    obs = fetch_fred(series_id, limit=8)
     if not obs or len(obs) < 2:
         return None
-    latest, prev = obs[0], obs[1]
-    mom = (latest["value"] - prev["value"]) / prev["value"] * 100
-    return {"display": f"{mom:+.1f}% MoM", "date": latest["date"]}
+    mom_now = (obs[0]["value"] - obs[1]["value"]) / obs[1]["value"] * 100
+    mom_6mo = None
+    if len(obs) >= 8:
+        mom_6mo = (obs[6]["value"] - obs[7]["value"]) / obs[7]["value"] * 100
+    return {"display": f"{mom_now:+.1f}% MoM", "num": mom_now, "num_6mo": mom_6mo,
+            "date": obs[0]["date"]}
 
 def fetch_payrolls():
-    """Monthly change in nonfarm payrolls (PAYEMS is in thousands)."""
-    obs = fetch_fred("PAYEMS", limit=2)
+    """Monthly change in nonfarm payrolls now vs 6 months ago (PAYEMS in thousands)."""
+    obs = fetch_fred("PAYEMS", limit=8)
     if not obs or len(obs) < 2:
         return None
-    change = obs[0]["value"] - obs[1]["value"]
-    return {"display": f"{change:+,.0f}K jobs", "date": obs[0]["date"]}
+    chg_now = obs[0]["value"] - obs[1]["value"]
+    chg_6mo = None
+    if len(obs) >= 8:
+        chg_6mo = obs[6]["value"] - obs[7]["value"]
+    return {"display": f"{chg_now:+,.0f}K jobs", "num": chg_now, "num_6mo": chg_6mo,
+            "date": obs[0]["date"]}
 
 def fetch_state_hpi(abbr):
     """FHFA state house price index (quarterly). Returns latest value + 1yr change."""
@@ -297,7 +340,8 @@ retail = fetch_fred_mom("RSAFS")
 if retail:
     econ_rows.append({"name": "Retail Sales", **retail})
 for name, value, asof in MANUAL_ECON:
-    econ_rows.append({"name": f"{name} (manual)", "display": value, "date": asof})
+    econ_rows.append({"name": f"{name} (manual)", "display": value, "date": asof,
+                      "num": None, "num_6mo": None})
 
 re_national_rows = []
 for name, series_id, unit in RE_NATIONAL:
@@ -350,6 +394,7 @@ def stock_table_rows(items):
       <td style="font-weight:600;">{r['ticker']}</td>
       <td style="text-align:right;">${r['price']:.2f}</td>
       <td style="text-align:right;color:{pct_color(r['pct'])};">{r['pct']:+.2f}%</td>
+      <td style="text-align:right;color:{pct_color(r['chg_6mo'])};">{r['chg_6mo']:+.2f}%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;{rsi_style(r['rsi'])}">{r['rsi']:.2f}</span></td>
       <td style="text-align:right;">{fmt_big_number(r['market_cap'])}</td>
       <td style="text-align:right;">{pe_txt}</td>
@@ -365,22 +410,26 @@ def simple_cards(items, dollar=True):
     out = ""
     prefix = "$" if dollar else ""
     for i in items:
+        six = sixmo_line(i.get("price_6mo"), i["price"], unit="")
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
       <p class="value">{prefix}{i['price']:,.2f}</p>
-      <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}%</p>
+      <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}% today</p>
+      {six}
     </div>"""
     return out
 
 def rate_cards(items):
     out = ""
     for i in items:
+        six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
       <p class="value">{i['value']:.2f}%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {six}
     </div>"""
     return out
 
@@ -388,22 +437,28 @@ def curve_cards(items):
     out = ""
     for i in items:
         color = "#c0392b" if i["value"] < 0 else "#1a8a3d"
+        six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
       <p class="value" style="color:{color};">{i['value']:+.2f}%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {six}
     </div>"""
     return out
 
 def econ_cards(items):
     out = ""
     for i in items:
+        six = ""
+        if i.get("num") is not None and i.get("num_6mo") is not None:
+            six = sixmo_line(i["num_6mo"], i["num"], unit="", pt_label=True)
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
       <p class="value">{i['display']}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {six}
     </div>"""
     return out
 
@@ -412,13 +467,16 @@ def re_national_cards(items):
     for i in items:
         if i["unit"] == "%":
             val = f"{i['value']:.2f}%"
+            six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
         else:
             val = f"{i['value']:,.0f}K"
+            six = sixmo_line(i.get("value_6mo"), i["value"], unit="K")
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
       <p class="value">{val}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {six}
     </div>"""
     return out
 
@@ -488,7 +546,7 @@ stocks_html = f"""<!DOCTYPE html>
 
 <h2>Economic Indicators</h2>
 <div class="row">{econ_cards(econ_rows)}</div>
-<p class="note">CPI and PPI shown as year-over-year change. Retail sales month-over-month. PMI above 50 = manufacturing expansion (entered manually from ISM's monthly release).</p>
+<p class="note">CPI and PPI shown as year-over-year change. Retail sales month-over-month. PMI above 50 = manufacturing expansion (entered manually from ISM's monthly release). "6 mo ago" compares each reading to the same measure six months earlier.</p>
 
 <h2>Market Indexes</h2>
 <div class="row">{simple_cards(index_rows, dollar=False)}</div>
@@ -510,6 +568,7 @@ stocks_html = f"""<!DOCTYPE html>
 <th>Ticker</th>
 <th style="text-align:right;">Price</th>
 <th style="text-align:right;">Change</th>
+<th style="text-align:right;">6-Mo Chg</th>
 <th style="text-align:right;">RSI</th>
 <th style="text-align:right;">Mkt Cap</th>
 <th style="text-align:right;">P/E</th>
@@ -544,7 +603,7 @@ realestate_html = f"""<!DOCTYPE html>
 
 <h2>National Housing Indicators</h2>
 <div class="row">{re_national_cards(re_national_rows)}</div>
-<p class="note">Housing starts, permits, and new home sales are seasonally adjusted annual rates in thousands. Source: Federal Reserve (FRED).</p>
+<p class="note">Housing starts, permits, and new home sales are seasonally adjusted annual rates in thousands. "6 mo ago" compares to the reading six months earlier. Source: Federal Reserve (FRED).</p>
 
 <h2>House Price Change by State (1-Year, FHFA Index)</h2>
 <div class="table-wrap">
