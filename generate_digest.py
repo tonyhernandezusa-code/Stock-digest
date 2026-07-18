@@ -742,6 +742,19 @@ __NAV__
 <p class="timestamp">These calculators run in your browser - nothing is saved or sent anywhere.</p>
 
 <div class="calc">
+<h3>Home Affordability - How Much Do I Qualify For?</h3>
+<label>Your annual gross income ($ - before taxes)</label><input type="number" id="q_inc1" value="75000">
+<label>Co-borrower annual gross income ($ - spouse/partner on the loan, 0 if single)</label><input type="number" id="q_inc2" value="0">
+<label>Total monthly debt payments ($ - car loans, credit card minimums, student loans, child support. NOT groceries, utilities, or rent you will stop paying)</label><input type="number" id="q_debts" value="500">
+<label>Down payment you have available ($)</label><input type="number" id="q_down" value="40000">
+<label>Expected mortgage rate (% per year)</label><input type="number" id="q_rate" value="6.5" step="0.01">
+<label>Loan term (years)</label><input type="number" id="q_years" value="30">
+<label>Estimated property taxes + insurance + HOA ($ per month)</label><input type="number" id="q_tih" value="600">
+<button onclick="calcQualify()">Calculate</button>
+<div class="result" id="q_result"></div>
+</div>
+
+<div class="calc">
 <h3>Mortgage Calculator</h3>
 <label>Home price ($)</label><input type="number" id="m_price" value="400000">
 <label>Down payment ($)</label><input type="number" id="m_down" value="80000">
@@ -821,6 +834,45 @@ function show(id, html) {
   var el = document.getElementById(id);
   el.innerHTML = html;
   el.style.display = "block";
+}
+function calcQualify() {
+  var gm = ((+document.getElementById("q_inc1").value || 0) + (+document.getElementById("q_inc2").value || 0)) / 12;
+  var debts = (+document.getElementById("q_debts").value || 0);
+  var down = (+document.getElementById("q_down").value || 0);
+  var rate = (+document.getElementById("q_rate").value || 0) / 100 / 12;
+  var n = (+document.getElementById("q_years").value || 30) * 12;
+  var tih = (+document.getElementById("q_tih").value || 0);
+  if (gm <= 0) { show("q_result", "Enter your income."); return; }
+
+  function scenario(front_pct, back_pct) {
+    var housing = Math.min(gm * front_pct, gm * back_pct - debts);
+    var pi = housing - tih;
+    if (pi <= 0) return null;
+    var loan = rate > 0 ? pi * (1 - Math.pow(1 + rate, -n)) / rate : pi * n;
+    return { housing: housing, pi: pi, loan: loan, price: loan + down };
+  }
+
+  var cons = scenario(0.28, 0.36);
+  var aggr = scenario(0.31, 0.43);
+  var html = "Gross monthly household income: <strong>" + money(gm) + "</strong><br><br>";
+  if (!cons && !aggr) {
+    show("q_result", html + "<strong>With these debts and costs, the standard ratios leave no room for a mortgage payment.</strong><br>Paying down monthly debts is the fastest way to raise what you qualify for.");
+    return;
+  }
+  if (cons) {
+    html += "<u>Conservative (28/36 rule - most lenders' comfort zone)</u><br>" +
+      "Max home price: <strong>" + money(cons.price) + "</strong><br>" +
+      "&nbsp;&nbsp;Max loan: " + money(cons.loan) + " + your " + money(down) + " down<br>" +
+      "&nbsp;&nbsp;Monthly housing budget: " + money(cons.housing) + " (" + money(cons.pi) + " P&amp;I + " + money(tih) + " tax/ins/HOA)<br><br>";
+  }
+  if (aggr) {
+    html += "<u>Upper limit (31/43 - FHA-style stretch)</u><br>" +
+      "Max home price: <strong>" + money(aggr.price) + "</strong><br>" +
+      "&nbsp;&nbsp;Max loan: " + money(aggr.loan) + " + your " + money(down) + " down<br>" +
+      "&nbsp;&nbsp;Monthly housing budget: " + money(aggr.housing) + "<br><br>";
+  }
+  html += "<span style='font-size:11px;color:#888;'>This is an estimate, not a preapproval. Lenders also weigh credit score, employment history, and cash reserves - and qualifying for the upper number does not mean it is comfortable to live with. The first number uses the classic 28/36 rule: housing under 28% of gross income, all debts under 36%.</span>";
+  show("q_result", html);
 }
 function calcMortgage() {
   var price = +document.getElementById("m_price").value;
