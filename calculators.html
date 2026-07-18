@@ -53,6 +53,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <label>HOA dues ($ per month, 0 if none)</label><input type="number" id="m_hoa" value="0">
 <button onclick="calcMortgage()">Calculate</button>
 <div class="result" id="m_result"></div>
+<div id="m_amort" style="margin-top:14px;"></div>
 </div>
 
 <div class="calc">
@@ -116,6 +117,34 @@ function calcMortgage() {
     "Loan amount: " + money(loan) + "<br>" +
     "Total interest over the loan: " + money(total - loan) +
     "<br><span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra.</span>");
+
+  // Yearly amortization schedule (principal & interest only)
+  var bal = loan, t = "";
+  t += "<h3 style='font-size:14px;margin:10px 0 8px;'>Amortization Schedule (yearly)</h3>";
+  t += "<div class='table-wrap'><table><tr>";
+  t += "<th>Year</th>";
+  t += "<th style='text-align:right;'>Principal Paid</th>";
+  t += "<th style='text-align:right;'>Interest Paid</th>";
+  t += "<th style='text-align:right;'>Remaining Balance</th></tr>";
+  var years_n = Math.ceil(n / 12);
+  for (var y = 1; y <= years_n; y++) {
+    var prinY = 0, intY = 0;
+    for (var m = 0; m < 12 && bal > 0.005; m++) {
+      var im = bal * rate;
+      var pr = Math.min(pmt - im, bal);
+      intY += im;
+      prinY += pr;
+      bal -= pr;
+    }
+    t += "<tr><td>" + y + "</td>" +
+         "<td style='text-align:right;'>" + money(prinY) + "</td>" +
+         "<td style='text-align:right;'>" + money(intY) + "</td>" +
+         "<td style='text-align:right;'>" + money(Math.max(bal, 0)) + "</td></tr>";
+    if (bal <= 0.005) break;
+  }
+  t += "</table></div>";
+  t += "<p class='note'>Shows how each year's payments split between principal and interest. Early years are mostly interest; the balance shrinks faster over time.</p>";
+  document.getElementById("m_amort").innerHTML = t;
 }
 function calcAuto() {
   var price = +document.getElementById("a_price").value;
