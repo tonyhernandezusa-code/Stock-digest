@@ -24,6 +24,7 @@ COMMODITIES = [
     ("Oil (WTI)", "CL=F"),
     ("Gold", "GC=F"),
     ("Silver", "SI=F"),
+    ("Copper", "HG=F"),
 ]
 
 FRED_RATES = [
@@ -34,6 +35,7 @@ FRED_RATES = [
     ("Natl Avg Savings (FDIC)", "SNDR"),
     ("Natl Avg Money Market (FDIC)", "MMNDR"),
     ("Natl Avg 12-Mo CD (FDIC)", "NDR12MCD"),
+    ("Natl Avg Credit Card Rate", "TERMCBCCALLNS"),
 ]
 
 # Yield curve spreads from FRED (negative = inverted curve)
@@ -116,6 +118,7 @@ DEFINITIONS = {
     "Natl Avg Savings (FDIC)": "The national average interest rate paid on regular savings accounts, per the FDIC. Compare to the high-yield banks below.",
     "Natl Avg Money Market (FDIC)": "National average rate on money market deposit accounts, per the FDIC.",
     "Natl Avg 12-Mo CD (FDIC)": "National average rate on 12-month certificates of deposit, per the FDIC.",
+    "Natl Avg Credit Card Rate": "Average interest rate US banks charge on credit card accounts, per the Federal Reserve. Updated quarterly.",
     "10-Yr minus 2-Yr Spread": "Long-term yield minus short-term yield. Negative (inverted) has historically preceded recessions.",
     "10-Yr minus 3-Mo Spread": "10-year yield minus 3-month yield. The Fed's preferred recession-signal version of the yield curve.",
     "High-Yield Credit Spread": "Extra yield junk bonds pay over Treasuries. Under ~3.5% = calm markets. 5%+ = credit stress building. 8%+ = crisis territory.",
@@ -134,6 +137,7 @@ DEFINITIONS = {
     "Oil (WTI)": "West Texas Intermediate crude oil price per barrel - the US oil benchmark.",
     "Gold": "Gold price per troy ounce. Classic inflation hedge and safe-haven asset.",
     "Silver": "Silver price per troy ounce. Part precious metal, part industrial metal.",
+    "Copper": "Copper price per pound. Nicknamed Dr. Copper - demand tracks construction and manufacturing, so it is watched as an economic health gauge.",
     "Mortgage Delinquency Rate": "Share of single-family mortgages 30+ days behind on payments. Rising delinquencies lead foreclosures.",
     "Housing Starts (annualized)": "New homes that began construction, as an annual pace in thousands. A gauge of builder confidence.",
     "Building Permits (annualized)": "Permits issued for future construction, annualized in thousands. A leading indicator for housing starts.",
@@ -746,6 +750,20 @@ __NAV__
 <label>Estimated property taxes ($ per year)</label><input type="number" id="m_tax" value="4800">
 <label>Estimated home insurance ($ per year)</label><input type="number" id="m_ins" value="2400">
 <label>HOA dues ($ per month, 0 if none)</label><input type="number" id="m_hoa" value="0">
+<label>Balloon payment (loan due early after N years)</label>
+<select id="m_balloon" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="0" selected>No balloon - regular loan</option>
+<option value="1">Balloon at year 1</option><option value="2">Balloon at year 2</option>
+<option value="3">Balloon at year 3</option><option value="4">Balloon at year 4</option>
+<option value="5">Balloon at year 5</option><option value="6">Balloon at year 6</option>
+<option value="7">Balloon at year 7</option><option value="8">Balloon at year 8</option>
+<option value="9">Balloon at year 9</option><option value="10">Balloon at year 10</option>
+<option value="11">Balloon at year 11</option><option value="12">Balloon at year 12</option>
+<option value="13">Balloon at year 13</option><option value="14">Balloon at year 14</option>
+<option value="15">Balloon at year 15</option><option value="16">Balloon at year 16</option>
+<option value="17">Balloon at year 17</option><option value="18">Balloon at year 18</option>
+<option value="19">Balloon at year 19</option><option value="20">Balloon at year 20</option>
+</select>
 <button onclick="calcMortgage()">Calculate</button>
 <div class="result" id="m_result"></div>
 <div id="m_amort" style="margin-top:14px;"></div>
@@ -798,19 +816,32 @@ function calcMortgage() {
   var ins_m = (+document.getElementById("m_ins").value || 0) / 12;
   var hoa_m = (+document.getElementById("m_hoa").value || 0);
   var loan = price - down;
+  var balloonY = +document.getElementById("m_balloon").value;
   if (loan <= 0 || n <= 0) { show("m_result", "Check your inputs."); return; }
+  if (balloonY > 0 && balloonY * 12 >= n) { balloonY = 0; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
   var full = pmt + tax_m + ins_m + hoa_m;
   var total = pmt * n;
   var hoa_line = hoa_m > 0 ? "&nbsp;&nbsp;HOA dues: " + money(hoa_m) + " /mo<br>" : "";
+  var balloon_line = "";
+  if (balloonY > 0) {
+    var bb = loan, bint = 0;
+    for (var bm = 0; bm < balloonY * 12; bm++) {
+      var bi = bb * rate; bint += bi; bb -= (pmt - bi);
+    }
+    balloon_line = "<span style='color:#c0392b;font-weight:600;'>Balloon due at end of year " + balloonY + ": " + money(bb) + "</span><br>" +
+                   "Interest paid before the balloon: " + money(bint) + "<br>";
+    total = pmt * balloonY * 12 + bb;
+  }
   show("m_result",
     "Total monthly payment: <strong>" + money(full) + "</strong><br>" +
     "&nbsp;&nbsp;Principal &amp; interest: " + money(pmt) + "<br>" +
     "&nbsp;&nbsp;Property taxes: " + money(tax_m) + " /mo<br>" +
     "&nbsp;&nbsp;Insurance: " + money(ins_m) + " /mo<br>" +
     hoa_line +
+    balloon_line +
     "Loan amount: " + money(loan) + "<br>" +
-    "Total interest over the loan: " + money(total - loan) +
+    (balloonY > 0 ? "" : "Total interest over the loan: " + money(total - loan)) +
     "<br><span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra.</span>");
 
   // Yearly amortization schedule (principal & interest only)
@@ -821,7 +852,7 @@ function calcMortgage() {
   t += "<th style='text-align:right;'>Principal Paid</th>";
   t += "<th style='text-align:right;'>Interest Paid</th>";
   t += "<th style='text-align:right;'>Remaining Balance</th></tr>";
-  var years_n = Math.ceil(n / 12);
+  var years_n = balloonY > 0 ? balloonY : Math.ceil(n / 12);
   for (var y = 1; y <= years_n; y++) {
     var prinY = 0, intY = 0;
     for (var m = 0; m < 12 && bal > 0.005; m++) {
@@ -837,8 +868,13 @@ function calcMortgage() {
          "<td style='text-align:right;'>" + money(Math.max(bal, 0)) + "</td></tr>";
     if (bal <= 0.005) break;
   }
+  if (balloonY > 0 && bal > 0.005) {
+    t += "<tr style='background:#fbe0dd;'><td colspan='3' style='font-weight:600;'>Balloon payment due (end of year " + balloonY + ")</td>" +
+         "<td style='text-align:right;font-weight:600;color:#c0392b;'>" + money(bal) + "</td></tr>";
+  }
   t += "</table></div>";
-  t += "<p class='note'>Shows how each year's payments split between principal and interest. Early years are mostly interest; the balance shrinks faster over time.</p>";
+  t += "<p class='note'>Shows how each year's payments split between principal and interest. Early years are mostly interest; the balance shrinks faster over time." +
+       (balloonY > 0 ? " With a balloon, you make regular payments until the balloon year, then the entire remaining balance is due at once - typically refinanced or paid from a sale." : "") + "</p>";
   document.getElementById("m_amort").innerHTML = t;
 }
 function calcAuto() {
