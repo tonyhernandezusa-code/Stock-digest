@@ -774,6 +774,12 @@ __NAV__
 <label>Home inspection ($ - paid upfront, typically $300-600)</label><input type="number" id="m_inspect" value="500">
 <label>Buyer's agent commission (% of price - enter 0 if the seller covers it)</label><input type="number" id="m_comm" value="0" step="0.1">
 <label>Other closing costs - title, escrow/closing agent, lender fees, recording (typically 2-4% of price)</label><input type="number" id="m_closing" value="3" step="0.1">
+<label>Payment frequency</label>
+<select id="m_freq" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="monthly" selected>Monthly (12 payments/year)</option>
+<option value="biweekly">Biweekly - half payment every 2 weeks (26 half-payments = 13 full payments/year)</option>
+</select>
+<label>Extra principal per payment ($ - e.g. 100 extra each month, or 50 extra each biweekly payment; 0 for none)</label><input type="number" id="m_extra" value="0">
 <label>Balloon payment (loan due early after N years)</label>
 <select id="m_balloon" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
 <option value="0" selected>No balloon - regular loan</option>
@@ -909,6 +915,10 @@ function calcMortgage() {
   var closing_amt = price * closing_pct / 100;
   var cash_to_close = down + comm_amt + closing_amt + inspect_amt;
   var balloonY = +document.getElementById("m_balloon").value;
+  var biweekly = document.getElementById("m_freq").value === "biweekly";
+  var extra = (+document.getElementById("m_extra").value || 0);
+  if (biweekly && balloonY > 0) { biweekly = false; }
+  if (extra > 0 && balloonY > 0) { extra = 0; }
   if (loan <= 0 || n <= 0) { show("m_result", "Check your inputs."); return; }
   if (balloonY > 0 && balloonY * 12 >= n) { balloonY = 0; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
@@ -930,7 +940,36 @@ function calcMortgage() {
                    "Interest paid before the balloon: " + money(bint) + "<br>";
     total = pmt * balloonY * 12 + bb;
   }
+  var bw_line = "";
+  var accel = (biweekly || extra > 0);
+  if (accel) {
+    var per_yr2 = biweekly ? 26 : 12;
+    var r2 = (+document.getElementById("m_rate").value) / 100 / per_yr2;
+    var base_pmt2 = biweekly ? pmt / 2 : pmt;
+    var pay2 = base_pmt2 + extra;
+    var bb2 = loan, ai_int = 0, periods = 0;
+    while (bb2 > 0.005 && periods < per_yr2 * 60) {
+      var ib = bb2 * r2;
+      ai_int += ib;
+      bb2 -= Math.min(pay2 - ib, bb2);
+      periods++;
+    }
+    var ai_years = periods / per_yr2;
+    var monthly_int = pmt * n - loan;
+    var plan_label = biweekly
+      ? (extra > 0 ? money(base_pmt2) + " + " + money(extra) + " extra principal every 2 weeks" : money(base_pmt2) + " every 2 weeks")
+      : money(pmt) + " + " + money(extra) + " extra principal each month";
+    bw_line = "<br><u>Accelerated plan: " + plan_label + "</u><br>" +
+      "Paid off in: <strong>" + ai_years.toFixed(1) + " years</strong> instead of " + (n/12) + "<br>" +
+      "Total interest: " + money(ai_int) + "<br>" +
+      "<span style='color:#1a8a3d;font-weight:600;'>You save " + money(monthly_int - ai_int) + " in interest and " + ((n/12) - ai_years).toFixed(1) + " years</span><br>" +
+      "<span style='font-size:11px;color:#888;'>" +
+      (biweekly ? "Biweekly works because 26 half-payments = 13 full payments a year. Verify your lender applies payments immediately and charges no fee - otherwise just make extra principal payments yourself. " : "") +
+      (extra > 0 ? "Make sure extra payments are marked APPLY TO PRINCIPAL - otherwise some lenders just credit them toward next month's payment, which saves you nothing." : "") +
+      "</span><br>";
+  }
   show("m_result",
+    bw_line +
     "Total monthly payment: <strong>" + money(full) + "</strong><br>" +
     "&nbsp;&nbsp;1st mortgage principal &amp; interest: " + money(pmt) + "<br>" +
     sec_line +
@@ -949,18 +988,21 @@ function calcMortgage() {
 
   // Yearly amortization schedule (principal & interest only)
   var bal = loan, t = "";
-  t += "<h3 style='font-size:14px;margin:10px 0 8px;'>Amortization Schedule (yearly, 1st mortgage)</h3>";
+  t += "<h3 style='font-size:14px;margin:10px 0 8px;'>Amortization Schedule (yearly, 1st mortgage" + (biweekly ? ", biweekly payments" : "") + (extra > 0 ? ", with extra principal" : "") + ")</h3>";
   t += "<div class='table-wrap'><table><tr>";
   t += "<th>Year</th>";
   t += "<th style='text-align:right;'>Principal Paid</th>";
   t += "<th style='text-align:right;'>Interest Paid</th>";
   t += "<th style='text-align:right;'>Remaining Balance</th></tr>";
-  var years_n = balloonY > 0 ? balloonY : Math.ceil(n / 12);
+  var per_year = biweekly ? 26 : 12;
+  var per_rate = biweekly ? (+document.getElementById("m_rate").value) / 100 / 26 : rate;
+  var per_pmt = (biweekly ? pmt / 2 : pmt) + extra;
+  var years_n = balloonY > 0 ? balloonY : ((biweekly || extra > 0) ? 60 : Math.ceil(n / 12));
   for (var y = 1; y <= years_n; y++) {
     var prinY = 0, intY = 0;
-    for (var m = 0; m < 12 && bal > 0.005; m++) {
-      var im = bal * rate;
-      var pr = Math.min(pmt - im, bal);
+    for (var m = 0; m < per_year && bal > 0.005; m++) {
+      var im = bal * per_rate;
+      var pr = Math.min(per_pmt - im, bal);
       intY += im;
       prinY += pr;
       bal -= pr;
