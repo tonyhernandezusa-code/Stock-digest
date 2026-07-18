@@ -750,6 +750,15 @@ __NAV__
 <label>Estimated property taxes ($ per year)</label><input type="number" id="m_tax" value="4800">
 <label>Estimated home insurance ($ per year)</label><input type="number" id="m_ins" value="2400">
 <label>HOA dues ($ per month, 0 if none)</label><input type="number" id="m_hoa" value="0">
+<label>Second mortgage / piggyback loan ($ - reduces the first mortgage, 0 if none)</label><input type="number" id="m_sec" value="0">
+<label>Second mortgage rate (% per year)</label><input type="number" id="m_sec_rate" value="8.5" step="0.01">
+<label>Second mortgage type</label>
+<select id="m_sec_type" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="io" selected>Interest-only (principal due at payoff/refinance)</option>
+<option value="am">Amortized (paid down monthly)</option>
+</select>
+<label>Second mortgage term (years, for amortized)</label><input type="number" id="m_sec_years" value="15">
+<label>Home inspection ($ - paid upfront, typically $300-600)</label><input type="number" id="m_inspect" value="500">
 <label>Buyer's agent commission (% of price - enter 0 if the seller covers it)</label><input type="number" id="m_comm" value="0" step="0.1">
 <label>Other closing costs (% of price - title, lender, escrow; typically 2-4%)</label><input type="number" id="m_closing" value="3" step="0.1">
 <label>Balloon payment (loan due early after N years)</label>
@@ -817,19 +826,37 @@ function calcMortgage() {
   var tax_m = (+document.getElementById("m_tax").value || 0) / 12;
   var ins_m = (+document.getElementById("m_ins").value || 0) / 12;
   var hoa_m = (+document.getElementById("m_hoa").value || 0);
-  var loan = price - down;
+  var sec_amt = (+document.getElementById("m_sec").value || 0);
+  var sec_rate = (+document.getElementById("m_sec_rate").value || 0) / 100 / 12;
+  var sec_type = document.getElementById("m_sec_type").value;
+  var sec_n = (+document.getElementById("m_sec_years").value || 0) * 12;
+  var inspect_amt = (+document.getElementById("m_inspect").value || 0);
+  var loan = price - down - sec_amt;
+  var sec_pmt = 0;
+  if (sec_amt > 0) {
+    if (sec_type === "io" || sec_n <= 0) {
+      sec_pmt = sec_amt * sec_rate;
+    } else {
+      sec_pmt = sec_rate > 0 ? sec_amt * sec_rate / (1 - Math.pow(1 + sec_rate, -sec_n)) : sec_amt / sec_n;
+    }
+  }
   var comm_pct = (+document.getElementById("m_comm").value || 0);
   var closing_pct = (+document.getElementById("m_closing").value || 0);
   var comm_amt = price * comm_pct / 100;
   var closing_amt = price * closing_pct / 100;
-  var cash_to_close = down + comm_amt + closing_amt;
+  var cash_to_close = down + comm_amt + closing_amt + inspect_amt;
   var balloonY = +document.getElementById("m_balloon").value;
   if (loan <= 0 || n <= 0) { show("m_result", "Check your inputs."); return; }
   if (balloonY > 0 && balloonY * 12 >= n) { balloonY = 0; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
-  var full = pmt + tax_m + ins_m + hoa_m;
+  var full = pmt + sec_pmt + tax_m + ins_m + hoa_m;
   var total = pmt * n;
   var hoa_line = hoa_m > 0 ? "&nbsp;&nbsp;HOA dues: " + money(hoa_m) + " /mo<br>" : "";
+  var sec_line = "";
+  if (sec_amt > 0) {
+    var sec_label = (sec_type === "io") ? "interest-only" : "amortized over " + (sec_n/12) + " yrs";
+    sec_line = "&nbsp;&nbsp;2nd mortgage (" + sec_label + "): " + money(sec_pmt) + " /mo<br>";
+  }
   var balloon_line = "";
   if (balloonY > 0) {
     var bb = loan, bint = 0;
@@ -842,22 +869,24 @@ function calcMortgage() {
   }
   show("m_result",
     "Total monthly payment: <strong>" + money(full) + "</strong><br>" +
-    "&nbsp;&nbsp;Principal &amp; interest: " + money(pmt) + "<br>" +
+    "&nbsp;&nbsp;1st mortgage principal &amp; interest: " + money(pmt) + "<br>" +
+    sec_line +
     "&nbsp;&nbsp;Property taxes: " + money(tax_m) + " /mo<br>" +
     "&nbsp;&nbsp;Insurance: " + money(ins_m) + " /mo<br>" +
     hoa_line +
     balloon_line +
-    "Loan amount: " + money(loan) + "<br>" +
+    "1st mortgage amount: " + money(loan) + (sec_amt > 0 ? "<br>2nd mortgage amount: " + money(sec_amt) : "") + "<br>" +
     (balloonY > 0 ? "" : "Total interest over the loan: " + money(total - loan) + "<br>") +
     "<br><u>Cash needed at closing: <strong>" + money(cash_to_close) + "</strong></u><br>" +
     "&nbsp;&nbsp;Down payment: " + money(down) + "<br>" +
     (comm_amt > 0 ? "&nbsp;&nbsp;Buyer's agent commission (" + comm_pct + "%): " + money(comm_amt) + "<br>" : "") +
     (closing_amt > 0 ? "&nbsp;&nbsp;Other closing costs (" + closing_pct + "%): " + money(closing_amt) + "<br>" : "") +
-    "<span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra. Buyer-agent commission is negotiable and cannot usually be rolled into the loan - though sellers often agree to cover it, so ask. Every dollar paid in commission is a dollar unavailable for your down payment.</span>");
+    (inspect_amt > 0 ? "&nbsp;&nbsp;Home inspection: " + money(inspect_amt) + "<br>" : "") +
+    "<span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra. With an interest-only second mortgage, the monthly payment never reduces its principal - the full amount remains due at payoff, sale, or refinance. Buyer-agent commission is negotiable and cannot usually be rolled into the loan - though sellers often agree to cover it, so ask. Every dollar paid in commission is a dollar unavailable for your down payment.</span>");
 
   // Yearly amortization schedule (principal & interest only)
   var bal = loan, t = "";
-  t += "<h3 style='font-size:14px;margin:10px 0 8px;'>Amortization Schedule (yearly)</h3>";
+  t += "<h3 style='font-size:14px;margin:10px 0 8px;'>Amortization Schedule (yearly, 1st mortgage)</h3>";
   t += "<div class='table-wrap'><table><tr>";
   t += "<th>Year</th>";
   t += "<th style='text-align:right;'>Principal Paid</th>";
@@ -899,7 +928,7 @@ function calcAuto() {
   var total = pmt * n;
   show("a_result",
     "Monthly payment: <strong>" + money(pmt) + "</strong><br>" +
-    "Loan amount: " + money(loan) + "<br>" +
+    "1st mortgage amount: " + money(loan) + (sec_amt > 0 ? "<br>2nd mortgage amount: " + money(sec_amt) : "") + "<br>" +
     "Total paid: " + money(total) + "<br>" +
     "Total interest: " + money(total - loan));
 }
