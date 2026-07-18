@@ -99,6 +99,13 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <label>Vehicle price ($)</label><input type="number" id="a_price" value="35000">
 <label>Down payment ($)</label><input type="number" id="a_down" value="3000">
 <label>Trade-in value ($)</label><input type="number" id="a_trade" value="2000">
+<label>Sales tax (% - most states tax the price AFTER trade-in credit)</label><input type="number" id="a_tax" value="6.5" step="0.1">
+<label>Dealer/doc/title fees ($)</label><input type="number" id="a_fees" value="800">
+<label>Roll tax &amp; fees into the loan?</label>
+<select id="a_roll" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="yes" selected>Yes - finance them (most common)</option>
+<option value="no">No - I will pay them in cash</option>
+</select>
 <label>Interest rate (% per year)</label><input type="number" id="a_rate" value="7.0" step="0.01">
 <label>Loan term (months)</label><input type="number" id="a_months" value="60">
 <button onclick="calcAuto()">Calculate</button>
@@ -278,9 +285,15 @@ function calcAuto() {
   var price = +document.getElementById("a_price").value;
   var down = (+document.getElementById("a_down").value || 0);
   var trade = (+document.getElementById("a_trade").value || 0);
+  var tax_pct = (+document.getElementById("a_tax").value || 0) / 100;
+  var fees = (+document.getElementById("a_fees").value || 0);
+  var roll = document.getElementById("a_roll").value === "yes";
   var rate = +document.getElementById("a_rate").value / 100 / 12;
   var n = +document.getElementById("a_months").value;
-  var loan = price - down - trade;
+  var taxable = Math.max(price - trade, 0);
+  var tax = taxable * tax_pct;
+  var loan = price - down - trade + (roll ? tax + fees : 0);
+  var cash_upfront = down + (roll ? 0 : tax + fees);
   if (loan <= 0 || n <= 0) { show("a_result", "Check your inputs."); return; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
   var total = pmt * n;
@@ -288,11 +301,14 @@ function calcAuto() {
     "Monthly payment: <strong>" + money(pmt) + "</strong><br>" +
     "Loan amount: " + money(loan) + "<br>" +
     "&nbsp;&nbsp;Vehicle price: " + money(price) + "<br>" +
-    (down > 0 ? "&nbsp;&nbsp;Down payment: -" + money(down) + "<br>" : "") +
     (trade > 0 ? "&nbsp;&nbsp;Trade-in: -" + money(trade) + "<br>" : "") +
-    "Total paid: " + money(total) + "<br>" +
+    (down > 0 ? "&nbsp;&nbsp;Down payment: -" + money(down) + "<br>" : "") +
+    (tax > 0 ? "&nbsp;&nbsp;Sales tax (" + (tax_pct*100).toFixed(1) + "% after trade-in credit): +" + money(tax) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
+    (fees > 0 ? "&nbsp;&nbsp;Dealer/doc/title fees: +" + money(fees) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
+    "Cash due upfront: " + money(cash_upfront) + "<br>" +
+    "Total paid over the loan: " + money(total + cash_upfront - down) + "<br>" +
     "Total interest: " + money(total - loan) +
-    "<br><span style='font-size:11px;color:#888;'>Taxes, title, and dealer fees are extra unless rolled into the loan. Trade-in assumes any old loan on it is already paid off.</span>");
+    "<br><span style='font-size:11px;color:#888;'>Tax is calculated on the price after trade-in credit, as most states do - a real advantage of trading in vs selling privately. Financing tax and fees raises the payment and means paying interest on them. Trade-in assumes any old loan on it is already paid off.</span>");
 }
 function calcSavings() {
   var bal = +document.getElementById("s_start").value;
