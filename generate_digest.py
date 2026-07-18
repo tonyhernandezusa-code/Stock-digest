@@ -760,7 +760,7 @@ __NAV__
 <label>Second mortgage term (years, for amortized)</label><input type="number" id="m_sec_years" value="15">
 <label>Home inspection ($ - paid upfront, typically $300-600)</label><input type="number" id="m_inspect" value="500">
 <label>Buyer's agent commission (% of price - enter 0 if the seller covers it)</label><input type="number" id="m_comm" value="0" step="0.1">
-<label>Other closing costs (% of price - title, lender, escrow; typically 2-4%)</label><input type="number" id="m_closing" value="3" step="0.1">
+<label>Other closing costs - title, escrow/closing agent, lender fees, recording (typically 2-4% of price)</label><input type="number" id="m_closing" value="3" step="0.1">
 <label>Balloon payment (loan due early after N years)</label>
 <select id="m_balloon" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
 <option value="0" selected>No balloon - regular loan</option>
@@ -783,7 +783,8 @@ __NAV__
 <div class="calc">
 <h3>Auto Loan Calculator</h3>
 <label>Vehicle price ($)</label><input type="number" id="a_price" value="35000">
-<label>Down payment + trade-in ($)</label><input type="number" id="a_down" value="5000">
+<label>Down payment ($)</label><input type="number" id="a_down" value="3000">
+<label>Trade-in value ($)</label><input type="number" id="a_trade" value="2000">
 <label>Interest rate (% per year)</label><input type="number" id="a_rate" value="7.0" step="0.01">
 <label>Loan term (months)</label><input type="number" id="a_months" value="60">
 <button onclick="calcAuto()">Calculate</button>
@@ -796,6 +797,7 @@ __NAV__
 <label>Monthly contribution ($)</label><input type="number" id="s_monthly" value="500">
 <label>Interest rate / APY (% per year)</label><input type="number" id="s_rate" value="4.0" step="0.01">
 <label>Years</label><input type="number" id="s_years" value="10">
+<label>Additional months</label><input type="number" id="s_months" value="0">
 <button onclick="calcSavings()">Calculate</button>
 <div class="result" id="s_result"></div>
 </div>
@@ -805,6 +807,8 @@ __NAV__
 <label>Current balance ($)</label><input type="number" id="c_balance" value="5000">
 <label>APR (% per year)</label><input type="number" id="c_apr" value="24.99" step="0.01">
 <label>Monthly payment ($)</label><input type="number" id="c_payment" value="200">
+<label>New purchases per month ($ - 0 if you stop using the card)</label><input type="number" id="c_spend" value="0">
+<label>Cash back on purchases (% - e.g. 2 or 3, applied as a credit to the balance)</label><input type="number" id="c_cashback" value="2" step="0.1">
 <button onclick="calcCard()">Calculate</button>
 <div class="result" id="c_result"></div>
 </div>
@@ -919,24 +923,29 @@ function calcMortgage() {
 }
 function calcAuto() {
   var price = +document.getElementById("a_price").value;
-  var down = +document.getElementById("a_down").value;
+  var down = (+document.getElementById("a_down").value || 0);
+  var trade = (+document.getElementById("a_trade").value || 0);
   var rate = +document.getElementById("a_rate").value / 100 / 12;
   var n = +document.getElementById("a_months").value;
-  var loan = price - down;
+  var loan = price - down - trade;
   if (loan <= 0 || n <= 0) { show("a_result", "Check your inputs."); return; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
   var total = pmt * n;
   show("a_result",
     "Monthly payment: <strong>" + money(pmt) + "</strong><br>" +
-    "1st mortgage amount: " + money(loan) + (sec_amt > 0 ? "<br>2nd mortgage amount: " + money(sec_amt) : "") + "<br>" +
+    "Loan amount: " + money(loan) + "<br>" +
+    "&nbsp;&nbsp;Vehicle price: " + money(price) + "<br>" +
+    (down > 0 ? "&nbsp;&nbsp;Down payment: -" + money(down) + "<br>" : "") +
+    (trade > 0 ? "&nbsp;&nbsp;Trade-in: -" + money(trade) + "<br>" : "") +
     "Total paid: " + money(total) + "<br>" +
-    "Total interest: " + money(total - loan));
+    "Total interest: " + money(total - loan) +
+    "<br><span style='font-size:11px;color:#888;'>Taxes, title, and dealer fees are extra unless rolled into the loan. Trade-in assumes any old loan on it is already paid off.</span>");
 }
 function calcSavings() {
   var bal = +document.getElementById("s_start").value;
   var monthly = +document.getElementById("s_monthly").value;
   var rate = +document.getElementById("s_rate").value / 100 / 12;
-  var n = +document.getElementById("s_years").value * 12;
+  var n = (+document.getElementById("s_years").value || 0) * 12 + (+document.getElementById("s_months").value || 0);
   if (n <= 0) { show("s_result", "Check your inputs."); return; }
   var contributed = bal;
   for (var i = 0; i < n; i++) {
@@ -953,24 +962,34 @@ function calcCard() {
   var bal = +document.getElementById("c_balance").value;
   var rate = +document.getElementById("c_apr").value / 100 / 12;
   var pmt = +document.getElementById("c_payment").value;
+  var spend = (+document.getElementById("c_spend").value || 0);
+  var cb_pct = (+document.getElementById("c_cashback").value || 0) / 100;
   if (bal <= 0 || pmt <= 0) { show("c_result", "Check your inputs."); return; }
-  if (pmt <= bal * rate) {
-    show("c_result", "<strong>That payment never pays it off.</strong><br>Your payment must be more than the monthly interest of " + money(bal * rate) + " for the balance to shrink.");
-    return;
-  }
-  var months = 0, interest = 0, b = bal;
+  var months = 0, interest = 0, cashback = 0, b = bal;
   while (b > 0 && months < 1200) {
     var int_m = b * rate;
     interest += int_m;
-    b = b + int_m - pmt;
+    var cb_m = spend * cb_pct;
+    cashback += cb_m;
+    b = b + int_m + spend - pmt - cb_m;
     months++;
+    if (months > 12 && b >= bal) {
+      show("c_result", "<strong>That combination never pays it off.</strong><br>With " + money(spend) + "/mo of new purchases plus interest, and " + money(pmt) + "/mo in payments, the balance grows instead of shrinking. Raise the payment or cut the spending.");
+      return;
+    }
+  }
+  if (months >= 1200 && b > 0) {
+    show("c_result", "<strong>That combination never pays it off</strong> (still a balance after 100 years). Raise the payment or cut the spending.");
+    return;
   }
   var years = Math.floor(months / 12), rem = months % 12;
   var when = (years > 0 ? years + " yr " : "") + rem + " mo";
   show("c_result",
     "Time to pay off: <strong>" + when + "</strong> (" + months + " payments)<br>" +
     "Total interest paid: " + money(interest) + "<br>" +
-    "Total paid: " + money(bal + interest));
+    (cashback > 0 ? "Cash back earned (credited to balance): " + money(cashback) + "<br>" : "") +
+    (spend > 0 ? "New purchases charged along the way: " + money(spend * months) + "<br>" : "") +
+    "<span style='font-size:11px;color:#888;'>" + (spend > 0 ? "Cash back helps, but at " + (rate*1200).toFixed(1) + "% APR the interest on a carried balance far outweighs a " + (cb_pct*100).toFixed(1) + "% reward - rewards only truly pay when the balance is zero. " : "") + "Assumes cash back is applied as a statement credit each month.</span>");
 }
 </script>
 
