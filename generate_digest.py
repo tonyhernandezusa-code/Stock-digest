@@ -750,6 +750,8 @@ __NAV__
 <label>Estimated property taxes ($ per year)</label><input type="number" id="m_tax" value="4800">
 <label>Estimated home insurance ($ per year)</label><input type="number" id="m_ins" value="2400">
 <label>HOA dues ($ per month, 0 if none)</label><input type="number" id="m_hoa" value="0">
+<label>Buyer's agent commission (% of price - enter 0 if the seller covers it)</label><input type="number" id="m_comm" value="0" step="0.1">
+<label>Other closing costs (% of price - title, lender, escrow; typically 2-4%)</label><input type="number" id="m_closing" value="3" step="0.1">
 <label>Balloon payment (loan due early after N years)</label>
 <select id="m_balloon" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
 <option value="0" selected>No balloon - regular loan</option>
@@ -816,6 +818,11 @@ function calcMortgage() {
   var ins_m = (+document.getElementById("m_ins").value || 0) / 12;
   var hoa_m = (+document.getElementById("m_hoa").value || 0);
   var loan = price - down;
+  var comm_pct = (+document.getElementById("m_comm").value || 0);
+  var closing_pct = (+document.getElementById("m_closing").value || 0);
+  var comm_amt = price * comm_pct / 100;
+  var closing_amt = price * closing_pct / 100;
+  var cash_to_close = down + comm_amt + closing_amt;
   var balloonY = +document.getElementById("m_balloon").value;
   if (loan <= 0 || n <= 0) { show("m_result", "Check your inputs."); return; }
   if (balloonY > 0 && balloonY * 12 >= n) { balloonY = 0; }
@@ -841,8 +848,12 @@ function calcMortgage() {
     hoa_line +
     balloon_line +
     "Loan amount: " + money(loan) + "<br>" +
-    (balloonY > 0 ? "" : "Total interest over the loan: " + money(total - loan)) +
-    "<br><span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra.</span>");
+    (balloonY > 0 ? "" : "Total interest over the loan: " + money(total - loan) + "<br>") +
+    "<br><u>Cash needed at closing: <strong>" + money(cash_to_close) + "</strong></u><br>" +
+    "&nbsp;&nbsp;Down payment: " + money(down) + "<br>" +
+    (comm_amt > 0 ? "&nbsp;&nbsp;Buyer's agent commission (" + comm_pct + "%): " + money(comm_amt) + "<br>" : "") +
+    (closing_amt > 0 ? "&nbsp;&nbsp;Other closing costs (" + closing_pct + "%): " + money(closing_amt) + "<br>" : "") +
+    "<span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra. Buyer-agent commission is negotiable and cannot usually be rolled into the loan - though sellers often agree to cover it, so ask. Every dollar paid in commission is a dollar unavailable for your down payment.</span>");
 
   // Yearly amortization schedule (principal & interest only)
   var bal = loan, t = "";
