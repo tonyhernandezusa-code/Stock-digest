@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Property &amp; Foreclosure Search</title>
+<style>
+body { font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }
+h1 { font-size:20px; margin:0 0 4px; }
+h2 { font-size:15px; margin:24px 0 10px; color:#333; }
+.timestamp { color:#666; font-size:13px; margin:0 0 20px; }
+.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
+.row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; cursor:help; }
+.label { font-size:12px; color:#666; margin:0 0 4px; }
+.value { font-size:20px; font-weight:600; margin:0; }
+.sixmo { font-size:11px; color:#888; margin:4px 0 0; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
+th { text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }
+td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:nowrap; }
+.note { font-size:11px; color:#999; margin:6px 0 0; }
+
+.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
+.calc h3 { margin:0 0 12px; font-size:16px; }
+.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
+.calc input, .calc select { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
+.calc button:hover { background:#163a5c; }
+.result { margin-top:14px; padding:12px; background:#f0f6ec; border-radius:6px; font-size:14px; display:none; }
+.result strong { font-size:15px; }
+.calc-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.calc-tab-btn { padding:10px 16px; border-radius:8px; border:1px solid #e5e3dc; background:#fff; cursor:pointer; font-size:13px; font-weight:600; color:#555; }
+.calc-tab-btn:hover { background:#f0efe9; }
+.calc-tab-btn.active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
+.calc-panel { display:none; }
+.calc-panel.active { display:block; }
+.setup-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
+.setup-banner code { background:#fde68a; padding:2px 5px; border-radius:3px; }
+@media (max-width: 600px) {
+  body { padding:12px; }
+  .calc { padding:14px; max-width:100%; }
+  .calc input, .calc select { font-size:16px !important; padding:10px !important; }
+  .calc button { width:100%; }
+  .calc-tab-btn { flex:1 1 auto; text-align:center; font-size:12px; padding:10px 8px; }
+}
+</style>
+</head>
+<body>
+
+<div style="margin-bottom:16px;">
+  <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
+  <a href="realestate.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
+  <a href="calculators.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Calculators</a>
+  <a href="search.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
+</div>
+
+<h1>Property &amp; Foreclosure Search</h1>
+<p class="timestamp">Live lookups powered by ATTOM Data, via a Cloudflare Worker proxy.</p>
+
+<div class="setup-banner">
+  <strong>One-time setup:</strong> replace <code>WORKER_URL</code> near the top of this page's script with your own deployed Cloudflare Worker URL (looks like <code>https://attom-proxy.YOUR-SUBDOMAIN.workers.dev</code>) before this will return real results.
+</div>
+
+<div class="calc-tabs">
+  <button type="button" class="calc-tab-btn active" onclick="showSearchTab('panel-propsearch', this)">Property Search</button>
+  <button type="button" class="calc-tab-btn" onclick="showSearchTab('panel-forsearch', this)">Foreclosure Search</button>
+</div>
+
+<div class="calc calc-panel active" id="panel-propsearch">
+<h3>Property Search</h3>
+<label>Full street address (e.g. "123 Main St, Miami, FL 33101")</label>
+<input type="text" id="ps_address" placeholder="Street, City, State ZIP">
+<button onclick="searchProperty()">Search</button>
+<div class="result" id="ps_result"></div>
+</div>
+
+<div class="calc calc-panel" id="panel-forsearch">
+<h3>Foreclosure Search</h3>
+<p class="note">This tab isn't wired up yet - ATTOM's foreclosure/preforeclosure data is a separate "Premium Property" product that isn't included in the standard trial. Contact ATTOM (datacustomercare@attomdata.com) to check pricing and enable it on your account; once you have access and the correct endpoint, this section fills in the same way Property Search did.</p>
+<label>County</label>
+<select id="fs_county">
+<option value="miami-dade">Miami-Dade</option>
+<option value="broward">Broward</option>
+<option value="palm-beach">Palm Beach</option>
+</select>
+<button onclick="searchForeclosures()">Search</button>
+<div class="result" id="fs_result"></div>
+</div>
+
+<script>
+// Replace this with your own deployed Cloudflare Worker URL (see setup banner above).
+var WORKER_URL = "https://attom-proxy.YOUR-SUBDOMAIN.workers.dev";
+
+function showSearchTab(panelId, btn) {
+  document.querySelectorAll(".calc-panel").forEach(function(p) { p.classList.remove("active"); });
+  document.querySelectorAll(".calc-tab-btn").forEach(function(b) { b.classList.remove("active"); });
+  document.getElementById(panelId).classList.add("active");
+  btn.classList.add("active");
+}
+
+function showResult(id, html) {
+  var el = document.getElementById(id);
+  el.innerHTML = html;
+  el.style.display = "block";
+}
+
+async function searchProperty() {
+  var address = document.getElementById("ps_address").value.trim();
+  if (!address) { showResult("ps_result", "Enter an address to search."); return; }
+  showResult("ps_result", "Searching...");
+
+  try {
+    var resp = await fetch(WORKER_URL + "/property-search?address=" + encodeURIComponent(address));
+    var data = await resp.json();
+
+    if (data.error) {
+      showResult("ps_result", "<strong style='color:#c0392b;'>Error:</strong> " + data.error);
+      return;
+    }
+
+    var prop = data.property && data.property[0];
+    if (!prop) {
+      showResult("ps_result", "No property found for that address. Check the spelling/format and try again.");
+      return;
+    }
+
+    var addr = prop.address || {};
+    var summary = prop.summary || {};
+    var building = prop.building || {};
+    var rooms = building.rooms || {};
+    var size = building.size || {};
+    var lot = prop.lot || {};
+    var assessment = prop.assessment || {};
+    var assessed = assessment.assessed || {};
+    var tax = assessment.tax || {};
+    var sale = prop.sale || {};
+    var saleAmount = sale.amount || {};
+
+    showResult("ps_result",
+      "<strong>" + (addr.line1 || address) + "</strong><br>" +
+      (addr.line2 || "") + "<br><br>" +
+      "Property type: " + (summary.propType || summary.propClass || "N/A") + "<br>" +
+      "Year built: " + (summary.yearBuilt || "N/A") + "<br>" +
+      "Bedrooms: " + (rooms.beds || "N/A") + " &nbsp;|&nbsp; Bathrooms: " + (rooms.bathsTotal || "N/A") + "<br>" +
+      "Living area: " + (size.universalSize || size.livingSize || "N/A") + " sq ft<br>" +
+      "Lot size: " + (lot.lotSize1 ? lot.lotSize1 + " acres" : "N/A") + "<br><br>" +
+      "Assessed value: " + (assessed.assdTtlValue ? "$" + Number(assessed.assdTtlValue).toLocaleString() : "N/A") + "<br>" +
+      "Annual tax: " + (tax.taxAmt ? "$" + Number(tax.taxAmt).toLocaleString() + " (" + (tax.taxYear || "") + ")" : "N/A") + "<br>" +
+      "Last sale: " + (saleAmount.saleAmt ? "$" + Number(saleAmount.saleAmt).toLocaleString() : "N/A") +
+      (sale.saleSearchDate ? " on " + sale.saleSearchDate : "") +
+      "<br><br><span style='font-size:11px;color:#888;'>Data from ATTOM. Field availability varies by property and county recorder data quality.</span>");
+  } catch (err) {
+    showResult("ps_result", "<strong style='color:#c0392b;'>Could not reach the search service.</strong> Confirm WORKER_URL is set to your deployed Cloudflare Worker, and that the Worker is running.");
+  }
+}
+
+async function searchForeclosures() {
+  var county = document.getElementById("fs_county").value;
+  showResult("fs_result", "Searching...");
+  try {
+    var resp = await fetch(WORKER_URL + "/foreclosure-search?county=" + encodeURIComponent(county));
+    var data = await resp.json();
+    showResult("fs_result", data.error ? ("<strong style='color:#c0392b;'>" + data.error + "</strong>") : JSON.stringify(data));
+  } catch (err) {
+    showResult("fs_result", "<strong style='color:#c0392b;'>Could not reach the search service.</strong>");
+  }
+}
+</script>
+
+</body>
+</html>
