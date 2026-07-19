@@ -70,6 +70,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-savings', this)">Savings</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-card', this)">Credit Card Payoff</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-bizval', this)">Business Valuation</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-lease', this)">Car Lease</button>
 </div>
 
 <div class="calc calc-panel active" id="panel-afford">
@@ -341,6 +342,54 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <div class="result" id="bv_result"></div>
 <div class="chart-wrap"><canvas id="bv_chart"></canvas></div>
 <p class="chart-caption" id="bv_chart_caption"></p>
+</div>
+
+<div class="calc calc-panel" id="panel-lease">
+<h3>Car Lease Calculator</h3>
+<label>Vehicle type (auto-fills typical residual value % and driving-cost estimates below - all remain editable)</label>
+<select id="ls_type" onchange="applyLeaseDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="gas" selected>Gasoline</option>
+<option value="diesel">Diesel</option>
+<option value="hybrid">Hybrid</option>
+<option value="electric">Electric (EV)</option>
+</select>
+<label>MSRP ($ - used to calculate the residual value)</label><input type="number" id="ls_msrp" value="40000">
+<label>Negotiated price / capitalized cost ($ - before fees; this is the part you can negotiate)</label><input type="number" id="ls_capcost" value="38000">
+<label>Down payment / cap cost reduction ($)</label><input type="number" id="ls_down" value="2000">
+<label>Trade-in equity applied ($)</label><input type="number" id="ls_trade" value="0">
+<label>Manufacturer lease cash / rebate ($)</label><input type="number" id="ls_rebate" value="0">
+<label>Acquisition fee ($ - typically $595-$995, usually rolled into the lease)</label><input type="number" id="ls_acqfee" value="795">
+<label>Roll acquisition fee into the lease?</label>
+<select id="ls_acqfee_roll" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="yes" selected>Yes - roll it in (most common)</option>
+<option value="no">No - pay it at signing</option>
+</select>
+<div class="field-row">
+  <div><label id="ls_residual_label">Residual value (% of MSRP at lease end - national average for this vehicle type, editable)</label><input type="number" id="ls_residual_pct" value="55" step="0.5"></div>
+  <button type="button" class="suggest-btn" onclick="applyLeaseDefaults()">Use Nat'l Avg</button>
+</div>
+<p class="chart-caption" id="ls_residual_hint" style="text-align:left;margin:4px 0 12px;">Gasoline vehicles typically retain 45-60% of MSRP after a 36-month lease; 55% is a reasonable starting point.</p>
+<label>Lease term (months - 36 is most common)</label><input type="number" id="ls_term" value="36">
+<label>Money factor (e.g. 0.00200 - the lease's "interest rate," shown in this unusual decimal format; the calculator converts it to an equivalent APR for you)</label><input type="number" id="ls_moneyfactor" value="0.00200" step="0.00005">
+<label>Sales tax rate (% - this calculator assumes tax on the monthly payment, the method most states use)</label><input type="number" id="ls_tax" value="6.5" step="0.1">
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Mileage &amp; End-of-Lease</h4>
+<label>Annual mileage allowance (miles - 10,000-12,000 is typical)</label><input type="number" id="ls_mileage_allow" value="12000">
+<label>Your estimated actual annual mileage (miles - to project any overage cost)</label><input type="number" id="ls_mileage_actual" value="12000">
+<label>Overage fee ($ per mile over the allowance - typically $0.15-$0.30)</label><input type="number" id="ls_overage_fee" value="0.25" step="0.01">
+<label>Disposition fee ($ - due at lease end if you don't buy the car, typically $350-$500)</label><input type="number" id="ls_dispo_fee" value="395">
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Estimated Driving Costs (optional, for a fuller monthly picture)</h4>
+<div class="field-row">
+  <div><label id="ls_fuel_label">Monthly fuel/electricity cost ($ - national average for this vehicle type, editable)</label><input type="number" id="ls_fuel" value="150"></div>
+  <button type="button" class="suggest-btn" onclick="applyLeaseDefaults()">Use Nat'l Avg</button>
+</div>
+<div class="field-row">
+  <div><label id="ls_maint_label">Monthly maintenance ($ - national average for this vehicle type, editable)</label><input type="number" id="ls_maint" value="100"></div>
+  <button type="button" class="suggest-btn" onclick="applyLeaseDefaults()">Use Nat'l Avg</button>
+</div>
+<button onclick="calcLease()">Calculate</button>
+<div class="result" id="ls_result"></div>
+<div class="chart-wrap"><canvas id="ls_chart"></canvas></div>
+<p class="chart-caption" id="ls_chart_caption"></p>
 </div>
 
 <script>
@@ -1125,6 +1174,103 @@ function calcBizVal() {
   if (da > 0) { chartLabels.push("D&A"); chartValues.push(da); }
   if (onetime > 0) { chartLabels.push("One-Time Items"); chartValues.push(onetime); }
   drawPie("bv_chart", "bv_chart_caption", chartLabels, chartValues, "Composition of " + cashFlowLabel + ": " + money(cashFlow));
+}
+
+var LEASE_RESIDUAL_DEFAULTS = {
+  gas:      { residual: 55, hint: "Gasoline vehicles typically retain 45-60% of MSRP after a 36-month lease; 55% is a reasonable starting point." },
+  diesel:   { residual: 58, hint: "Diesel vehicles (mostly trucks) tend to hold value well due to strong used-truck demand, often residualizing 55-65% at 36 months." },
+  hybrid:   { residual: 56, hint: "Hybrids often residualize similarly to, or slightly better than, gas equivalents given steady demand for fuel efficiency." },
+  electric: { residual: 52, hint: "EV residuals have historically been weaker and more volatile than gas, though they've stabilized in 2026 as used-EV values leveled off - strong models (e.g. Hyundai Ioniq 6, Kia EV6) now post 58-62%, while others lag well below 50%. Verify your specific model's residual with the leasing company." }
+};
+function applyLeaseDefaults() {
+  var type = document.getElementById("ls_type").value;
+  var r = LEASE_RESIDUAL_DEFAULTS[type] || LEASE_RESIDUAL_DEFAULTS.gas;
+  document.getElementById("ls_residual_pct").value = r.residual;
+  document.getElementById("ls_residual_hint").textContent = r.hint;
+  var vd = (typeof VEHICLE_DEFAULTS !== "undefined" && VEHICLE_DEFAULTS[type]) ? VEHICLE_DEFAULTS[type] : { fuel: 150, maint: 100, fuelLabel: "Fuel" };
+  document.getElementById("ls_fuel").value = vd.fuel;
+  document.getElementById("ls_maint").value = vd.maint;
+  document.getElementById("ls_fuel_label").textContent = "Monthly " + vd.fuelLabel.toLowerCase() + " cost ($ - national average for this vehicle type, editable)";
+}
+function calcLease() {
+  var msrp = +document.getElementById("ls_msrp").value || 0;
+  var capCost = +document.getElementById("ls_capcost").value || 0;
+  var down = +document.getElementById("ls_down").value || 0;
+  var trade = +document.getElementById("ls_trade").value || 0;
+  var rebate = +document.getElementById("ls_rebate").value || 0;
+  var acqFee = +document.getElementById("ls_acqfee").value || 0;
+  var rollAcqFee = document.getElementById("ls_acqfee_roll").value === "yes";
+  var residualPct = (+document.getElementById("ls_residual_pct").value || 0) / 100;
+  var term = +document.getElementById("ls_term").value || 0;
+  var moneyFactor = +document.getElementById("ls_moneyfactor").value || 0;
+  var taxRate = (+document.getElementById("ls_tax").value || 0) / 100;
+  var mileageAllow = +document.getElementById("ls_mileage_allow").value || 0;
+  var mileageActual = +document.getElementById("ls_mileage_actual").value || 0;
+  var overageFee = +document.getElementById("ls_overage_fee").value || 0;
+  var dispoFee = +document.getElementById("ls_dispo_fee").value || 0;
+  var fuel_m = +document.getElementById("ls_fuel").value || 0;
+  var maint_m = +document.getElementById("ls_maint").value || 0;
+
+  if (capCost <= 0 || term <= 0 || msrp <= 0) {
+    show("ls_result", "Check your inputs - MSRP, capitalized cost, and lease term must all be greater than zero.");
+    return;
+  }
+
+  var residualValue = msrp * residualPct;
+  var capReductions = down + trade + rebate;
+  var adjustedCapCost = capCost + (rollAcqFee ? acqFee : 0) - capReductions;
+
+  var deprFee = (adjustedCapCost - residualValue) / term;
+  var rentCharge = (adjustedCapCost + residualValue) * moneyFactor;
+  var basePayment = deprFee + rentCharge;
+  var taxAmount = basePayment * taxRate;
+  var totalPayment = basePayment + taxAmount;
+  var apr = moneyFactor * 2400;
+
+  var cashDueAtSigning = down + (rollAcqFee ? 0 : acqFee) + totalPayment;
+  var totalOfPayments = totalPayment * term;
+  var totalLeaseCost = totalOfPayments + cashDueAtSigning - totalPayment;
+
+  var termYears = term / 12;
+  var mileageOverageMiles = Math.max(mileageActual - mileageAllow, 0) * termYears;
+  var mileageOverageCost = mileageOverageMiles * overageFee;
+
+  var onePctBenchmark = msrp * 0.01;
+  var benchmarkNote = basePayment <= onePctBenchmark * 1.05
+    ? "At or below the rough 1%-of-MSRP rule of thumb for a competitive lease payment."
+    : "Above the rough 1%-of-MSRP rule of thumb (" + money(onePctBenchmark) + "/mo) for a competitive lease payment - worth shopping around or negotiating the cap cost.";
+
+  var trueMonthlyCost = totalPayment + fuel_m + maint_m;
+
+  show("ls_result",
+    "Residual value: <strong>" + money(residualValue) + "</strong> (" + (residualPct*100).toFixed(1) + "% of " + money(msrp) + " MSRP)<br>" +
+    "Adjusted capitalized cost: " + money(adjustedCapCost) + "<br>" +
+    "<br><u>Monthly Payment</u><br>" +
+    "&nbsp;&nbsp;Depreciation fee: " + money(deprFee) + "/mo<br>" +
+    "&nbsp;&nbsp;Rent charge (finance fee): " + money(rentCharge) + "/mo<br>" +
+    "&nbsp;&nbsp;Sales tax (" + (taxRate*100).toFixed(1) + "%): " + money(taxAmount) + "/mo<br>" +
+    "Total monthly payment: <strong>" + money(totalPayment) + "</strong><br>" +
+    "<span style='font-size:11px;color:#888;'>Equivalent APR: " + apr.toFixed(2) + "% (money factor &times; 2400). " + benchmarkNote + "</span><br>" +
+    "<br><u>Cash Due at Signing (estimate)</u><br>" +
+    "Down payment: " + money(down) + (rollAcqFee ? "" : " + acquisition fee: " + money(acqFee)) + " + first month's payment: " + money(totalPayment) + " = <strong>" + money(cashDueAtSigning) + "</strong><br>" +
+    "<br><u>Total Cost Over the Lease</u><br>" +
+    "Total of " + term + " monthly payments: " + money(totalOfPayments) + "<br>" +
+    "Plus due at signing (excluding the 1st month already counted above): " + money(cashDueAtSigning - totalPayment) + "<br>" +
+    "Total estimated lease cost: <strong>" + money(totalLeaseCost) + "</strong><br>" +
+    "<br><u>Mileage &amp; End of Lease</u><br>" +
+    (mileageOverageMiles > 0
+      ? "<span style='color:#c0392b;'>Projected mileage overage: " + Math.round(mileageOverageMiles) + " miles &times; " + money(overageFee) + "/mi = " + money(mileageOverageCost) + " due at lease end</span><br>"
+      : "Your estimated mileage is within the allowance - no projected overage.<br>") +
+    "Disposition fee (if not buying the car): " + money(dispoFee) + "<br>" +
+    "Approximate buyout price if you purchase at lease end: residual (" + money(residualValue) + ") plus any purchase-option fee your contract specifies<br>" +
+    "<br><u>Estimated True Monthly Cost of Driving</u><br>" +
+    "Lease payment + fuel/electricity + maintenance: <strong>" + money(trueMonthlyCost) + "</strong><br>" +
+    "<span style='font-size:11px;color:#888;'>This is a standard lease payment estimate (depreciation + rent charge + tax), the same formula lenders use. Actual dealer quotes can vary based on lender-specific fees, regional taxes taxed on the full cap cost instead of the payment, and manufacturer-subsidized (subvented) money factors or residuals that beat the market rate. Always get the money factor and residual in writing before signing - a low advertised payment can hide a high money factor offset by a large down payment.</span>");
+
+  var chartLabels = ["Depreciation Fee", "Rent Charge (Finance Fee)"];
+  var chartValues = [deprFee, rentCharge];
+  if (taxAmount > 0) { chartLabels.push("Tax"); chartValues.push(taxAmount); }
+  drawPie("ls_chart", "ls_chart_caption", chartLabels, chartValues, "Where your " + money(totalPayment) + "/mo lease payment goes");
 }
 </script>
 
