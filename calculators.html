@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Financial Calculators</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 body { font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }
 h1 { font-size:20px; margin:0 0 4px; }
@@ -29,6 +30,12 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 .calc button:hover { background:#163a5c; }
 .result { margin-top:14px; padding:12px; background:#f0f6ec; border-radius:6px; font-size:14px; display:none; }
 .result strong { font-size:17px; }
+.field-row { display:flex; align-items:flex-end; gap:8px; }
+.field-row > div { flex:1; }
+.suggest-btn { white-space:nowrap; padding:8px 10px; font-size:11px; font-weight:600; color:#1f4e79; background:#eef3f8; border:1px solid #cdddec; border-radius:6px; cursor:pointer; margin-bottom:0; }
+.suggest-btn:hover { background:#ddebf7; }
+.chart-wrap { max-width:280px; margin:16px auto 0; }
+.chart-caption { text-align:center; font-size:11px; color:#888; margin-top:6px; }
 </style>
 </head>
 <body>
@@ -51,6 +58,10 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <label>Expected mortgage rate (% per year)</label><input type="number" id="q_rate" value="6.5" step="0.01">
 <label>Loan term (years)</label><input type="number" id="q_years" value="30">
 <label>Estimated property taxes + insurance + HOA ($ per month)</label><input type="number" id="q_tih" value="600">
+<div class="field-row">
+  <div><label>Estimated monthly home maintenance ($ - national average, editable)</label><input type="number" id="q_maint" value="300"></div>
+  <button type="button" class="suggest-btn" onclick="document.getElementById('q_maint').value=300;">Use Nat'l Avg ($300)</button>
+</div>
 <button onclick="calcQualify()">Calculate</button>
 <div class="result" id="q_result"></div>
 </div>
@@ -64,6 +75,10 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <label>Estimated property taxes ($ per year)</label><input type="number" id="m_tax" value="4800">
 <label>Estimated home insurance ($ per year)</label><input type="number" id="m_ins" value="2400">
 <label>HOA dues ($ per month, 0 if none)</label><input type="number" id="m_hoa" value="0">
+<div class="field-row">
+  <div><label>Estimated monthly home maintenance ($ - national average is ~1% of home price per year, editable)</label><input type="number" id="m_maint" value="333"></div>
+  <button type="button" class="suggest-btn" onclick="recommendMortgageMaint()">Recalc (1%/yr)</button>
+</div>
 <label>Second mortgage / piggyback loan ($ - reduces the first mortgage, 0 if none)</label><input type="number" id="m_sec" value="0">
 <label>Second mortgage rate (% per year)</label><input type="number" id="m_sec_rate" value="8.5" step="0.01">
 <label>Second mortgage type</label>
@@ -97,12 +112,22 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 </select>
 <button onclick="calcMortgage()">Calculate</button>
 <div class="result" id="m_result"></div>
+<div class="chart-wrap"><canvas id="m_chart"></canvas></div>
+<p class="chart-caption" id="m_chart_caption"></p>
 <div id="m_amort" style="margin-top:14px;"></div>
 </div>
 
 <div class="calc">
 <h3>Auto Loan Calculator</h3>
+<label>Vehicle type (auto-fills maintenance, fuel, depreciation, and EV-specific fields below with national averages - all remain editable)</label>
+<select id="a_type" onchange="applyVehicleDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="gas" selected>Gasoline</option>
+<option value="diesel">Diesel</option>
+<option value="hybrid">Hybrid</option>
+<option value="electric">Electric (EV)</option>
+</select>
 <label>Vehicle price ($)</label><input type="number" id="a_price" value="35000">
+<p class="chart-caption" id="a_price_premium_hint" style="text-align:left;margin:4px 0 0;"></p>
 <label>Down payment ($)</label><input type="number" id="a_down" value="3000">
 <label>Trade-in value ($)</label><input type="number" id="a_trade" value="2000">
 <label>Sales tax (% - most states tax the price AFTER trade-in credit)</label><input type="number" id="a_tax" value="6.5" step="0.1">
@@ -114,8 +139,36 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 </select>
 <label>Interest rate (% per year)</label><input type="number" id="a_rate" value="7.0" step="0.01">
 <label>Loan term (months)</label><input type="number" id="a_months" value="60">
+<div class="field-row">
+  <div><label id="a_maint_label">Estimated monthly maintenance ($ - national average by vehicle type, editable)</label><input type="number" id="a_maint" value="100"></div>
+  <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
+</div>
+<div class="field-row">
+  <div><label id="a_deprec_label">Estimated annual depreciation (% of price - national average by vehicle type, editable)</label><input type="number" id="a_deprec_rate" value="15" step="0.1"></div>
+  <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
+</div>
+<div class="field-row">
+  <div><label id="a_fuel_label">Monthly fuel/electricity cost ($ - national average by vehicle type, editable)</label><input type="number" id="a_fuel" value="150"></div>
+  <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
+</div>
+<label>Monthly tolls ($ - 0 if none)</label><input type="number" id="a_tolls" value="0">
+<label>Monthly parking ($ - 0 if none)</label><input type="number" id="a_parking" value="0">
+<div class="field-row">
+  <div><label>EV annual road-use / registration surcharge ($ - many states now charge EVs extra since they pay no gas tax; typically $50-$290/yr and rising. 0 if gas/diesel/hybrid or your state has none. Verify the current amount with your state DMV - Florida and others have changed this recently.)</label><input type="number" id="a_ev_fee" value="0"></div>
+  <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
+</div>
+<div class="field-row">
+  <div><label>Home charger installation ($ - one-time, if you'll charge at home. Typical Level 2 install runs $800-$3,000, more with a panel upgrade. A federal tax credit covers 30% up to $1,000 through 6/30/2026 if you qualify. 0 if not applicable.)</label><input type="number" id="a_charger" value="0"></div>
+  <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
+</div>
+<div class="field-row">
+  <div><label>Battery replacement reserve ($/mo - EV battery replacement runs $5,000-$22,000 out of warranty (mid-size EVs typically $12,000-$15,000), but a federal 8-yr/100,000-mile warranty covers most of a typical ownership period and only ~2.5% of EV owners ever pay this out of pocket. This is an optional contingency fund, not a guaranteed cost - 0 if you'd rather not set anything aside.)</label><input type="number" id="a_battery" value="0"></div>
+  <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
+</div>
 <button onclick="calcAuto()">Calculate</button>
 <div class="result" id="a_result"></div>
+<div class="chart-wrap"><canvas id="a_chart"></canvas></div>
+<p class="chart-caption" id="a_chart_caption"></p>
 </div>
 
 <div class="calc">
@@ -138,6 +191,9 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <label>Cash back on purchases (% - e.g. 2 or 3, applied as a credit to the balance)</label><input type="number" id="c_cashback" value="2" step="0.1">
 <button onclick="calcCard()">Calculate</button>
 <div class="result" id="c_result"></div>
+<div class="chart-wrap"><canvas id="c_chart"></canvas></div>
+<p class="chart-caption" id="c_chart_caption"></p>
+<div id="c_table" style="margin-top:14px;"></div>
 </div>
 
 <script>
@@ -149,6 +205,78 @@ function show(id, html) {
   el.innerHTML = html;
   el.style.display = "block";
 }
+var CHART_COLORS = ["#1f4e79", "#4e8cc7", "#7fb3e0", "#a5720b", "#e0b354", "#1a8a3d", "#8fd19e", "#c0392b"];
+var chartInstances = {};
+function drawPie(canvasId, captionId, labels, values, note) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas || typeof Chart === "undefined") return;
+  if (chartInstances[canvasId]) { chartInstances[canvasId].destroy(); }
+  chartInstances[canvasId] = new Chart(canvas.getContext("2d"), {
+    type: "pie",
+    data: {
+      labels: labels,
+      datasets: [{ data: values, backgroundColor: CHART_COLORS.slice(0, values.length) }]
+    },
+    options: {
+      plugins: {
+        legend: { position: "bottom", labels: { font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var total = ctx.dataset.data.reduce(function(a,b){return a+b;}, 0);
+              var pct = total > 0 ? (ctx.parsed / total * 100).toFixed(1) : 0;
+              return ctx.label + ": " + money(ctx.parsed) + " (" + pct + "%)";
+            }
+          }
+        }
+      }
+    }
+  });
+  if (captionId) {
+    var cap = document.getElementById(captionId);
+    if (cap) cap.textContent = note || "";
+  }
+}
+function recommendMortgageMaint() {
+  var price = +document.getElementById("m_price").value || 0;
+  document.getElementById("m_maint").value = Math.round(price * 0.01 / 12);
+}
+var VEHICLE_DEFAULTS = {
+  gas:      { maint: 100, fuel: 150, deprec: 15, evFee: 0,   charger: 0,    battery: 0,   fuelLabel: "Fuel",
+              premium: 0,    premiumNote: "" },
+  diesel:   { maint: 150, fuel: 170, deprec: 10, evFee: 0,   charger: 0,    battery: 0,   fuelLabel: "Diesel fuel",
+              premium: 6000, premiumNote: "Diesel trims (mostly trucks) typically run $4,000-$10,000 more than the gas version of the same model." },
+  hybrid:   { maint: 70,  fuel: 90,  deprec: 14, evFee: 0,   charger: 0,    battery: 15,  fuelLabel: "Fuel",
+              premium: 4300, premiumNote: "Hybrid trims average about $4,300 more than the gas version of the same model (range: $1,600-$13,000)." },
+  electric: { maint: 40,  fuel: 45,  deprec: 18, evFee: 200, charger: 1500, battery: 125, fuelLabel: "Electricity",
+              premium: 6000, premiumNote: "EVs typically run $3,000-$8,000+ more than a comparable gas model, though the gap has narrowed as the federal tax credit ended and used-EV prices have dropped." }
+};
+function applyVehicleDefaults() {
+  var type = document.getElementById("a_type").value;
+  var d = VEHICLE_DEFAULTS[type] || VEHICLE_DEFAULTS.gas;
+  document.getElementById("a_maint").value = d.maint;
+  document.getElementById("a_fuel").value = d.fuel;
+  document.getElementById("a_deprec_rate").value = d.deprec;
+  document.getElementById("a_ev_fee").value = d.evFee;
+  document.getElementById("a_charger").value = d.charger;
+  document.getElementById("a_battery").value = d.battery;
+  document.getElementById("a_fuel_label").textContent = "Monthly " + d.fuelLabel.toLowerCase() + " cost ($ - national average for this vehicle type, editable)";
+  updatePriceHint();
+}
+function updatePriceHint() {
+  var type = document.getElementById("a_type").value;
+  var d = VEHICLE_DEFAULTS[type] || VEHICLE_DEFAULTS.gas;
+  var hint = document.getElementById("a_price_premium_hint");
+  if (d.premium > 0) {
+    hint.innerHTML = d.premiumNote + " <button type='button' class='suggest-btn' style='margin-top:4px;' onclick='addPricePremium(" + d.premium + ")'>Add ~" + money(d.premium).replace(".00","") + " premium to price</button>";
+  } else {
+    hint.innerHTML = "";
+  }
+}
+function addPricePremium(amount) {
+  var priceField = document.getElementById("a_price");
+  priceField.value = (+priceField.value || 0) + amount;
+}
 function calcQualify() {
   var gm = ((+document.getElementById("q_inc1").value || 0) + (+document.getElementById("q_inc2").value || 0)) / 12;
   var debts = (+document.getElementById("q_debts").value || 0);
@@ -156,11 +284,12 @@ function calcQualify() {
   var rate = (+document.getElementById("q_rate").value || 0) / 100 / 12;
   var n = (+document.getElementById("q_years").value || 30) * 12;
   var tih = (+document.getElementById("q_tih").value || 0);
+  var maint = (+document.getElementById("q_maint").value || 0);
   if (gm <= 0) { show("q_result", "Enter your income."); return; }
 
   function scenario(front_pct, back_pct) {
     var housing = Math.min(gm * front_pct, gm * back_pct - debts);
-    var pi = housing - tih;
+    var pi = housing - tih - maint;
     if (pi <= 0) return null;
     var loan = rate > 0 ? pi * (1 - Math.pow(1 + rate, -n)) / rate : pi * n;
     return { housing: housing, pi: pi, loan: loan, price: loan + down };
@@ -177,7 +306,7 @@ function calcQualify() {
     html += "<u>Conservative (28/36 rule - most lenders' comfort zone)</u><br>" +
       "Max home price: <strong>" + money(cons.price) + "</strong><br>" +
       "&nbsp;&nbsp;Max loan: " + money(cons.loan) + " + your " + money(down) + " down<br>" +
-      "&nbsp;&nbsp;Monthly housing budget: " + money(cons.housing) + " (" + money(cons.pi) + " P&amp;I + " + money(tih) + " tax/ins/HOA)<br><br>";
+      "&nbsp;&nbsp;Monthly housing budget: " + money(cons.housing) + " (" + money(cons.pi) + " P&amp;I + " + money(tih) + " tax/ins/HOA + " + money(maint) + " maintenance)<br><br>";
   }
   if (aggr) {
     html += "<u>Upper limit (31/43 - FHA-style stretch)</u><br>" +
@@ -185,7 +314,7 @@ function calcQualify() {
       "&nbsp;&nbsp;Max loan: " + money(aggr.loan) + " + your " + money(down) + " down<br>" +
       "&nbsp;&nbsp;Monthly housing budget: " + money(aggr.housing) + "<br><br>";
   }
-  html += "<span style='font-size:11px;color:#888;'>This is an estimate, not a preapproval. Lenders also weigh credit score, employment history, and cash reserves - and qualifying for the upper number does not mean it is comfortable to live with. The first number uses the classic 28/36 rule: housing under 28% of gross income, all debts under 36%.</span>";
+  html += "<span style='font-size:11px;color:#888;'>This is an estimate, not a preapproval. Lenders' 28/36 and 31/43 ratios do not actually count maintenance, but it is a real monthly cost - this calculator sets it aside first so the price you see is one you can genuinely afford to live in, not just qualify for. Lenders also weigh credit score, employment history, and cash reserves. The first number uses the classic 28/36 rule: housing under 28% of gross income, all debts under 36%.</span>";
   show("q_result", html);
 }
 function calcMortgage() {
@@ -196,6 +325,7 @@ function calcMortgage() {
   var tax_m = (+document.getElementById("m_tax").value || 0) / 12;
   var ins_m = (+document.getElementById("m_ins").value || 0) / 12;
   var hoa_m = (+document.getElementById("m_hoa").value || 0);
+  var maint_m = (+document.getElementById("m_maint").value || 0);
   var sec_amt = (+document.getElementById("m_sec").value || 0);
   var sec_rate = (+document.getElementById("m_sec_rate").value || 0) / 100 / 12;
   var sec_type = document.getElementById("m_sec_type").value;
@@ -223,7 +353,7 @@ function calcMortgage() {
   if (loan <= 0 || n <= 0) { show("m_result", "Check your inputs."); return; }
   if (balloonY > 0 && balloonY * 12 >= n) { balloonY = 0; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
-  var full = pmt + sec_pmt + tax_m + ins_m + hoa_m;
+  var full = pmt + sec_pmt + tax_m + ins_m + hoa_m + maint_m;
   var total = pmt * n;
   var hoa_line = hoa_m > 0 ? "&nbsp;&nbsp;HOA dues: " + money(hoa_m) + " /mo<br>" : "";
   var sec_line = "";
@@ -277,6 +407,7 @@ function calcMortgage() {
     "&nbsp;&nbsp;Property taxes: " + money(tax_m) + " /mo<br>" +
     "&nbsp;&nbsp;Insurance: " + money(ins_m) + " /mo<br>" +
     hoa_line +
+    "&nbsp;&nbsp;Estimated maintenance: " + money(maint_m) + " /mo<br>" +
     balloon_line +
     "1st mortgage amount: " + money(loan) + (sec_amt > 0 ? "<br>2nd mortgage amount: " + money(sec_amt) : "") + "<br>" +
     (balloonY > 0 ? "" : "Total interest over the loan: " + money(total - loan) + "<br>") +
@@ -286,6 +417,15 @@ function calcMortgage() {
     (closing_amt > 0 ? "&nbsp;&nbsp;Other closing costs (" + closing_pct + "%): " + money(closing_amt) + "<br>" : "") +
     (inspect_amt > 0 ? "&nbsp;&nbsp;Home inspection: " + money(inspect_amt) + "<br>" : "") +
     "<span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra. With an interest-only second mortgage, the monthly payment never reduces its principal - the full amount remains due at payoff, sale, or refinance. Buyer-agent commission is negotiable and cannot usually be rolled into the loan - though sellers often agree to cover it, so ask. Every dollar paid in commission is a dollar unavailable for your down payment.</span>");
+
+  var chartLabels = ["Principal & Interest"];
+  var chartValues = [pmt];
+  if (sec_amt > 0) { chartLabels.push("2nd Mortgage"); chartValues.push(sec_pmt); }
+  chartLabels.push("Property Tax"); chartValues.push(tax_m);
+  chartLabels.push("Insurance"); chartValues.push(ins_m);
+  if (hoa_m > 0) { chartLabels.push("HOA"); chartValues.push(hoa_m); }
+  if (maint_m > 0) { chartLabels.push("Maintenance"); chartValues.push(maint_m); }
+  drawPie("m_chart", "m_chart_caption", chartLabels, chartValues, "Where your " + money(full) + " total monthly payment goes");
 
   // Yearly amortization schedule (principal & interest only)
   var bal = loan, t = "";
@@ -332,13 +472,28 @@ function calcAuto() {
   var roll = document.getElementById("a_roll").value === "yes";
   var rate = +document.getElementById("a_rate").value / 100 / 12;
   var n = +document.getElementById("a_months").value;
+  var maint_m = (+document.getElementById("a_maint").value || 0);
+  var deprec_rate = (+document.getElementById("a_deprec_rate").value || 0) / 100;
+  var deprec_m = price * deprec_rate / 12;
+  var vType = document.getElementById("a_type").value;
+  var isEV = vType === "electric";
+  var typeLabel = { gas: "gasoline", diesel: "diesel", hybrid: "hybrid", electric: "EV" }[vType] || "gasoline";
+  var fuelLabel = (VEHICLE_DEFAULTS[vType] || VEHICLE_DEFAULTS.gas).fuelLabel;
+  var fuel_m = (+document.getElementById("a_fuel").value || 0);
+  var tolls_m = (+document.getElementById("a_tolls").value || 0);
+  var parking_m = (+document.getElementById("a_parking").value || 0);
+  var ev_fee_m = (+document.getElementById("a_ev_fee").value || 0) / 12;
+  var charger_cost = (+document.getElementById("a_charger").value || 0);
+  var battery_m = (+document.getElementById("a_battery").value || 0);
   var taxable = Math.max(price - trade, 0);
   var tax = taxable * tax_pct;
   var loan = price - down - trade + (roll ? tax + fees : 0);
   var cash_upfront = down + (roll ? 0 : tax + fees);
+  var cash_upfront_display = cash_upfront + charger_cost;
   if (loan <= 0 || n <= 0) { show("a_result", "Check your inputs."); return; }
   var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
   var total = pmt * n;
+  var trueCost = pmt + maint_m + deprec_m + fuel_m + tolls_m + parking_m + ev_fee_m + battery_m;
   show("a_result",
     "Monthly payment: <strong>" + money(pmt) + "</strong><br>" +
     "Loan amount: " + money(loan) + "<br>" +
@@ -347,10 +502,35 @@ function calcAuto() {
     (down > 0 ? "&nbsp;&nbsp;Down payment: -" + money(down) + "<br>" : "") +
     (tax > 0 ? "&nbsp;&nbsp;Sales tax (" + (tax_pct*100).toFixed(1) + "% after trade-in credit): +" + money(tax) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
     (fees > 0 ? "&nbsp;&nbsp;Dealer/doc/title fees: +" + money(fees) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
-    "Cash due upfront: " + money(cash_upfront) + "<br>" +
+    "Cash due upfront: " + money(cash_upfront_display) + "<br>" +
+    (charger_cost > 0 ? "&nbsp;&nbsp;(includes " + money(charger_cost) + " home charger installation - a federal tax credit may cover 30% up to $1,000)<br>" : "") +
     "Total paid over the loan: " + money(total + cash_upfront - down) + "<br>" +
-    "Total interest: " + money(total - loan) +
-    "<br><span style='font-size:11px;color:#888;'>Tax is calculated on the price after trade-in credit, as most states do - a real advantage of trading in vs selling privately. Financing tax and fees raises the payment and means paying interest on them. Trade-in assumes any old loan on it is already paid off.</span>");
+    "Total interest: " + money(total - loan) + "<br><br>" +
+    "<u>Estimated true monthly cost of ownership: <strong>" + money(trueCost) + "</strong></u><br>" +
+    "&nbsp;&nbsp;Loan payment: " + money(pmt) + "<br>" +
+    "&nbsp;&nbsp;Maintenance (" + typeLabel + " national average): " + money(maint_m) + "<br>" +
+    "&nbsp;&nbsp;Depreciation (" + (deprec_rate*100).toFixed(1) + "%/yr " + typeLabel + " national average): Monthly " + money(deprec_m) + "<br>" +
+    "&nbsp;&nbsp;" + fuelLabel + ": Monthly " + money(fuel_m) + "<br>" +
+    (tolls_m > 0 ? "&nbsp;&nbsp;Tolls: Monthly " + money(tolls_m) + "<br>" : "") +
+    (parking_m > 0 ? "&nbsp;&nbsp;Parking: Monthly " + money(parking_m) + "<br>" : "") +
+    (ev_fee_m > 0 ? "&nbsp;&nbsp;EV road-use/registration surcharge: Monthly " + money(ev_fee_m) + "<br>" : "") +
+    (battery_m > 0 ? "&nbsp;&nbsp;Battery replacement reserve (optional contingency): Monthly " + money(battery_m) + "<br>" : "") +
+    "<br><span style='font-size:11px;color:#888;'>Tax is calculated on the price after trade-in credit, as most states do - a real advantage of trading in vs selling privately. Financing tax and fees raises the payment and means paying interest on them. Trade-in assumes any old loan on it is already paid off. Depreciation isn't a cash outflow, but it's a real cost - it's value you lose whether or not you ever sell the car. " +
+    (vType === "diesel" ? "Diesel engines typically cost 60-80% more to maintain than gas (DEF fluid, pricier oil changes and filters, costlier repairs) but often hold resale value better and can win out on fuel efficiency for high-mileage or towing use. " : "") +
+    (vType === "hybrid" ? "Hybrids typically fall between gas and EVs on both maintenance and fuel cost - regenerative braking reduces brake wear, and better MPG lowers fuel spend, while still needing the routine service of a combustion engine. " : "") +
+    (isEV ? "EVs typically cost 40-60% less to maintain than gas vehicles - no oil changes, spark plugs, or transmission service - though tires wear faster and the small 12V battery ($100-$250) eventually needs replacing. Note that EVs (excluding Tesla) have generally been depreciating faster than gas vehicles in the first few years (often 45-55% over 3 years vs. 35-45% for gas), even though they cost less to run - that's reflected in the higher default depreciation rate above. " : "") +
+    (isEV ? "EVs typically cost far less to fuel than gas vehicles, but a growing number of states now charge EVs an extra annual registration/road-use fee (commonly $50-$290/yr) to make up for the gas tax they don't pay - Florida is among the states that have adjusted this in recent years, and the rules keep changing, so verify the current amount with your county tax collector or state DMV before relying on it. " : "") +
+    (battery_m > 0 ? "The battery reserve is a personal contingency fund, not a bill you're guaranteed to pay - a federal law requires 8-year/100,000-mile battery warranties, and industry data shows only about 2.5% of EV owners ever pay for a replacement out of pocket. Think of it like an emergency fund line item, not a certain expense. " : "") +
+    "</span>");
+
+  var chartLabels = ["Loan Payment", "Maintenance", "Depreciation", fuelLabel];
+  var chartValues = [pmt, maint_m, deprec_m, fuel_m];
+  if (tolls_m > 0) { chartLabels.push("Tolls"); chartValues.push(tolls_m); }
+  if (parking_m > 0) { chartLabels.push("Parking"); chartValues.push(parking_m); }
+  if (ev_fee_m > 0) { chartLabels.push("EV Fee"); chartValues.push(ev_fee_m); }
+  if (battery_m > 0) { chartLabels.push("Battery Reserve"); chartValues.push(battery_m); }
+  drawPie("a_chart", "a_chart_caption", chartLabels, chartValues,
+    "Estimated true monthly cost of ownership: " + money(trueCost));
 }
 function calcSavings() {
   var bal = +document.getElementById("s_start").value;
@@ -377,13 +557,26 @@ function calcCard() {
   var cb_pct = (+document.getElementById("c_cashback").value || 0) / 100;
   if (bal <= 0 || pmt <= 0) { show("c_result", "Check your inputs."); return; }
   var months = 0, interest = 0, cashback = 0, b = bal;
+  var schedule = [];
   while (b > 0 && months < 1200) {
+    var beginBal = b;
     var int_m = b * rate;
     interest += int_m;
     var cb_m = spend * cb_pct;
     cashback += cb_m;
+    var principal_m = pmt - int_m - spend + cb_m; // net balance reduction from this payment cycle
     b = b + int_m + spend - pmt - cb_m;
     months++;
+    if (months <= 12) {
+      schedule.push({
+        month: months,
+        begin: beginBal,
+        payment: pmt,
+        interest: int_m,
+        principal: principal_m,
+        end: Math.max(b, 0)
+      });
+    }
     if (months > 12 && b >= bal) {
       show("c_result", "<strong>That combination never pays it off.</strong><br>With " + money(spend) + "/mo of new purchases plus interest, and " + money(pmt) + "/mo in payments, the balance grows instead of shrinking. Raise the payment or cut the spending.");
       return;
@@ -401,6 +594,33 @@ function calcCard() {
     (cashback > 0 ? "Cash back earned (credited to balance): " + money(cashback) + "<br>" : "") +
     (spend > 0 ? "New purchases charged along the way: " + money(spend * months) + "<br>" : "") +
     "<span style='font-size:11px;color:#888;'>" + (spend > 0 ? "Cash back helps, but at " + (rate*1200).toFixed(1) + "% APR the interest on a carried balance far outweighs a " + (cb_pct*100).toFixed(1) + "% reward - rewards only truly pay when the balance is zero. " : "") + "Assumes cash back is applied as a statement credit each month.</span>");
+
+  // 12-month (or fewer, if paid off sooner) payment breakdown table
+  var shownMonths = schedule.length;
+  var sumInt = 0, sumPrin = 0;
+  var t = "<h3 style='font-size:14px;margin:10px 0 8px;'>Monthly Breakdown (first " + shownMonths + " month" + (shownMonths === 1 ? "" : "s") + ")</h3>";
+  t += "<div class='table-wrap'><table><tr>";
+  t += "<th>Month</th><th style='text-align:right;'>Starting Balance</th><th style='text-align:right;'>Payment</th>";
+  t += "<th style='text-align:right;'>Interest</th><th style='text-align:right;'>Principal</th><th style='text-align:right;'>Ending Balance</th></tr>";
+  schedule.forEach(function(row) {
+    sumInt += row.interest;
+    sumPrin += row.principal;
+    t += "<tr><td>" + row.month + "</td>" +
+         "<td style='text-align:right;'>" + money(row.begin) + "</td>" +
+         "<td style='text-align:right;'>" + money(row.payment) + "</td>" +
+         "<td style='text-align:right;color:#c0392b;'>" + money(row.interest) + "</td>" +
+         "<td style='text-align:right;color:#1a8a3d;'>" + money(row.principal) + "</td>" +
+         "<td style='text-align:right;'>" + money(row.end) + "</td></tr>";
+  });
+  t += "</table></div>";
+  t += "<p class='note'>Shows exactly how each payment splits between interest and principal, and how much your balance drops each month" +
+       (shownMonths < 12 ? " (the card is fully paid off before reaching 12 months)." : " over the first 12 months.") + "</p>";
+  document.getElementById("c_table").innerHTML = t;
+
+  drawPie("c_chart", "c_chart_caption",
+    ["Interest", "Principal"],
+    [sumInt, sumPrin],
+    "Split of your payments over the first " + shownMonths + " month" + (shownMonths === 1 ? "" : "s") + ": interest vs. principal");
 }
 </script>
 
