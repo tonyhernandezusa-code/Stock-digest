@@ -768,6 +768,7 @@ __NAV__
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-auto', this)">Auto Loan</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-savings', this)">Savings</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-card', this)">Credit Card Payoff</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-bizval', this)">Business Valuation</button>
 </div>
 
 <div class="calc calc-panel active" id="panel-afford">
@@ -961,6 +962,45 @@ __NAV__
 <div class="chart-wrap"><canvas id="c_chart"></canvas></div>
 <p class="chart-caption" id="c_chart_caption"></p>
 <div id="c_table" style="margin-top:14px;"></div>
+</div>
+
+<div class="calc calc-panel" id="panel-bizval">
+<h3>Business Valuation Calculator</h3>
+<label>Business type (auto-fills typical SDE/EBITDA multiples below - all remain editable)</label>
+<select id="bv_type" onchange="applyBizValDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="retail" selected>Retail Store</option>
+<option value="wholesale">Wholesale / Distribution</option>
+<option value="restaurant">Restaurant / Food Service</option>
+<option value="service">Service Business</option>
+<option value="manufacturing">Light Manufacturing</option>
+<option value="other">Other / General Small Business</option>
+</select>
+<p class="chart-caption" id="bv_type_hint" style="text-align:left;margin:4px 0 12px;">Retail businesses typically sell for 2.0-3.0x SDE - toward the lower end of Main Street multiples, since inventory/competition risk is priced in. Inventory is usually valued and sold separately, on top of this multiple.</p>
+<label>Valuation method</label>
+<select id="bv_method" onchange="applyBizValDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="sde" selected>SDE Multiple (owner-operated, under ~$1M cash flow - most small businesses)</option>
+<option value="ebitda">EBITDA Multiple (professionally managed, $1M+ cash flow)</option>
+</select>
+<label>Annual revenue ($ - for reference and sanity-check ratios)</label><input type="number" id="bv_revenue" value="800000">
+<label>Net profit before owner compensation ($ - from tax return or P&amp;L)</label><input type="number" id="bv_netprofit" value="80000">
+<label id="bv_ownersal_label">Owner's annual salary/compensation add-back ($ - SDE only; EBITDA assumes a market-rate manager instead)</label><input type="number" id="bv_ownersal" value="60000">
+<label>Owner benefits &amp; perks add-back ($ - health insurance, vehicle, phone, meals, and other personal expenses run through the business)</label><input type="number" id="bv_perks" value="10000">
+<label>Interest expense add-back ($)</label><input type="number" id="bv_interest" value="3000">
+<label>Depreciation &amp; amortization add-back ($)</label><input type="number" id="bv_da" value="8000">
+<label>One-time / non-recurring expenses add-back ($ - legal settlements, one-time repairs, etc.)</label><input type="number" id="bv_onetime" value="0">
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Valuation Multiple &amp; Assets</h4>
+<div class="field-row">
+  <div><label>Low multiple (editable)</label><input type="number" id="bv_mult_low" value="2.0" step="0.1"></div>
+  <div><label>Mid multiple (editable)</label><input type="number" id="bv_mult_mid" value="2.5" step="0.1"></div>
+  <div><label>High multiple (editable)</label><input type="number" id="bv_mult_high" value="3.0" step="0.1"></div>
+</div>
+<label>Inventory at cost ($ - typically valued and sold separately, added on top of the multiple)</label><input type="number" id="bv_inventory" value="50000">
+<label>FF&amp;E / equipment fair market value ($ - for reference; usually already included within the multiple, not added again)</label><input type="number" id="bv_ffe" value="40000">
+<label>Liabilities the buyer would assume ($ - 0 for a typical asset sale/cash-free-debt-free deal)</label><input type="number" id="bv_liabilities" value="0">
+<button onclick="calcBizVal()">Calculate</button>
+<div class="result" id="bv_result"></div>
+<div class="chart-wrap"><canvas id="bv_chart"></canvas></div>
+<p class="chart-caption" id="bv_chart_caption"></p>
 </div>
 
 <script>
@@ -1548,6 +1588,117 @@ function calcCard() {
     ["Interest", "Principal"],
     [sumInt, sumPrin],
     "Split of your payments over the first " + shownMonths + " month" + (shownMonths === 1 ? "" : "s") + ": interest vs. principal");
+}
+
+var BIZVAL_DEFAULTS = {
+  retail: {
+    sde:    { low: 2.0, mid: 2.5, high: 3.0,
+              hint: "Retail businesses typically sell for 2.0-3.0x SDE - toward the lower end of Main Street multiples, since inventory/competition risk is priced in. Inventory is usually valued and sold separately, on top of this multiple." },
+    ebitda: { low: 3.0, mid: 4.0, high: 5.0,
+              hint: "Larger, professionally managed retail operations (multi-location or $1M+ cash flow) typically trade at 3-5x EBITDA." }
+  },
+  wholesale: {
+    sde:    { low: 3.0, mid: 3.75, high: 4.5,
+              hint: "Wholesale/distribution businesses often command a premium over retail (roughly 3-4.5x SDE) due to B2B customer relationships and repeat/contract revenue - though inventory turns and customer concentration swing this a lot." },
+    ebitda: { low: 4.0, mid: 5.5, high: 7.0,
+              hint: "Larger distributors ($5M+ revenue, $1M+ EBITDA) typically trade at 5-7x EBITDA, with strategic/consolidator buyers paying toward the top of that range for route density and vendor exclusivity." }
+  },
+  restaurant: {
+    sde:    { low: 1.5, mid: 2.0, high: 2.5,
+              hint: "Restaurants are among the lower-multiple categories (roughly 1.5-2.5x SDE) due to high failure rates, thin margins, and heavy owner-dependence - strong multi-year financials and a long, transferable lease help push toward the high end." },
+    ebitda: { low: 2.5, mid: 3.0, high: 3.5,
+              hint: "Multi-unit or franchise restaurant groups with $1M+ cash flow typically trade at 2.5-3.5x EBITDA." }
+  },
+  service: {
+    sde:    { low: 2.0, mid: 2.5, high: 3.0,
+              hint: "Service businesses (contracting, professional services, etc.) typically sell for 2-3x SDE - recurring contracts, licensing/certifications, and low owner-dependence push toward the high end." },
+    ebitda: { low: 3.0, mid: 4.0, high: 5.0,
+              hint: "Larger service businesses with $1M+ cash flow and management depth typically trade at 3-5x EBITDA." }
+  },
+  manufacturing: {
+    sde:    { low: 2.5, mid: 3.25, high: 4.0,
+              hint: "Light manufacturing typically sells for 2.5-4x SDE - equipment/capital barriers to entry and specialized processes support a premium over general retail." },
+    ebitda: { low: 3.5, mid: 4.5, high: 5.5,
+              hint: "Larger manufacturers with $1M+ cash flow typically trade at 3.5-5.5x EBITDA, more if there's proprietary IP or a diversified customer base." }
+  },
+  other: {
+    sde:    { low: 2.0, mid: 2.6, high: 3.5,
+              hint: "The overall Main Street average across all industries is roughly 2.6-2.7x SDE (2026) - use this as a general starting point and adjust for your specific industry, growth, and risk profile." },
+    ebitda: { low: 3.0, mid: 4.0, high: 5.0,
+              hint: "Larger owner-independent businesses with $1M+ cash flow typically trade at 3-5x EBITDA as a general starting point." }
+  }
+};
+function applyBizValDefaults() {
+  var type = document.getElementById("bv_type").value;
+  var method = document.getElementById("bv_method").value;
+  var d = (BIZVAL_DEFAULTS[type] || BIZVAL_DEFAULTS.other)[method];
+  document.getElementById("bv_mult_low").value = d.low;
+  document.getElementById("bv_mult_mid").value = d.mid;
+  document.getElementById("bv_mult_high").value = d.high;
+  document.getElementById("bv_type_hint").textContent = d.hint;
+  document.getElementById("bv_ownersal_label").style.opacity = method === "ebitda" ? "0.5" : "1";
+}
+function calcBizVal() {
+  var method = document.getElementById("bv_method").value;
+  var revenue = +document.getElementById("bv_revenue").value || 0;
+  var netProfit = +document.getElementById("bv_netprofit").value || 0;
+  var ownerSal = +document.getElementById("bv_ownersal").value || 0;
+  var perks = +document.getElementById("bv_perks").value || 0;
+  var interest = +document.getElementById("bv_interest").value || 0;
+  var da = +document.getElementById("bv_da").value || 0;
+  var onetime = +document.getElementById("bv_onetime").value || 0;
+
+  var sde = netProfit + ownerSal + perks + interest + da + onetime;
+  var ebitda = netProfit + interest + da + onetime;
+  var cashFlow = method === "sde" ? sde : ebitda;
+  var cashFlowLabel = method === "sde" ? "SDE" : "EBITDA";
+
+  var multLow = +document.getElementById("bv_mult_low").value || 0;
+  var multMid = +document.getElementById("bv_mult_mid").value || 0;
+  var multHigh = +document.getElementById("bv_mult_high").value || 0;
+  var inventory = +document.getElementById("bv_inventory").value || 0;
+  var ffe = +document.getElementById("bv_ffe").value || 0;
+  var liabilities = +document.getElementById("bv_liabilities").value || 0;
+
+  if (cashFlow <= 0) {
+    show("bv_result", "Check your inputs - net profit plus add-backs must be greater than zero to produce a valuation.");
+    return;
+  }
+
+  var valLow = cashFlow * multLow;
+  var valMid = cashFlow * multMid;
+  var valHigh = cashFlow * multHigh;
+  var totalLow = valLow + inventory - liabilities;
+  var totalMid = valMid + inventory - liabilities;
+  var totalHigh = valHigh + inventory - liabilities;
+
+  var margin = revenue > 0 ? (cashFlow / revenue * 100) : 0;
+  var revMultLow = revenue > 0 ? totalLow / revenue : 0;
+  var revMultHigh = revenue > 0 ? totalHigh / revenue : 0;
+
+  show("bv_result",
+    cashFlowLabel + " (annual): <strong>" + money(cashFlow) + "</strong> (" + margin.toFixed(1) + "% of revenue)<br>" +
+    (method === "sde" ? "&nbsp;&nbsp;EBITDA for reference: " + money(ebitda) + "<br>" : "&nbsp;&nbsp;SDE for reference: " + money(sde) + "<br>") +
+    "<br><u>Estimated Business Value (before inventory)</u><br>" +
+    "Low (" + multLow.toFixed(1) + "x): " + money(valLow) + " &nbsp;|&nbsp; Mid (" + multMid.toFixed(1) + "x): <strong>" + money(valMid) + "</strong> &nbsp;|&nbsp; High (" + multHigh.toFixed(1) + "x): " + money(valHigh) + "<br>" +
+    (inventory > 0 ? "<br>+ Inventory at cost: " + money(inventory) + "<br>" : "") +
+    (liabilities > 0 ? "- Liabilities assumed: " + money(liabilities) + "<br>" : "") +
+    "<br><u>Total Estimated Value Range</u><br>" +
+    "Low: " + money(totalLow) + " &nbsp;|&nbsp; Mid: <strong>" + money(totalMid) + "</strong> &nbsp;|&nbsp; High: " + money(totalHigh) + "<br>" +
+    "<span style='font-size:11px;color:#888;'>Implied revenue multiple: " + revMultLow.toFixed(2) + "x-" + revMultHigh.toFixed(2) + "x of annual revenue (sanity check - Main Street businesses commonly sell for roughly 0.3x-1x revenue depending on margin).</span><br><br>" +
+    (ffe > 0 ? "FF&amp;E/equipment (reference - usually already included within the multiple, not added again): " + money(ffe) + "<br><br>" : "") +
+    "<span style='font-size:11px;color:#888;'>This is a starting-point estimate using the market (multiple) approach, the standard method for valuing small and mid-sized businesses. Actual sale price depends heavily on factors this calculator can't see: customer concentration, owner dependency, growth trend, lease terms, competitive moat, and buyer type. The overall Main Street average is roughly 2.6-2.7x SDE (2026) across all industries - your multiple should reflect where your business sits within its category's range. Verify add-backs carefully; inflated or undocumented add-backs are the most common source of valuation disputes. This is not a substitute for a professional business appraisal or a broker's opinion of value.</span>");
+
+  var chartLabels = ["Net Profit"];
+  var chartValues = [Math.max(netProfit, 0)];
+  if (method === "sde") {
+    if (ownerSal > 0) { chartLabels.push("Owner Salary"); chartValues.push(ownerSal); }
+    if (perks > 0) { chartLabels.push("Owner Perks"); chartValues.push(perks); }
+  }
+  if (interest > 0) { chartLabels.push("Interest"); chartValues.push(interest); }
+  if (da > 0) { chartLabels.push("D&A"); chartValues.push(da); }
+  if (onetime > 0) { chartLabels.push("One-Time Items"); chartValues.push(onetime); }
+  drawPie("bv_chart", "bv_chart_caption", chartLabels, chartValues, "Composition of " + cashFlowLabel + ": " + money(cashFlow));
 }
 </script>
 
