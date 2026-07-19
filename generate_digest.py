@@ -1025,13 +1025,13 @@ function addUnitRow(label, count, rent) {
   rent = rent !== undefined ? rent : 1000;
   creUnitRowSeq++;
   var id = "cre_unit_row_" + creUnitRowSeq;
-  var safeLabel = String(label).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  var safeLabel = String(label).replace(/&/g, "&amp;").replace(/'/g, "&#39;");
   var html = "<div class='unit-row' id='" + id + "'>" +
-    "<input type='text' placeholder='e.g. 2 Bed / 1 Bath' value=\"" + safeLabel + "\" oninput='updateUnitTotals()'>" +
+    "<input type='text' placeholder='e.g. 2 Bed / 1 Bath' value='" + safeLabel + "' oninput='updateUnitTotals()'>" +
     "<input type='number' value='" + count + "' min='0' oninput='updateUnitTotals()' title='Number of units of this type'>" +
     "<input type='number' value='" + rent + "' min='0' oninput='updateUnitTotals()' title='Monthly rent per unit ($)'>" +
     "<span class='row-subtotal' id='" + id + "_sub'>$0.00/mo</span>" +
-    "<button type='button' class='row-remove' onclick=\"removeUnitRow('" + id + "')\">Remove</button>" +
+    "<button type='button' class='row-remove' onclick='removeUnitRow(&#39;" + id + "&#39;)'>Remove</button>" +
     "</div>";
   document.getElementById("cre_unit_rows").insertAdjacentHTML("beforeend", html);
   updateUnitTotals();
