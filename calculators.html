@@ -158,7 +158,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
   <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
 </div>
 <div class="field-row">
-  <div><label>Home charger installation ($ - one-time, if you'll charge at home. Typical Level 2 install runs $800-$3,000, more with a panel upgrade. A federal tax credit covers 30% up to $1,000 through 6/30/2026 if you qualify. 0 if not applicable.)</label><input type="number" id="a_charger" value="0"></div>
+  <div><label>Home charger installation ($ - one-time, if you'll charge at home. Typical Level 2 install runs $800-$3,000, more with a panel upgrade. The federal 30% (up to $1,000) tax credit for this expired 6/30/2026 - check your state or utility for any remaining rebates. 0 if not applicable.)</label><input type="number" id="a_charger" value="0"></div>
   <button type="button" class="suggest-btn" onclick="applyVehicleDefaults()">Use Nat'l Avg</button>
 </div>
 <div class="field-row">
@@ -503,7 +503,7 @@ function calcAuto() {
     (tax > 0 ? "&nbsp;&nbsp;Sales tax (" + (tax_pct*100).toFixed(1) + "% after trade-in credit): +" + money(tax) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
     (fees > 0 ? "&nbsp;&nbsp;Dealer/doc/title fees: +" + money(fees) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
     "Cash due upfront: " + money(cash_upfront_display) + "<br>" +
-    (charger_cost > 0 ? "&nbsp;&nbsp;(includes " + money(charger_cost) + " home charger installation - a federal tax credit may cover 30% up to $1,000)<br>" : "") +
+    (charger_cost > 0 ? "&nbsp;&nbsp;(includes " + money(charger_cost) + " home charger installation - the federal 30%/$1,000 tax credit for this expired 6/30/2026; check for state or utility rebates)<br>" : "") +
     "Total paid over the loan: " + money(total + cash_upfront - down) + "<br>" +
     "Total interest: " + money(total - loan) + "<br><br>" +
     "<u>Estimated true monthly cost of ownership: <strong>" + money(trueCost) + "</strong></u><br>" +
