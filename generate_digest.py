@@ -981,7 +981,23 @@ __NAV__
 <option value="sde" selected>SDE Multiple (owner-operated, under ~$1M cash flow - most small businesses)</option>
 <option value="ebitda">EBITDA Multiple (professionally managed, $1M+ cash flow)</option>
 </select>
-<label>Annual revenue ($ - for reference and sanity-check ratios)</label><input type="number" id="bv_revenue" value="800000">
+<label>Annual revenue ($ - for reference and sanity-check ratios)</label><input type="number" id="bv_revenue" value="800000" oninput="updateComputedNetProfitDisplay()">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Optional: Build Net Profit from Revenue &amp; Expenses</h4>
+<p class="chart-caption" style="text-align:left;margin:0 0 8px;">Skip this section if you already know your net profit before owner compensation - just enter it directly below. Otherwise, fill in your expenses here and click "Use This Net Profit." Normal operating costs like rent, utilities, and other employees' wages stay deducted here - they are NOT added back to SDE/EBITDA, since a buyer will keep paying them too.</p>
+<label>Cost of goods sold / COGS ($/yr - inventory or materials cost, if applicable)</label><input type="number" id="bv_cogs" value="400000" oninput="updateComputedNetProfitDisplay()">
+<label>Rent ($/yr)</label><input type="number" id="bv_rent" value="60000" oninput="updateComputedNetProfitDisplay()">
+<label>Utilities ($/yr)</label><input type="number" id="bv_utilities" value="12000" oninput="updateComputedNetProfitDisplay()">
+<label>Advertising / marketing ($/yr)</label><input type="number" id="bv_advertising" value="15000" oninput="updateComputedNetProfitDisplay()">
+<label>Other employees' salaries &amp; wages ($/yr - not the owner's)</label><input type="number" id="bv_othersalaries" value="180000" oninput="updateComputedNetProfitDisplay()">
+<label>Insurance ($/yr)</label><input type="number" id="bv_insurance" value="8000" oninput="updateComputedNetProfitDisplay()">
+<label>Licenses &amp; permits ($/yr)</label><input type="number" id="bv_licenses" value="2000" oninput="updateComputedNetProfitDisplay()">
+<label>Other operating expenses ($/yr)</label><input type="number" id="bv_otheropex" value="13000" oninput="updateComputedNetProfitDisplay()">
+<div class="unit-totals">
+  Computed net profit before owner comp: <strong id="bv_computed_netprofit">$0.00</strong>
+  <button type="button" class="suggest-btn" onclick="useComputedNetProfit()" style="margin-left:10px;">Use This Net Profit &uarr;</button>
+</div>
+
 <label>Net profit before owner compensation ($ - from tax return or P&amp;L)</label><input type="number" id="bv_netprofit" value="80000">
 <label id="bv_ownersal_label">Owner's annual salary/compensation add-back ($ - SDE only; EBITDA assumes a market-rate manager instead)</label><input type="number" id="bv_ownersal" value="60000">
 <label>Owner benefits &amp; perks add-back ($ - health insurance, vehicle, phone, meals, and other personal expenses run through the business)</label><input type="number" id="bv_perks" value="10000">
@@ -995,7 +1011,30 @@ __NAV__
   <div><label>High multiple (editable)</label><input type="number" id="bv_mult_high" value="3.0" step="0.1"></div>
 </div>
 <label>Inventory at cost ($ - typically valued and sold separately, added on top of the multiple)</label><input type="number" id="bv_inventory" value="50000">
-<label>FF&amp;E / equipment fair market value ($ - for reference; usually already included within the multiple, not added again)</label><input type="number" id="bv_ffe" value="40000">
+
+<label>FF&amp;E / equipment schedule ($ - list each item included in the sale, e.g. forklift, shelving, POS system)</label>
+<div id="bv_ffe_rows"></div>
+<button type="button" class="suggest-btn" onclick="addFfeRow()" style="margin-bottom:12px;">+ Add Item</button>
+<div class="unit-totals">
+  Total FF&amp;E/equipment value: <strong id="bv_ffe_total">$0.00</strong>
+  <span style="font-size:11px;color:#888;display:block;margin-top:4px;">Usually already reflected within the SDE/EBITDA multiple, not added again on top - shown here mainly as a reference schedule buyers and lenders typically ask for.</span>
+</div>
+<input type="hidden" id="bv_ffe" value="0">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Signage, Website &amp; Other Intangibles</h4>
+<label>Value of signage, website, domain name, social media following, customer list, non-compete, etc. ($ - added on top of the business value)</label><input type="number" id="bv_intangibles" value="0">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Lease (if applicable)</h4>
+<label>Remaining lease term (years, 0 if none/owned real estate)</label><input type="number" id="bv_lease_years" value="0" step="0.5">
+<label>Is the lease transferable/assignable to a buyer?</label>
+<select id="bv_lease_transferable" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="yes" selected>Yes</option>
+<option value="no">No</option>
+</select>
+<label>Current rent under the lease ($/mo)</label><input type="number" id="bv_lease_rent" value="0">
+<label>Estimated current market rent for comparable space ($/mo)</label><input type="number" id="bv_lease_market_rent" value="0">
+<p class="chart-caption" style="text-align:left;margin:4px 0 0;">If your rent is below current market rent, the lease itself has value to a buyer (a "below-market lease"). If it's at or above market, the lease adds no value here. Capped at 5 years of benefit since projecting further out gets unreliable.</p>
+
 <label>Liabilities the buyer would assume ($ - 0 for a typical asset sale/cash-free-debt-free deal)</label><input type="number" id="bv_liabilities" value="0">
 <button onclick="calcBizVal()">Calculate</button>
 <div class="result" id="bv_result"></div>
@@ -1628,6 +1667,62 @@ var BIZVAL_DEFAULTS = {
               hint: "Larger owner-independent businesses with $1M+ cash flow typically trade at 3-5x EBITDA as a general starting point." }
   }
 };
+function updateComputedNetProfitDisplay() {
+  var revenue = +document.getElementById("bv_revenue").value || 0;
+  var cogs = +document.getElementById("bv_cogs").value || 0;
+  var rent = +document.getElementById("bv_rent").value || 0;
+  var utilities = +document.getElementById("bv_utilities").value || 0;
+  var advertising = +document.getElementById("bv_advertising").value || 0;
+  var othersal = +document.getElementById("bv_othersalaries").value || 0;
+  var insurance = +document.getElementById("bv_insurance").value || 0;
+  var licenses = +document.getElementById("bv_licenses").value || 0;
+  var otheropex = +document.getElementById("bv_otheropex").value || 0;
+  var computed = revenue - cogs - rent - utilities - advertising - othersal - insurance - licenses - otheropex;
+  document.getElementById("bv_computed_netprofit").textContent = money(computed);
+  return computed;
+}
+function useComputedNetProfit() {
+  var computed = updateComputedNetProfitDisplay();
+  document.getElementById("bv_netprofit").value = Math.round(computed);
+}
+var bvFfeRowSeq = 0;
+function addFfeRow(label, value) {
+  label = label !== undefined ? label : "";
+  value = value !== undefined ? value : 1000;
+  bvFfeRowSeq++;
+  var id = "bv_ffe_row_" + bvFfeRowSeq;
+  var safeLabel = String(label).replace(/&/g, "&amp;").replace(/'/g, "&#39;");
+  var html = "<div class='unit-row' id='" + id + "'>" +
+    "<input type='text' placeholder='e.g. Forklift' value='" + safeLabel + "' oninput='updateFfeTotals()'>" +
+    "<input type='number' value='" + value + "' min='0' oninput='updateFfeTotals()' title='Fair market value ($)'>" +
+    "<span class='row-subtotal' id='" + id + "_sub'></span>" +
+    "<button type='button' class='row-remove' onclick='removeFfeRow(&#39;" + id + "&#39;)'>Remove</button>" +
+    "</div>";
+  document.getElementById("bv_ffe_rows").insertAdjacentHTML("beforeend", html);
+  updateFfeTotals();
+}
+function removeFfeRow(id) {
+  var el = document.getElementById(id);
+  if (el) el.remove();
+  updateFfeTotals();
+}
+function updateFfeTotals() {
+  var rows = document.querySelectorAll("#bv_ffe_rows .unit-row");
+  var total = 0;
+  rows.forEach(function(row) {
+    var inputs = row.querySelectorAll("input");
+    var val = +inputs[1].value || 0;
+    total += val;
+    var subEl = document.getElementById(row.id + "_sub");
+    if (subEl) subEl.textContent = money(val);
+  });
+  document.getElementById("bv_ffe_total").textContent = money(total);
+  document.getElementById("bv_ffe").value = total;
+}
+addFfeRow("Shelving / Fixtures", 15000);
+addFfeRow("POS System", 5000);
+addFfeRow("Forklift", 12000);
+updateComputedNetProfitDisplay();
 function applyBizValDefaults() {
   var type = document.getElementById("bv_type").value;
   var method = document.getElementById("bv_method").value;
@@ -1658,7 +1753,18 @@ function calcBizVal() {
   var multHigh = +document.getElementById("bv_mult_high").value || 0;
   var inventory = +document.getElementById("bv_inventory").value || 0;
   var ffe = +document.getElementById("bv_ffe").value || 0;
+  var intangibles = +document.getElementById("bv_intangibles").value || 0;
   var liabilities = +document.getElementById("bv_liabilities").value || 0;
+
+  var leaseYears = +document.getElementById("bv_lease_years").value || 0;
+  var leaseTransferable = document.getElementById("bv_lease_transferable").value === "yes";
+  var leaseRent = +document.getElementById("bv_lease_rent").value || 0;
+  var leaseMarketRent = +document.getElementById("bv_lease_market_rent").value || 0;
+  var leaseBenefitYears = Math.min(leaseYears, 5);
+  var leaseValue = 0;
+  if (leaseTransferable && leaseYears > 0 && leaseMarketRent > 0) {
+    leaseValue = (leaseMarketRent - leaseRent) * 12 * leaseBenefitYears;
+  }
 
   if (cashFlow <= 0) {
     show("bv_result", "Check your inputs - net profit plus add-backs must be greater than zero to produce a valuation.");
@@ -1668,26 +1774,45 @@ function calcBizVal() {
   var valLow = cashFlow * multLow;
   var valMid = cashFlow * multMid;
   var valHigh = cashFlow * multHigh;
-  var totalLow = valLow + inventory - liabilities;
-  var totalMid = valMid + inventory - liabilities;
-  var totalHigh = valHigh + inventory - liabilities;
+  var extras = inventory + intangibles + leaseValue - liabilities;
+  var totalLow = valLow + extras;
+  var totalMid = valMid + extras;
+  var totalHigh = valHigh + extras;
 
   var margin = revenue > 0 ? (cashFlow / revenue * 100) : 0;
   var revMultLow = revenue > 0 ? totalLow / revenue : 0;
   var revMultHigh = revenue > 0 ? totalHigh / revenue : 0;
 
+  var leaseLine = "";
+  if (leaseYears > 0) {
+    if (!leaseTransferable) {
+      leaseLine = "Lease: non-transferable, so no lease value added for a buyer.<br>";
+    } else if (leaseMarketRent <= 0) {
+      leaseLine = "Lease: enter an estimated market rent to value a below/above-market lease.<br>";
+    } else if (leaseValue > 0) {
+      leaseLine = "+ Below-market lease value (" + money(leaseMarketRent - leaseRent) + "/mo &times; 12 &times; " + leaseBenefitYears.toFixed(1) + " yrs, capped at 5 yrs): " + money(leaseValue) + "<br>";
+    } else if (leaseValue < 0) {
+      leaseLine = "- Above-market lease discount (" + money(leaseRent - leaseMarketRent) + "/mo over market &times; 12 &times; " + leaseBenefitYears.toFixed(1) + " yrs, capped at 5 yrs): " + money(-leaseValue) + "<br>";
+    } else {
+      leaseLine = "Lease: at market rate, no added value.<br>";
+    }
+  }
+
   show("bv_result",
     cashFlowLabel + " (annual): <strong>" + money(cashFlow) + "</strong> (" + margin.toFixed(1) + "% of revenue)<br>" +
     (method === "sde" ? "&nbsp;&nbsp;EBITDA for reference: " + money(ebitda) + "<br>" : "&nbsp;&nbsp;SDE for reference: " + money(sde) + "<br>") +
-    "<br><u>Estimated Business Value (before inventory)</u><br>" +
+    "<br><u>Estimated Business Value (before inventory/intangibles/lease)</u><br>" +
     "Low (" + multLow.toFixed(1) + "x): " + money(valLow) + " &nbsp;|&nbsp; Mid (" + multMid.toFixed(1) + "x): <strong>" + money(valMid) + "</strong> &nbsp;|&nbsp; High (" + multHigh.toFixed(1) + "x): " + money(valHigh) + "<br>" +
-    (inventory > 0 ? "<br>+ Inventory at cost: " + money(inventory) + "<br>" : "") +
+    "<br>" +
+    (inventory > 0 ? "+ Inventory at cost: " + money(inventory) + "<br>" : "") +
+    (intangibles > 0 ? "+ Signage/website/intangibles: " + money(intangibles) + "<br>" : "") +
+    leaseLine +
     (liabilities > 0 ? "- Liabilities assumed: " + money(liabilities) + "<br>" : "") +
     "<br><u>Total Estimated Value Range</u><br>" +
     "Low: " + money(totalLow) + " &nbsp;|&nbsp; Mid: <strong>" + money(totalMid) + "</strong> &nbsp;|&nbsp; High: " + money(totalHigh) + "<br>" +
     "<span style='font-size:11px;color:#888;'>Implied revenue multiple: " + revMultLow.toFixed(2) + "x-" + revMultHigh.toFixed(2) + "x of annual revenue (sanity check - Main Street businesses commonly sell for roughly 0.3x-1x revenue depending on margin).</span><br><br>" +
-    (ffe > 0 ? "FF&amp;E/equipment (reference - usually already included within the multiple, not added again): " + money(ffe) + "<br><br>" : "") +
-    "<span style='font-size:11px;color:#888;'>This is a starting-point estimate using the market (multiple) approach, the standard method for valuing small and mid-sized businesses. Actual sale price depends heavily on factors this calculator can't see: customer concentration, owner dependency, growth trend, lease terms, competitive moat, and buyer type. The overall Main Street average is roughly 2.6-2.7x SDE (2026) across all industries - your multiple should reflect where your business sits within its category's range. Verify add-backs carefully; inflated or undocumented add-backs are the most common source of valuation disputes. This is not a substitute for a professional business appraisal or a broker's opinion of value.</span>");
+    (ffe > 0 ? "FF&amp;E/equipment schedule (reference - usually already included within the multiple, not added again): " + money(ffe) + "<br><br>" : "") +
+    "<span style='font-size:11px;color:#888;'>This is a starting-point estimate using the market (multiple) approach, the standard method for valuing small and mid-sized businesses. Actual sale price depends heavily on factors this calculator can't see: customer concentration, owner dependency, growth trend, lease terms, competitive moat, and buyer type. The overall Main Street average is roughly 2.6-2.7x SDE (2026) across all industries - your multiple should reflect where your business sits within its category's range. Verify add-backs carefully; inflated or undocumented add-backs are the most common source of valuation disputes. The lease value estimate is a simplified, undiscounted rule of thumb, not a formal appraisal of leasehold value. This is not a substitute for a professional business appraisal or a broker's opinion of value.</span>");
 
   var chartLabels = ["Net Profit"];
   var chartValues = [Math.max(netProfit, 0)];
