@@ -2460,7 +2460,7 @@ __NAV__
 <h1>Property &amp; Foreclosure Search</h1>
 <p class="timestamp">Live lookups powered by ATTOM Data, via a Cloudflare Worker proxy.</p>
 
-<div class="setup-banner">
+<div class="setup-banner" id="setup-banner">
   <strong>One-time setup:</strong> replace <code>WORKER_URL</code> near the top of this page's script with your own deployed Cloudflare Worker URL (looks like <code>https://attom-proxy.YOUR-SUBDOMAIN.workers.dev</code>) before this will return real results.
 </div>
 
@@ -2492,7 +2492,11 @@ __NAV__
 
 <script>
 // Replace this with your own deployed Cloudflare Worker URL (see setup banner above).
-var WORKER_URL = "https://attom-proxy.YOUR-SUBDOMAIN.workers.dev";
+var WORKER_URL = "https://attom-proxy.tonyhernandezusa.workers.dev";
+if (WORKER_URL.indexOf("YOUR-SUBDOMAIN") === -1) {
+  var setupBanner = document.getElementById("setup-banner");
+  if (setupBanner) { setupBanner.style.display = "none"; }
+}
 
 function showSearchTab(panelId, btn) {
   document.querySelectorAll(".calc-panel").forEach(function(p) { p.classList.remove("active"); });
