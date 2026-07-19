@@ -102,6 +102,18 @@ FORECLOSURE_STATES = [
     ("Illinois", "1 in 833"),
 ]
 
+# South Florida tri-county foreclosure activity - ATTOM Q1 2026 data
+# Filings = properties with a foreclosure filing in the quarter; Rate = "1 in X" housing units (lower X = worse)
+# YoY = year-over-year change in filings
+# No free API exists for county-level foreclosure stats (ATTOM's data is licensed) - this is refreshed
+# manually each quarter. Ask Claude to "update my tri-county foreclosure data" to refresh from the latest report.
+TRICOUNTY_FORECLOSURES = [
+    ("Broward", "1,232", "1 in 703", "+24.6%"),
+    ("Palm Beach", "926", "1 in 777", "+34.2%"),
+    ("Miami-Dade", "1,010", "n/a", "+1.7%"),
+]
+TRICOUNTY_ASOF = "Q1 2026"
+
 RSI_OVERSOLD = 30
 RSI_OVERBOUGHT = 70
 
@@ -605,6 +617,23 @@ def foreclosure_rows(items):
     </tr>"""
     return out
 
+def tricounty_foreclosure_rows(items):
+    out = ""
+    for county, filings, rate, yoy in items:
+        yoy_num_str = yoy.replace("%", "").replace("+", "")
+        try:
+            yoy_color = "#c0392b" if float(yoy_num_str) > 0 else "#1a8a3d"
+        except ValueError:
+            yoy_color = "#666"
+        out += f"""
+    <tr>
+      <td style="font-weight:600;">{county}</td>
+      <td style="text-align:right;">{filings}</td>
+      <td style="text-align:right;">{rate}</td>
+      <td style="text-align:right;color:{yoy_color};">{yoy}</td>
+    </tr>"""
+    return out
+
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
 top_mover_html = f"{top_mover['ticker']} ({top_mover['pct']:+.2f}%)" if top_mover else "-"
 
@@ -713,6 +742,13 @@ realestate_html = f"""<!DOCTYPE html>
 {foreclosure_rows(FORECLOSURE_STATES)}
 </table>
 <p class="note">Foreclosure data is compiled by private firms (e.g. ATTOM) and entered manually from their public monthly reports. May be out of date.</p>
+
+<h2>South Florida Foreclosure Activity - Miami-Dade, Broward &amp; Palm Beach (updated manually, {TRICOUNTY_ASOF})</h2>
+<table>
+<tr><th>County</th><th style="text-align:right;">Filings</th><th style="text-align:right;">Rate</th><th style="text-align:right;">YoY Change</th></tr>
+{tricounty_foreclosure_rows(TRICOUNTY_FORECLOSURES)}
+</table>
+<p class="note">"Filings" = properties with a foreclosure filing during the quarter. "Rate" is 1-in-X housing units (lower X = worse); Miami-Dade's county-specific rate wasn't broken out in the source used and is shown as n/a rather than estimated. No free API exists for county-level foreclosure data (ATTOM's underlying data is licensed) - this table is refreshed manually each quarter from ATTOM's public reports. Ask Claude to "update my tri-county foreclosure data" to refresh it.</p>
 
 </body>
 </html>"""
