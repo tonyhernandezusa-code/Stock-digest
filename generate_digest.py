@@ -741,6 +741,19 @@ CALC_TEMPLATE = """<!DOCTYPE html>
 .suggest-btn:hover { background:#ddebf7; }
 .chart-wrap { max-width:280px; margin:16px auto 0; }
 .chart-caption { text-align:center; font-size:11px; color:#888; margin-top:6px; }
+.calc-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.calc-tab-btn { padding:10px 16px; border-radius:8px; border:1px solid #e5e3dc; background:#fff; cursor:pointer; font-size:13px; font-weight:600; color:#555; transition:background 0.2s,color 0.2s; }
+.calc-tab-btn:hover { background:#f0efe9; }
+.calc-tab-btn.active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
+.calc-panel { display:none; }
+.calc-panel.active { display:block; }
+.unit-row { display:flex; gap:6px; align-items:center; margin-bottom:8px; }
+.unit-row input[type="text"] { flex:2; padding:8px; font-size:13px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+.unit-row input[type="number"] { flex:1; padding:8px; font-size:13px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; min-width:0; }
+.unit-row .row-subtotal { flex:0 0 85px; font-size:11px; color:#666; text-align:right; }
+.unit-row .row-remove { flex:0 0 auto; background:#fbe0dd; color:#c0392b; border:1px solid #f3c6c2; border-radius:6px; padding:6px 10px; font-size:11px; cursor:pointer; }
+.unit-row .row-remove:hover { background:#f7cac5; }
+.unit-totals { background:#f0f6ec; border-radius:6px; padding:10px 12px; font-size:13px; margin:8px 0 16px; }
 </style>
 </head>
 <body>
@@ -748,7 +761,16 @@ __NAV__
 <h1>Financial Calculators</h1>
 <p class="timestamp">These calculators run in your browser - nothing is saved or sent anywhere.</p>
 
-<div class="calc">
+<div class="calc-tabs">
+  <button type="button" class="calc-tab-btn active" onclick="showCalcTab('panel-afford', this)">Home Affordability</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-mortgage', this)">Mortgage</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-cre', this)">Real Estate Investment</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-auto', this)">Auto Loan</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-savings', this)">Savings</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-card', this)">Credit Card Payoff</button>
+</div>
+
+<div class="calc calc-panel active" id="panel-afford">
 <h3>Home Affordability - How Much Do I Qualify For?</h3>
 <label>Your annual gross income ($ - before taxes)</label><input type="number" id="q_inc1" value="75000">
 <label>Co-borrower annual gross income ($ - spouse/partner on the loan, 0 if single)</label><input type="number" id="q_inc2" value="0">
@@ -765,7 +787,7 @@ __NAV__
 <div class="result" id="q_result"></div>
 </div>
 
-<div class="calc">
+<div class="calc calc-panel" id="panel-mortgage">
 <h3>Mortgage Calculator</h3>
 <label>Home price ($)</label><input type="number" id="m_price" value="400000">
 <label>Down payment ($)</label><input type="number" id="m_down" value="80000">
@@ -816,7 +838,53 @@ __NAV__
 <div id="m_amort" style="margin-top:14px;"></div>
 </div>
 
-<div class="calc">
+<div class="calc calc-panel" id="panel-cre">
+<h3>Real Estate Investment Loan Calculator (DSCR)</h3>
+<label>Property type (auto-fills typical down payment, rate, amortization, and loan term below - all remain editable)</label>
+<select id="cre_type" onchange="applyCREDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="res14" selected>1-4 units (residential investment loan)</option>
+<option value="comm5">5+ units / commercial property</option>
+</select>
+<p class="chart-caption" id="cre_type_hint" style="text-align:left;margin:4px 0 12px;">1-4 unit properties qualify for residential-style financing (conventional or DSCR investment loans) - typically 30-year fixed with no balloon, and rates only modestly above a standard home mortgage.</p>
+<label>Purchase price ($)</label><input type="number" id="cre_price" value="500000">
+<label>Down payment (% - national average by property type, editable)</label><input type="number" id="cre_down_pct" value="25" step="0.5">
+<label>Interest rate (% per year - national average by property type, editable)</label><input type="number" id="cre_rate" value="7.25" step="0.01">
+<label>Amortization period (years - length used to calculate the payment)</label><input type="number" id="cre_amort" value="30">
+<label>Loan term / balloon due (years - 0 for no balloon/fully amortizing, as is standard for 1-4 unit residential loans. Commercial loans on 5+ units commonly have a shorter 5, 7, or 10-yr term with a balloon due, even though the payment is calculated on a longer amortization.)</label><input type="number" id="cre_term" value="0">
+<label>Closing costs (% of purchase price - typically 2-3% for residential, 2-5% for commercial)</label><input type="number" id="cre_closing" value="3" step="0.1">
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Income &amp; Operating Expenses</h4>
+<label>Rent roll (unit mix) - add a row for each unit type, enter how many units of that type and the monthly rent per unit</label>
+<div id="cre_unit_rows"></div>
+<button type="button" class="suggest-btn" onclick="addUnitRow()" style="margin-bottom:12px;">+ Add Unit Type</button>
+<div class="unit-totals">
+  Total units: <strong id="cre_total_units">0</strong> &nbsp;|&nbsp;
+  Total monthly rent: <strong id="cre_total_monthly_rent">$0.00</strong> &nbsp;|&nbsp;
+  Total annual rent: <strong id="cre_total_annual_rent">$0.00</strong>
+</div>
+<input type="hidden" id="cre_rent" value="0">
+<input type="hidden" id="cre_total_units_hidden" value="0">
+<div class="field-row">
+  <div><label>Vacancy &amp; credit loss (% of gross rent - lenders commonly underwrite to ~5%, editable)</label><input type="number" id="cre_vacancy" value="5" step="0.1"></div>
+  <button type="button" class="suggest-btn" onclick="document.getElementById('cre_vacancy').value=5;">Use Nat'l Avg (5%)</button>
+</div>
+<label>Annual property taxes ($)</label><input type="number" id="cre_tax" value="6000">
+<label>Annual insurance ($)</label><input type="number" id="cre_ins" value="3000">
+<div class="field-row">
+  <div><label>Property management fee (% of collected rent - national average is ~8-10%, editable)</label><input type="number" id="cre_mgmt" value="8" step="0.1"></div>
+  <button type="button" class="suggest-btn" onclick="document.getElementById('cre_mgmt').value=8;">Use Nat'l Avg (8%)</button>
+</div>
+<div class="field-row">
+  <div><label>Maintenance &amp; capex reserves ($/mo - a common rule of thumb is ~7% of rent, editable)</label><input type="number" id="cre_maint" value="350"></div>
+  <button type="button" class="suggest-btn" onclick="recommendCREMaint()">Use Nat'l Avg</button>
+</div>
+<label>Other monthly expenses ($ - utilities, HOA, etc. if landlord-paid, 0 if tenant pays all)</label><input type="number" id="cre_other" value="0">
+<button onclick="calcCRE()">Calculate</button>
+<div class="result" id="cre_result"></div>
+<div class="chart-wrap"><canvas id="cre_chart"></canvas></div>
+<p class="chart-caption" id="cre_chart_caption"></p>
+</div>
+
+<div class="calc calc-panel" id="panel-auto">
 <h3>Auto Loan Calculator</h3>
 <label>Vehicle type (auto-fills maintenance, fuel, depreciation, and EV-specific fields below with national averages - all remain editable)</label>
 <select id="a_type" onchange="applyVehicleDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
@@ -870,7 +938,7 @@ __NAV__
 <p class="chart-caption" id="a_chart_caption"></p>
 </div>
 
-<div class="calc">
+<div class="calc calc-panel" id="panel-savings">
 <h3>Savings Calculator</h3>
 <label>Starting amount ($)</label><input type="number" id="s_start" value="10000">
 <label>Monthly contribution ($)</label><input type="number" id="s_monthly" value="500">
@@ -881,7 +949,7 @@ __NAV__
 <div class="result" id="s_result"></div>
 </div>
 
-<div class="calc">
+<div class="calc calc-panel" id="panel-card">
 <h3>Credit Card Payoff Calculator</h3>
 <label>Current balance ($)</label><input type="number" id="c_balance" value="5000">
 <label>APR (% per year)</label><input type="number" id="c_apr" value="24.99" step="0.01">
@@ -898,6 +966,12 @@ __NAV__
 <script>
 function money(x) {
   return "$" + x.toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function showCalcTab(panelId, btn) {
+  document.querySelectorAll(".calc-panel").forEach(function(p) { p.classList.remove("active"); });
+  document.querySelectorAll(".calc-tab-btn").forEach(function(b) { b.classList.remove("active"); });
+  document.getElementById(panelId).classList.add("active");
+  btn.classList.add("active");
 }
 function show(id, html) {
   var el = document.getElementById(id);
@@ -939,6 +1013,160 @@ function drawPie(canvasId, captionId, labels, values, note) {
 function recommendMortgageMaint() {
   var price = +document.getElementById("m_price").value || 0;
   document.getElementById("m_maint").value = Math.round(price * 0.01 / 12);
+}
+function recommendCREMaint() {
+  var rent = +document.getElementById("cre_rent").value || 0;
+  document.getElementById("cre_maint").value = Math.round(rent * 0.07);
+}
+var creUnitRowSeq = 0;
+function addUnitRow(label, count, rent) {
+  label = label !== undefined ? label : "";
+  count = count !== undefined ? count : 1;
+  rent = rent !== undefined ? rent : 1000;
+  creUnitRowSeq++;
+  var id = "cre_unit_row_" + creUnitRowSeq;
+  var safeLabel = String(label).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  var html = "<div class='unit-row' id='" + id + "'>" +
+    "<input type='text' placeholder='e.g. 2 Bed / 1 Bath' value=\"" + safeLabel + "\" oninput='updateUnitTotals()'>" +
+    "<input type='number' value='" + count + "' min='0' oninput='updateUnitTotals()' title='Number of units of this type'>" +
+    "<input type='number' value='" + rent + "' min='0' oninput='updateUnitTotals()' title='Monthly rent per unit ($)'>" +
+    "<span class='row-subtotal' id='" + id + "_sub'>$0.00/mo</span>" +
+    "<button type='button' class='row-remove' onclick=\"removeUnitRow('" + id + "')\">Remove</button>" +
+    "</div>";
+  document.getElementById("cre_unit_rows").insertAdjacentHTML("beforeend", html);
+  updateUnitTotals();
+}
+function removeUnitRow(id) {
+  var el = document.getElementById(id);
+  if (el) el.remove();
+  updateUnitTotals();
+}
+function updateUnitTotals() {
+  var rows = document.querySelectorAll("#cre_unit_rows .unit-row");
+  var totalUnits = 0, totalMonthly = 0;
+  rows.forEach(function(row) {
+    var inputs = row.querySelectorAll("input");
+    var count = +inputs[1].value || 0;
+    var rentEach = +inputs[2].value || 0;
+    var sub = count * rentEach;
+    totalUnits += count;
+    totalMonthly += sub;
+    var subEl = document.getElementById(row.id + "_sub");
+    if (subEl) subEl.textContent = money(sub) + "/mo";
+  });
+  document.getElementById("cre_total_units").textContent = totalUnits;
+  document.getElementById("cre_total_monthly_rent").textContent = money(totalMonthly);
+  document.getElementById("cre_total_annual_rent").textContent = money(totalMonthly * 12);
+  document.getElementById("cre_rent").value = totalMonthly;
+  document.getElementById("cre_total_units_hidden").value = totalUnits;
+}
+addUnitRow("1 Bed / 1 Bath", 2, 1000);
+addUnitRow("2 Bed / 1 Bath", 1, 1300);
+addUnitRow("2 Bed / 2 Bath", 1, 1700);
+var CRE_DEFAULTS = {
+  res14: { down: 25, rate: 7.25, amort: 30, term: 0,
+           hint: "1-4 unit properties qualify for residential-style financing (conventional or DSCR investment loans) - typically 30-year fixed with no balloon, and rates only modestly above a standard home mortgage." },
+  comm5: { down: 25, rate: 7.5,  amort: 25, term: 10,
+           hint: "5+ unit properties require true commercial financing (agency, bank portfolio, or CMBS loans) - typically a shorter term (often 10 yrs) with a balloon due, even though payments are calculated on a longer amortization, and rates run somewhat higher than residential." }
+};
+function applyCREDefaults() {
+  var type = document.getElementById("cre_type").value;
+  var d = CRE_DEFAULTS[type] || CRE_DEFAULTS.res14;
+  document.getElementById("cre_down_pct").value = d.down;
+  document.getElementById("cre_rate").value = d.rate;
+  document.getElementById("cre_amort").value = d.amort;
+  document.getElementById("cre_term").value = d.term;
+  document.getElementById("cre_type_hint").textContent = d.hint;
+}
+function calcCRE() {
+  var propType = document.getElementById("cre_type").value;
+  var totalUnits = +document.getElementById("cre_total_units_hidden").value || 0;
+  var price = +document.getElementById("cre_price").value;
+  var downPct = (+document.getElementById("cre_down_pct").value || 0) / 100;
+  var rate = +document.getElementById("cre_rate").value / 100 / 12;
+  var amortYears = +document.getElementById("cre_amort").value;
+  var n = amortYears * 12;
+  var termYears = +document.getElementById("cre_term").value || 0;
+  var closingPct = (+document.getElementById("cre_closing").value || 0) / 100;
+  var rent_m = +document.getElementById("cre_rent").value || 0;
+  var vacancy_pct = (+document.getElementById("cre_vacancy").value || 0) / 100;
+  var tax_m = (+document.getElementById("cre_tax").value || 0) / 12;
+  var ins_m = (+document.getElementById("cre_ins").value || 0) / 12;
+  var mgmt_pct = (+document.getElementById("cre_mgmt").value || 0) / 100;
+  var maint_m = (+document.getElementById("cre_maint").value || 0);
+  var other_m = (+document.getElementById("cre_other").value || 0);
+
+  var down = price * downPct;
+  var loan = price - down;
+  var closing_amt = price * closingPct;
+  var cash_to_close = down + closing_amt;
+
+  if (loan <= 0 || n <= 0 || rent_m <= 0) { show("cre_result", "Check your inputs - purchase price, amortization, and rental income must all be greater than zero."); return; }
+
+  var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
+  var annualDebtService = pmt * 12;
+
+  var vacancy_loss_m = rent_m * vacancy_pct;
+  var egi_m = rent_m - vacancy_loss_m;
+  var mgmt_fee_m = egi_m * mgmt_pct;
+  var totalOpex_m = tax_m + ins_m + mgmt_fee_m + maint_m + other_m;
+  var noi_m = egi_m - totalOpex_m;
+  var noi_annual = noi_m * 12;
+
+  var dscr = annualDebtService > 0 ? noi_annual / annualDebtService : 0;
+  var capRate = price > 0 ? (noi_annual / price) * 100 : 0;
+  var monthlyCashFlow = noi_m - pmt;
+  var annualCashFlow = monthlyCashFlow * 12;
+  var cashOnCash = cash_to_close > 0 ? (annualCashFlow / cash_to_close) * 100 : 0;
+
+  var balloonNote = "";
+  if (termYears > 0 && termYears * 12 < n) {
+    var bal = loan;
+    for (var m = 0; m < termYears * 12; m++) {
+      var interest = bal * rate;
+      bal -= (pmt - interest);
+    }
+    balloonNote = "<span style='color:#c0392b;font-weight:600;'>Balloon payment due at year " + termYears + ": " + money(Math.max(bal, 0)) + "</span><br>";
+  }
+
+  var dscrColor = dscr >= 1.25 ? "#1a8a3d" : (dscr >= 1.0 ? "#a5720b" : "#c0392b");
+  var dscrNote = dscr >= 1.25 ? "Comfortably meets most lenders' minimum (typically 1.20-1.25+)." :
+                 dscr >= 1.0 ? "Covers the debt payment, but below many lenders' comfort threshold (1.20-1.25+) - a bigger down payment, lower rate, or higher rent may be needed to qualify." :
+                 "Below 1.0 means the property's income does not cover the debt payment as structured - most commercial lenders will not approve this loan without changes.";
+
+  show("cre_result",
+    "Loan amount: <strong>" + money(loan) + "</strong> (" + (downPct*100).toFixed(1) + "% down = " + money(down) + ")<br>" +
+    "Monthly P&amp;I payment: " + money(pmt) + " (amortized over " + amortYears + " yrs)<br>" +
+    balloonNote +
+    "<br><u>Debt Service Coverage Ratio (DSCR): <strong style='color:" + dscrColor + ";'>" + dscr.toFixed(2) + "</strong></u><br>" +
+    "<span style='font-size:11px;color:#888;'>" + dscrNote + "</span><br><br>" +
+    "Net Operating Income (annual): <strong>" + money(noi_annual) + "</strong><br>" +
+    "&nbsp;&nbsp;Effective gross income (after " + (vacancy_pct*100).toFixed(1) + "% vacancy): " + money(egi_m) + "/mo<br>" +
+    "&nbsp;&nbsp;Property taxes: " + money(tax_m) + "/mo<br>" +
+    "&nbsp;&nbsp;Insurance: " + money(ins_m) + "/mo<br>" +
+    "&nbsp;&nbsp;Property management (" + (mgmt_pct*100).toFixed(1) + "% of collected rent): " + money(mgmt_fee_m) + "/mo<br>" +
+    "&nbsp;&nbsp;Maintenance/capex reserves: " + money(maint_m) + "/mo<br>" +
+    (other_m > 0 ? "&nbsp;&nbsp;Other expenses: " + money(other_m) + "/mo<br>" : "") +
+    "<br>Cap rate: <strong>" + capRate.toFixed(2) + "%</strong><br>" +
+    (totalUnits > 0 ? "Price per unit: " + money(price / totalUnits) + " &nbsp;|&nbsp; Avg rent per unit: " + money(rent_m / totalUnits) + "/mo<br>" : "") +
+    "Monthly cash flow (after debt service): <strong style='color:" + (monthlyCashFlow >= 0 ? "#1a8a3d" : "#c0392b") + ";'>" + money(monthlyCashFlow) + "</strong><br>" +
+    "Cash-on-cash return: <strong>" + cashOnCash.toFixed(2) + "%</strong><br>" +
+    "<br>Cash needed to close: <strong>" + money(cash_to_close) + "</strong> (" + money(down) + " down + " + money(closing_amt) + " closing costs)<br>" +
+    "<span style='font-size:11px;color:#888;'>DSCR = annual NOI &divide; annual debt service; most DSCR/commercial lenders want 1.20-1.25 or higher. Cap rate = NOI &divide; purchase price, useful for comparing properties independent of financing. Cash-on-cash = annual pre-tax cash flow &divide; cash invested, the return on your actual out-of-pocket money. " +
+    (propType === "res14" ? "For a 1-4 unit property financed with a conventional loan, lenders typically qualify you on your personal income/DTI rather than the property's DSCR alone - DSCR here is still a useful cash-flow health check, and it's the primary metric if you instead use a dedicated DSCR-loan program. " : "For a 5+ unit commercial property, DSCR is usually the primary underwriting metric lenders use to size the loan, rather than your personal income. ") +
+    "Underwriting conventions vary by lender, property type, and market - treat these as estimates, not a preapproval.</span>");
+
+  var chartLabels = ["Debt Service (P&I)", "Property Taxes", "Insurance", "Management", "Maintenance/Reserves", "Vacancy Loss"];
+  var chartValues = [pmt, tax_m, ins_m, mgmt_fee_m, maint_m, vacancy_loss_m];
+  if (other_m > 0) { chartLabels.push("Other"); chartValues.push(other_m); }
+  var captionExtra = "";
+  if (monthlyCashFlow > 0) {
+    chartLabels.push("Net Cash Flow");
+    chartValues.push(monthlyCashFlow);
+  } else if (monthlyCashFlow < 0) {
+    captionExtra = " (shortfall of " + money(-monthlyCashFlow) + "/mo not shown as a slice)";
+  }
+  drawPie("cre_chart", "cre_chart_caption", chartLabels, chartValues, "Where your " + money(rent_m) + "/mo gross rent goes" + captionExtra);
 }
 var VEHICLE_DEFAULTS = {
   gas:      { maint: 100, fuel: 150, deprec: 15, evFee: 0,   charger: 0,    battery: 0,   fuelLabel: "Fuel",
