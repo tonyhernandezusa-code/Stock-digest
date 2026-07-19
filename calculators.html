@@ -71,6 +71,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-card', this)">Credit Card Payoff</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-bizval', this)">Business Valuation</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-lease', this)">Car Lease</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-boat', this)">Boat Financing</button>
 </div>
 
 <div class="calc calc-panel active" id="panel-afford">
@@ -390,6 +391,80 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <div class="result" id="ls_result"></div>
 <div class="chart-wrap"><canvas id="ls_chart"></canvas></div>
 <p class="chart-caption" id="ls_chart_caption"></p>
+</div>
+
+<div class="calc calc-panel" id="panel-boat">
+<h3>Boat Financing Calculator</h3>
+<label>Boat price ($)</label><input type="number" id="bt_price" value="150000">
+<label>Boat length (feet - drives the dockage fee estimate below)</label><input type="number" id="bt_length" value="30">
+<label>Down payment ($ - typically 10-20%)</label><input type="number" id="bt_down" value="30000">
+<label>Trade-in value ($ - 0 if none)</label><input type="number" id="bt_trade" value="0">
+<label>Sales tax (%)</label><input type="number" id="bt_tax" value="6.5" step="0.1">
+<label>Dealer / documentation fees ($)</label><input type="number" id="bt_fees" value="500">
+<label>Roll tax &amp; fees into the loan?</label>
+<select id="bt_roll" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="yes" selected>Yes - finance them (most common)</option>
+<option value="no">No - I will pay them in cash</option>
+</select>
+<label>Interest rate (% per year - marine loans typically run 1-3 points above auto loans; 2026 average is roughly 7-10%)</label><input type="number" id="bt_rate" value="8.0" step="0.01">
+<label>Loan term (years - boat loans commonly run 5-20 years, longer than auto loans)</label><input type="number" id="bt_years" value="15">
+<label>Estimated annual depreciation (% of price - new boats often lose 10-15% in year 1; 10%/yr is a reasonable blended long-run average, editable)</label><input type="number" id="bt_deprec_rate" value="10" step="0.5">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Storage / Dockage</h4>
+<label>Storage type (auto-fills a typical dockage fee below - all remain editable)</label>
+<select id="bt_storage" onchange="applyBoatStorageDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="wetslip" selected>Wet slip (marina, priced per foot)</option>
+<option value="drystack">Dry stack storage (indoor rack storage)</option>
+<option value="trailer">Trailer / driveway storage</option>
+</select>
+<div class="field-row">
+  <div><label id="bt_dockage_label">Wet slip fee ($/foot/month - national average is roughly $30-50/ft, editable)</label><input type="number" id="bt_dockage_rate" value="35" step="1"></div>
+  <button type="button" class="suggest-btn" onclick="applyBoatStorageDefaults()">Use Nat'l Avg</button>
+</div>
+<p class="chart-caption" id="bt_storage_hint" style="text-align:left;margin:4px 0 12px;">Wet slips are typically priced per foot of boat length - a 30ft boat at $35/ft runs about $1,050/month, though location (especially waterfront real estate markets) swings this a lot.</p>
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Insurance &amp; Maintenance</h4>
+<div class="field-row">
+  <div><label>Insurance (%/yr of boat value - national average is roughly 1-2%, editable)</label><input type="number" id="bt_insurance_pct" value="1.5" step="0.1"></div>
+  <button type="button" class="suggest-btn" onclick="document.getElementById('bt_insurance_pct').value=1.5;">Use Nat'l Avg (1.5%)</button>
+</div>
+<div class="field-row">
+  <div><label>Maintenance (%/yr of boat value - the industry "10% rule": budget roughly 10% of the boat's value annually for upkeep, editable)</label><input type="number" id="bt_maint_pct" value="10" step="0.5"></div>
+  <button type="button" class="suggest-btn" onclick="document.getElementById('bt_maint_pct').value=10;">Use 10% Rule</button>
+</div>
+<label>Engine type (affects the engine reserve estimate below)</label>
+<select id="bt_engine_type" onchange="applyBoatEngineDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="outboard" selected>Outboard</option>
+<option value="inboard">Inboard / Sterndrive</option>
+</select>
+<div class="field-row">
+  <div><label id="bt_engine_reserve_label">Major engine repair/replacement reserve ($/mo - optional contingency fund, editable)</label><input type="number" id="bt_engine_reserve" value="138"></div>
+  <button type="button" class="suggest-btn" onclick="applyBoatEngineDefaults()">Use Nat'l Avg</button>
+</div>
+<p class="chart-caption" id="bt_engine_hint" style="text-align:left;margin:4px 0 12px;">A new outboard replacement typically runs $8,000-$25,000; this reserve spreads a mid-range estimate over about 10 years. Optional contingency, not a guaranteed cost - 0 if you'd rather not set anything aside.</p>
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Fuel</h4>
+<label>Engine horsepower (HP)</label><input type="number" id="bt_hp" value="300">
+<label>Fuel type</label>
+<select id="bt_fuel_type" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="gas" selected>Gasoline</option>
+<option value="diesel">Diesel</option>
+</select>
+<label>Estimated hours used per year</label><input type="number" id="bt_hours" value="60">
+<label>Fuel price ($/gallon)</label><input type="number" id="bt_fuel_price" value="4.50" step="0.01">
+<p class="chart-caption" style="text-align:left;margin:4px 0 12px;">Fuel burn uses the industry-standard estimate: gasoline engines burn about HP &times; 0.1 gallons/hour, diesel about HP &times; 0.055 gallons/hour, both at a 75% average throttle factor.</p>
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Other Annual Costs</h4>
+<label>Towing membership - e.g. TowBoatUS ($/yr, national average is roughly $215)</label><input type="number" id="bt_towing" value="215">
+<label>Yacht club / marina membership dues ($/yr, 0 if none)</label><input type="number" id="bt_club" value="0">
+<label>Winterization / haul-out &amp; spring commissioning ($/yr, 0 in year-round warm climates)</label><input type="number" id="bt_winterize" value="0">
+<label>Registration / licensing fees ($/yr)</label><input type="number" id="bt_registration" value="150">
+<label>Your gross annual household income ($ - optional, for the "10% rule" affordability sanity check)</label><input type="number" id="bt_income" value="0">
+
+<button onclick="calcBoat()">Calculate</button>
+<div class="result" id="bt_result"></div>
+<div class="chart-wrap"><canvas id="bt_chart"></canvas></div>
+<p class="chart-caption" id="bt_chart_caption"></p>
 </div>
 
 <script>
@@ -1271,6 +1346,121 @@ function calcLease() {
   var chartValues = [deprFee, rentCharge];
   if (taxAmount > 0) { chartLabels.push("Tax"); chartValues.push(taxAmount); }
   drawPie("ls_chart", "ls_chart_caption", chartLabels, chartValues, "Where your " + money(totalPayment) + "/mo lease payment goes");
+}
+
+var BOAT_STORAGE_DEFAULTS = {
+  wetslip: { rate: 35, label: "Wet slip fee ($/foot/month - national average is roughly $30-50/ft, editable)",
+             hint: "Wet slips are typically priced per foot of boat length - a 30ft boat at $35/ft runs about $1,050/month, though location (especially waterfront real estate markets) swings this a lot." },
+  drystack: { rate: 275, label: "Dry stack storage fee ($/month, flat rate - national average is roughly $150-400/month, editable)",
+              hint: "Dry stack (indoor rack) storage is usually a flat monthly rate rather than priced per foot, and often includes launch/retrieval service." },
+  trailer: { rate: 75, label: "Trailer / driveway storage cost ($/month, flat rate - national average is roughly $50-100/month, editable)",
+             hint: "Trailering your own boat is the cheapest storage option, though it adds tow-vehicle wear and launch/retrieval time." }
+};
+function applyBoatStorageDefaults() {
+  var type = document.getElementById("bt_storage").value;
+  var d = BOAT_STORAGE_DEFAULTS[type] || BOAT_STORAGE_DEFAULTS.wetslip;
+  document.getElementById("bt_dockage_rate").value = d.rate;
+  document.getElementById("bt_dockage_label").textContent = d.label;
+  document.getElementById("bt_storage_hint").textContent = d.hint;
+}
+var BOAT_ENGINE_DEFAULTS = {
+  outboard: { reserve: 138, hint: "A new outboard replacement typically runs $8,000-$25,000; this reserve spreads a mid-range estimate over about 10 years. Optional contingency, not a guaranteed cost - 0 if you'd rather not set anything aside." },
+  inboard:  { reserve: 83,  hint: "An inboard/sterndrive overhaul typically runs $5,000-$15,000; this reserve spreads a mid-range estimate over about 10 years. Optional contingency, not a guaranteed cost - 0 if you'd rather not set anything aside." }
+};
+function applyBoatEngineDefaults() {
+  var type = document.getElementById("bt_engine_type").value;
+  var d = BOAT_ENGINE_DEFAULTS[type] || BOAT_ENGINE_DEFAULTS.outboard;
+  document.getElementById("bt_engine_reserve").value = d.reserve;
+  document.getElementById("bt_engine_hint").textContent = d.hint;
+}
+function calcBoat() {
+  var price = +document.getElementById("bt_price").value;
+  var length = +document.getElementById("bt_length").value || 0;
+  var down = +document.getElementById("bt_down").value || 0;
+  var trade = +document.getElementById("bt_trade").value || 0;
+  var taxPct = (+document.getElementById("bt_tax").value || 0) / 100;
+  var fees = +document.getElementById("bt_fees").value || 0;
+  var roll = document.getElementById("bt_roll").value === "yes";
+  var rate = +document.getElementById("bt_rate").value / 100 / 12;
+  var n = (+document.getElementById("bt_years").value || 0) * 12;
+  var deprecRate = (+document.getElementById("bt_deprec_rate").value || 0) / 100;
+
+  var storageType = document.getElementById("bt_storage").value;
+  var dockageRate = +document.getElementById("bt_dockage_rate").value || 0;
+  var dockage_m = storageType === "wetslip" ? dockageRate * length : dockageRate;
+
+  var insurancePct = (+document.getElementById("bt_insurance_pct").value || 0) / 100;
+  var maintPct = (+document.getElementById("bt_maint_pct").value || 0) / 100;
+  var engineReserve_m = +document.getElementById("bt_engine_reserve").value || 0;
+  var insurance_m = price * insurancePct / 12;
+  var maint_m = price * maintPct / 12;
+  var deprec_m = price * deprecRate / 12;
+
+  var hp = +document.getElementById("bt_hp").value || 0;
+  var fuelType = document.getElementById("bt_fuel_type").value;
+  var hours = +document.getElementById("bt_hours").value || 0;
+  var fuelPrice = +document.getElementById("bt_fuel_price").value || 0;
+  var gph = fuelType === "diesel" ? hp * 0.055 : hp * 0.1;
+  var annualGallons = gph * 0.75 * hours;
+  var fuel_m = (annualGallons * fuelPrice) / 12;
+
+  var towing_m = (+document.getElementById("bt_towing").value || 0) / 12;
+  var club_m = (+document.getElementById("bt_club").value || 0) / 12;
+  var winterize_m = (+document.getElementById("bt_winterize").value || 0) / 12;
+  var registration_m = (+document.getElementById("bt_registration").value || 0) / 12;
+  var income = +document.getElementById("bt_income").value || 0;
+
+  var taxable = Math.max(price - trade, 0);
+  var tax = taxable * taxPct;
+  var loan = price - down - trade + (roll ? tax + fees : 0);
+  var cashUpfront = down + (roll ? 0 : tax + fees);
+
+  if (loan <= 0 || n <= 0) { show("bt_result", "Check your inputs."); return; }
+  var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
+  var totalLoanPaid = pmt * n;
+
+  var trueCost = pmt + dockage_m + insurance_m + maint_m + engineReserve_m + fuel_m + towing_m + club_m + winterize_m + registration_m + deprec_m;
+  var annualCost = trueCost * 12;
+
+  var incomeNote = "";
+  if (income > 0) {
+    var pctOfIncome = (annualCost / income) * 100;
+    incomeNote = "<br><span style='font-size:11px;color:#888;'>All-in annual boating cost is " + pctOfIncome.toFixed(1) + "% of your household income. The commonly cited affordability guideline is to keep total boating costs under roughly 10% of gross household income.</span>";
+  }
+
+  show("bt_result",
+    "Monthly loan payment: <strong>" + money(pmt) + "</strong><br>" +
+    "Loan amount: " + money(loan) + "<br>" +
+    "&nbsp;&nbsp;Boat price: " + money(price) + "<br>" +
+    (trade > 0 ? "&nbsp;&nbsp;Trade-in: -" + money(trade) + "<br>" : "") +
+    (down > 0 ? "&nbsp;&nbsp;Down payment: -" + money(down) + "<br>" : "") +
+    (tax > 0 ? "&nbsp;&nbsp;Sales tax (" + (taxPct*100).toFixed(1) + "%): +" + money(tax) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
+    (fees > 0 ? "&nbsp;&nbsp;Dealer/doc fees: +" + money(fees) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
+    "Cash due upfront: " + money(cashUpfront) + "<br>" +
+    "Total interest over the loan: " + money(totalLoanPaid - loan) + "<br>" +
+    "<br><u>Estimated True Monthly Cost of Ownership: <strong>" + money(trueCost) + "</strong></u><br>" +
+    "&nbsp;&nbsp;Loan payment: " + money(pmt) + "<br>" +
+    "&nbsp;&nbsp;Dockage/storage: " + money(dockage_m) + (storageType === "wetslip" ? " (" + length + "ft &times; " + money(dockageRate) + "/ft)" : "") + "<br>" +
+    "&nbsp;&nbsp;Insurance: " + money(insurance_m) + "<br>" +
+    "&nbsp;&nbsp;Maintenance: " + money(maint_m) + "<br>" +
+    (engineReserve_m > 0 ? "&nbsp;&nbsp;Engine reserve: " + money(engineReserve_m) + "<br>" : "") +
+    "&nbsp;&nbsp;Fuel (" + Math.round(annualGallons) + " gal/yr est.): " + money(fuel_m) + "<br>" +
+    "&nbsp;&nbsp;Towing membership: " + money(towing_m) + "<br>" +
+    (club_m > 0 ? "&nbsp;&nbsp;Club/marina dues: " + money(club_m) + "<br>" : "") +
+    (winterize_m > 0 ? "&nbsp;&nbsp;Winterization: " + money(winterize_m) + "<br>" : "") +
+    "&nbsp;&nbsp;Registration: " + money(registration_m) + "<br>" +
+    "&nbsp;&nbsp;Depreciation (non-cash, for reference): " + money(deprec_m) + "<br>" +
+    "<br>Annual all-in cost: <strong>" + money(annualCost) + "</strong>" + incomeNote +
+    "<br><br><span style='font-size:11px;color:#888;'>Industry rule of thumb: total boating costs commonly run 2-3x the loan payment alone once dockage, insurance, maintenance, and fuel are added - this is normal, not a sign something's wrong with your numbers. The 10% maintenance rule and 1-2% insurance rule are broad averages; actual costs vary a lot by boat age, engine type, and how hard the boat is used. This is an estimate, not a substitute for actual quotes from your marina, insurer, and mechanic.</span>");
+
+  var chartLabels = ["Loan Payment", "Dockage/Storage", "Insurance", "Maintenance"];
+  var chartValues = [pmt, dockage_m, insurance_m, maint_m];
+  if (engineReserve_m > 0) { chartLabels.push("Engine Reserve"); chartValues.push(engineReserve_m); }
+  chartLabels.push("Fuel"); chartValues.push(fuel_m);
+  var otherFixed_m = towing_m + club_m + winterize_m + registration_m;
+  if (otherFixed_m > 0) { chartLabels.push("Other Fees"); chartValues.push(otherFixed_m); }
+  chartLabels.push("Depreciation"); chartValues.push(deprec_m);
+  drawPie("bt_chart", "bt_chart_caption", chartLabels, chartValues, "True monthly cost of ownership: " + money(trueCost));
 }
 </script>
 
