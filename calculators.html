@@ -72,6 +72,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-bizval', this)">Business Valuation</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-lease', this)">Car Lease</button>
   <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-boat', this)">Boat Financing</button>
+  <button type="button" class="calc-tab-btn" onclick="showCalcTab('panel-rv', this)">RV Financing</button>
 </div>
 
 <div class="calc calc-panel active" id="panel-afford">
@@ -465,6 +466,71 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <div class="result" id="bt_result"></div>
 <div class="chart-wrap"><canvas id="bt_chart"></canvas></div>
 <p class="chart-caption" id="bt_chart_caption"></p>
+</div>
+
+<div class="calc calc-panel" id="panel-rv">
+<h3>RV Financing Calculator</h3>
+<label>RV type (auto-fills typical loan term, insurance, maintenance, depreciation, and fuel economy below - all remain editable)</label>
+<select id="rv_type" onchange="applyRVDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="travel_trailer" selected>Travel Trailer (towable)</option>
+<option value="fifth_wheel">Fifth Wheel (towable)</option>
+<option value="classB">Class B - Camper Van (motorized)</option>
+<option value="classC">Class C Motorhome (motorized)</option>
+<option value="classA_gas">Class A Motorhome - Gas (motorized)</option>
+<option value="classA_diesel">Class A Motorhome - Diesel Pusher (motorized)</option>
+</select>
+<p class="chart-caption" id="rv_type_hint" style="text-align:left;margin:4px 0 12px;">Travel trailers are towable (no engine of their own), the most affordable RV type to insure and maintain, and typically depreciate somewhat less steeply than motorized RVs.</p>
+<label>RV price ($)</label><input type="number" id="rv_price" value="45000">
+<label>Down payment ($ - typically 10-20%)</label><input type="number" id="rv_down" value="6000">
+<label>Trade-in value ($ - 0 if none)</label><input type="number" id="rv_trade" value="0">
+<label>Sales tax (%)</label><input type="number" id="rv_tax" value="6.5" step="0.1">
+<label>Dealer / documentation fees ($)</label><input type="number" id="rv_fees" value="500">
+<label>Roll tax &amp; fees into the loan?</label>
+<select id="rv_roll" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="yes" selected>Yes - finance them (most common)</option>
+<option value="no">No - I will pay them in cash</option>
+</select>
+<label>Interest rate (% per year - 2026 RV loans typically run roughly 7-10%)</label><input type="number" id="rv_rate" value="7.5" step="0.01">
+<label>Loan term (years - national average by RV type, editable)</label><input type="number" id="rv_years" value="12">
+<label>Estimated annual depreciation (% of price - national average by RV type, editable; new RVs commonly lose 20-30% in year 1 alone)</label><input type="number" id="rv_deprec_rate" value="15" step="0.5">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Storage (When Not in Use)</h4>
+<label>Storage type</label>
+<select id="rv_storage" onchange="applyRVStorageDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="home" selected>Home / driveway (free)</option>
+<option value="outdoor">Outdoor storage lot</option>
+<option value="indoor">Indoor storage</option>
+</select>
+<label>Storage fee ($/month, editable)</label><input type="number" id="rv_storage_fee" value="0">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Insurance &amp; Maintenance</h4>
+<div class="field-row">
+  <div><label id="rv_insurance_label">Insurance (%/yr of RV value - national average by type, editable)</label><input type="number" id="rv_insurance_pct" value="1.3" step="0.1"></div>
+  <button type="button" class="suggest-btn" onclick="applyRVDefaults()">Use Nat'l Avg</button>
+</div>
+<div class="field-row">
+  <div><label id="rv_maint_label">Maintenance (%/yr of RV value - national average by type, editable)</label><input type="number" id="rv_maint_pct" value="3" step="0.5"></div>
+  <button type="button" class="suggest-btn" onclick="applyRVDefaults()">Use Nat'l Avg</button>
+</div>
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Fuel (Motorized RVs Only)</h4>
+<p class="chart-caption" id="rv_fuel_note" style="text-align:left;margin:0 0 8px;">Towable RVs have no engine of their own - fuel costs apply to your tow vehicle, not included here.</p>
+<label id="rv_mpg_label">Fuel economy (MPG - national average by type, editable)</label><input type="number" id="rv_mpg" value="8" step="0.5">
+<label>Miles driven per year</label><input type="number" id="rv_miles" value="5000">
+<label>Fuel price ($/gallon)</label><input type="number" id="rv_fuel_price" value="3.75" step="0.01">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Camping &amp; Other Annual Costs</h4>
+<label>Nights camped/traveled per year</label><input type="number" id="rv_nights" value="20">
+<label>Average campground fee ($/night)</label><input type="number" id="rv_camp_fee" value="45">
+<label>Propane &amp; generator fuel ($/month)</label><input type="number" id="rv_propane" value="30">
+<label>Roadside assistance / RV club membership ($/yr - e.g. Good Sam, Coach-Net)</label><input type="number" id="rv_roadside" value="120">
+<label>Registration / licensing fees ($/yr)</label><input type="number" id="rv_registration" value="200">
+<label>Your gross annual household income ($ - optional, for an affordability sanity check)</label><input type="number" id="rv_income" value="0">
+
+<button onclick="calcRV()">Calculate</button>
+<div class="result" id="rv_result"></div>
+<div class="chart-wrap"><canvas id="rv_chart"></canvas></div>
+<p class="chart-caption" id="rv_chart_caption"></p>
 </div>
 
 <script>
@@ -1461,6 +1527,130 @@ function calcBoat() {
   if (otherFixed_m > 0) { chartLabels.push("Other Fees"); chartValues.push(otherFixed_m); }
   chartLabels.push("Depreciation"); chartValues.push(deprec_m);
   drawPie("bt_chart", "bt_chart_caption", chartLabels, chartValues, "True monthly cost of ownership: " + money(trueCost));
+}
+
+var RV_TYPE_DEFAULTS = {
+  travel_trailer: { motorized: false, insurance: 1.3, maint: 3.0,  deprec: 15, years: 12, mpg: null,
+    hint: "Travel trailers are towable (no engine of their own), the most affordable RV type to insure and maintain, and typically depreciate somewhat less steeply than motorized RVs." },
+  fifth_wheel: { motorized: false, insurance: 1.1, maint: 3.5,  deprec: 15, years: 15, mpg: null,
+    hint: "Fifth wheels are also towable and generally cheaper to insure and maintain than motorhomes, though larger and pricier than a typical travel trailer, needing a pickup with a bed-mounted hitch." },
+  classB: { motorized: true, insurance: 1.1, maint: 4.0, deprec: 18, years: 10, mpg: 18, fuelPrice: 3.75,
+    hint: "Class B camper vans are built on a van chassis - better fuel economy than larger motorhomes, moderate insurance and maintenance costs, but a smaller price tag also means less room to spread depreciation." },
+  classC: { motorized: true, insurance: 1.2, maint: 4.5, deprec: 18, years: 15, mpg: 10, fuelPrice: 3.75,
+    hint: "Class C motorhomes (built on a truck/van cutaway chassis) sit between Class B and Class A on cost, insurance, and fuel economy." },
+  classA_gas: { motorized: true, insurance: 0.8, maint: 5.0, deprec: 20, years: 15, mpg: 7, fuelPrice: 3.75,
+    hint: "Class A gas motorhomes are large, comfortable, and driveable, but among the least fuel-efficient RVs and among the steepest depreciators." },
+  classA_diesel: { motorized: true, insurance: 1.3, maint: 6.0, deprec: 18, years: 20, mpg: 9, fuelPrice: 4.10,
+    hint: "Class A diesel pushers ('diesel pushers') cost the most to insure and maintain due to their complex engines and high values, but tend to hold value somewhat better than gas Class A models and get better fuel economy." }
+};
+function applyRVDefaults() {
+  var type = document.getElementById("rv_type").value;
+  var d = RV_TYPE_DEFAULTS[type] || RV_TYPE_DEFAULTS.travel_trailer;
+  document.getElementById("rv_insurance_pct").value = d.insurance;
+  document.getElementById("rv_maint_pct").value = d.maint;
+  document.getElementById("rv_deprec_rate").value = d.deprec;
+  document.getElementById("rv_years").value = d.years;
+  document.getElementById("rv_type_hint").textContent = d.hint;
+  if (d.motorized) {
+    document.getElementById("rv_mpg").value = d.mpg;
+    document.getElementById("rv_fuel_price").value = d.fuelPrice;
+    document.getElementById("rv_fuel_note").textContent = "Motorized RV - fuel cost is estimated from the MPG and miles below.";
+  } else {
+    document.getElementById("rv_fuel_note").textContent = "Towable RVs have no engine of their own - fuel costs apply to your tow vehicle, not included here.";
+  }
+}
+var RV_STORAGE_DEFAULTS = { home: 0, outdoor: 100, indoor: 225 };
+function applyRVStorageDefaults() {
+  var type = document.getElementById("rv_storage").value;
+  document.getElementById("rv_storage_fee").value = RV_STORAGE_DEFAULTS[type] !== undefined ? RV_STORAGE_DEFAULTS[type] : 0;
+}
+function calcRV() {
+  var type = document.getElementById("rv_type").value;
+  var typeDefaults = RV_TYPE_DEFAULTS[type] || RV_TYPE_DEFAULTS.travel_trailer;
+  var isMotorized = typeDefaults.motorized;
+  var price = +document.getElementById("rv_price").value;
+  var down = +document.getElementById("rv_down").value || 0;
+  var trade = +document.getElementById("rv_trade").value || 0;
+  var taxPct = (+document.getElementById("rv_tax").value || 0) / 100;
+  var fees = +document.getElementById("rv_fees").value || 0;
+  var roll = document.getElementById("rv_roll").value === "yes";
+  var rate = +document.getElementById("rv_rate").value / 100 / 12;
+  var n = (+document.getElementById("rv_years").value || 0) * 12;
+  var deprecRate = (+document.getElementById("rv_deprec_rate").value || 0) / 100;
+
+  var storageFee_m = +document.getElementById("rv_storage_fee").value || 0;
+  var insurancePct = (+document.getElementById("rv_insurance_pct").value || 0) / 100;
+  var maintPct = (+document.getElementById("rv_maint_pct").value || 0) / 100;
+  var insurance_m = price * insurancePct / 12;
+  var maint_m = price * maintPct / 12;
+  var deprec_m = price * deprecRate / 12;
+
+  var mpg = +document.getElementById("rv_mpg").value || 0;
+  var miles = +document.getElementById("rv_miles").value || 0;
+  var fuelPrice = +document.getElementById("rv_fuel_price").value || 0;
+  var fuel_m = (isMotorized && mpg > 0) ? (miles / mpg * fuelPrice) / 12 : 0;
+
+  var nights = +document.getElementById("rv_nights").value || 0;
+  var campFee = +document.getElementById("rv_camp_fee").value || 0;
+  var camping_m = (nights * campFee) / 12;
+  var propane_m = +document.getElementById("rv_propane").value || 0;
+  var roadside_m = (+document.getElementById("rv_roadside").value || 0) / 12;
+  var registration_m = (+document.getElementById("rv_registration").value || 0) / 12;
+  var income = +document.getElementById("rv_income").value || 0;
+
+  var taxable = Math.max(price - trade, 0);
+  var tax = taxable * taxPct;
+  var loan = price - down - trade + (roll ? tax + fees : 0);
+  var cashUpfront = down + (roll ? 0 : tax + fees);
+
+  if (loan <= 0 || n <= 0) { show("rv_result", "Check your inputs."); return; }
+  var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
+  var totalLoanPaid = pmt * n;
+
+  var trueCost = pmt + storageFee_m + insurance_m + maint_m + fuel_m + camping_m + propane_m + roadside_m + registration_m + deprec_m;
+  var annualCost = trueCost * 12;
+
+  var incomeNote = "";
+  if (income > 0) {
+    var pctOfIncome = (annualCost / income) * 100;
+    incomeNote = "<br><span style='font-size:11px;color:#888;'>All-in annual RV cost is " + pctOfIncome.toFixed(1) + "% of your household income. A common budgeting guideline is to keep total recreational-vehicle costs under roughly 10-15% of gross household income.</span>";
+  }
+
+  show("rv_result",
+    "Monthly loan payment: <strong>" + money(pmt) + "</strong><br>" +
+    "Loan amount: " + money(loan) + "<br>" +
+    "&nbsp;&nbsp;RV price: " + money(price) + "<br>" +
+    (trade > 0 ? "&nbsp;&nbsp;Trade-in: -" + money(trade) + "<br>" : "") +
+    (down > 0 ? "&nbsp;&nbsp;Down payment: -" + money(down) + "<br>" : "") +
+    (tax > 0 ? "&nbsp;&nbsp;Sales tax (" + (taxPct*100).toFixed(1) + "%): +" + money(tax) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
+    (fees > 0 ? "&nbsp;&nbsp;Dealer/doc fees: +" + money(fees) + (roll ? " (financed)" : " (paid in cash)") + "<br>" : "") +
+    "Cash due upfront: " + money(cashUpfront) + "<br>" +
+    "Total interest over the loan: " + money(totalLoanPaid - loan) + "<br>" +
+    "<br><u>Estimated True Monthly Cost of Ownership: <strong>" + money(trueCost) + "</strong></u><br>" +
+    "&nbsp;&nbsp;Loan payment: " + money(pmt) + "<br>" +
+    (storageFee_m > 0 ? "&nbsp;&nbsp;Storage: " + money(storageFee_m) + "<br>" : "") +
+    "&nbsp;&nbsp;Insurance: " + money(insurance_m) + "<br>" +
+    "&nbsp;&nbsp;Maintenance: " + money(maint_m) + "<br>" +
+    (isMotorized ? "&nbsp;&nbsp;Fuel (" + Math.round(miles/Math.max(mpg,0.01)) + " gal/yr est.): " + money(fuel_m) + "<br>" : "&nbsp;&nbsp;Fuel: not applicable (towable RV - see your tow vehicle's costs separately)<br>") +
+    "&nbsp;&nbsp;Campground fees (" + nights + " nights/yr): " + money(camping_m) + "<br>" +
+    "&nbsp;&nbsp;Propane/generator: " + money(propane_m) + "<br>" +
+    "&nbsp;&nbsp;Roadside assistance/club: " + money(roadside_m) + "<br>" +
+    "&nbsp;&nbsp;Registration: " + money(registration_m) + "<br>" +
+    "&nbsp;&nbsp;Depreciation (non-cash, for reference): " + money(deprec_m) + "<br>" +
+    "<br>Annual all-in cost: <strong>" + money(annualCost) + "</strong>" + incomeNote +
+    "<br><br><span style='font-size:11px;color:#888;'>New RVs commonly lose 20-30% of value in the first year alone, more than most cars or boats - this calculator uses a blended annual rate rather than that steeper first-year hit, so treat year one as likely worse than shown. Insurance, maintenance, and depreciation percentages are broad industry averages and vary a lot by specific make, model, age, and condition. This is an estimate, not a substitute for actual quotes from your dealer, insurer, and RV service center.</span>");
+
+  var chartLabels = ["Loan Payment"];
+  var chartValues = [pmt];
+  if (storageFee_m > 0) { chartLabels.push("Storage"); chartValues.push(storageFee_m); }
+  chartLabels.push("Insurance"); chartValues.push(insurance_m);
+  chartLabels.push("Maintenance"); chartValues.push(maint_m);
+  if (fuel_m > 0) { chartLabels.push("Fuel"); chartValues.push(fuel_m); }
+  if (camping_m > 0) { chartLabels.push("Campground Fees"); chartValues.push(camping_m); }
+  var otherFixed_m = propane_m + roadside_m + registration_m;
+  if (otherFixed_m > 0) { chartLabels.push("Other Fees"); chartValues.push(otherFixed_m); }
+  chartLabels.push("Depreciation"); chartValues.push(deprec_m);
+  drawPie("rv_chart", "rv_chart_caption", chartLabels, chartValues, "True monthly cost of ownership: " + money(trueCost));
 }
 </script>
 
