@@ -196,12 +196,26 @@ async function searchProperty() {
     }
 
     var compsHtml = "";
-    if (compsRaw && compsRaw.RESPONSE_GROUP && compsRaw.RESPONSE_GROUP.RESPONSE_DATA && compsRaw.RESPONSE_GROUP.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext) {
-      var compsList = compsRaw.RESPONSE_GROUP.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext.COMPARABLE_PROPERTY_ext;
-      if (Array.isArray(compsList) && compsList.length) {
-        compsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Comparable Sales</h4><div class='table-wrap'><table><tr><th>Address</th><th style='text-align:right;'>Sale Price</th><th>Sale Date</th></tr>";
-        compsList.forEach(function(c) {
-          compsHtml += "<tr><td>" + (c.SITUS_ext || "N/A") + "</td><td style='text-align:right;'>" + (money(c.SALE_AMOUNT_ext) || "N/A") + "</td><td>" + (c.SALE_DATE_ext || "N/A") + "</td></tr>";
+    var compsList = null;
+    try {
+      compsList = compsRaw.RESPONSE_GROUP.RESPONSE.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext.SUBJECT_PROPERTY_ext.PROPERTY;
+    } catch (e) { compsList = null; }
+    if (Array.isArray(compsList) && compsList.length) {
+      var comps = compsList
+        .map(function(p) { return p.COMPARABLE_PROPERTY_ext; })
+        .filter(function(c) { return c; });
+      if (comps.length) {
+        compsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Comparable Sales (" + comps.length + " found)</h4><div class='table-wrap'><table><tr><th>Address</th><th style='text-align:right;'>Distance</th><th style='text-align:right;'>Sale Price</th><th>Sale Date</th><th>Beds/Baths</th><th style='text-align:right;'>Sq Ft</th></tr>";
+        comps.forEach(function(c) {
+          var sh = c.SALES_HISTORY || {};
+          var st = c.STRUCTURE || {};
+          var addrStr = (c["@_StreetAddress"] || "N/A") + ", " + (c["@_City"] || "");
+          var dist = c["@DistanceFromSubjectPropertyMilesCount"] ? (+c["@DistanceFromSubjectPropertyMilesCount"]).toFixed(2) + " mi" : "N/A";
+          compsHtml += "<tr><td>" + addrStr + "</td><td style='text-align:right;'>" + dist + "</td>" +
+            "<td style='text-align:right;'>" + (money(sh["@PropertySalesAmount"]) || "N/A") + "</td>" +
+            "<td>" + (sh["@TransferDate_ext"] ? sh["@TransferDate_ext"].slice(0, 10) : "N/A") + "</td>" +
+            "<td>" + (st["@TotalBedroomCount"] || "N/A") + " / " + (st["@TotalBathroomCount"] || "N/A") + "</td>" +
+            "<td style='text-align:right;'>" + (st["@GrossLivingAreaSquareFeetCount"] || "N/A") + "</td></tr>";
         });
         compsHtml += "</table></div>";
       }
