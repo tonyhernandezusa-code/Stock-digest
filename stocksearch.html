@@ -154,6 +154,7 @@ async function lookupStock(symbol) {
     var q = data.quote || {};
     var m = (data.metric && data.metric.metric) || {};
     var news = data.news || [];
+    var financials = (data.financials && data.financials.data) || [];
 
     var changeColor = (q.d || 0) >= 0 ? "#1a8a3d" : "#c0392b";
 
@@ -164,6 +165,30 @@ async function lookupStock(symbol) {
         newsHtml += "<li style='margin-bottom:6px;'><a href='" + n.url + "' target='_blank' style='color:#1f4e79;'>" + n.headline + "</a> <span style='color:#999;font-size:11px;'>(" + (n.source || "") + ")</span></li>";
       });
       newsHtml += "</ul>";
+    }
+
+    function fin(n) {
+      return (n !== undefined && n !== null) ? "$" + Number(n).toLocaleString() : "N/A";
+    }
+    function statementTable(title, items) {
+      if (!items || !items.length) return "";
+      var html = "<h5 style='font-size:12px;margin:10px 0 4px;color:#555;'>" + title + "</h5><div class='table-wrap'><table>";
+      items.forEach(function(row) {
+        html += "<tr><td>" + row.label + "</td><td style='text-align:right;'>" + fin(row.value) + "</td></tr>";
+      });
+      html += "</table></div>";
+      return html;
+    }
+
+    var financialsHtml = "";
+    if (financials.length && financials[0].report) {
+      var latest = financials[0];
+      var rpt = latest.report;
+      financialsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Financial Statements (" + latest.form + ", FY" + latest.year + ", filed " + (latest.filedDate || "").slice(0, 10) + ")</h4>" +
+        statementTable("Income Statement", rpt.ic) +
+        statementTable("Balance Sheet", rpt.bs) +
+        statementTable("Cash Flow", rpt.cf) +
+        "<span style='font-size:11px;color:#888;'>From SEC filings via Finnhub. " + financials.length + " year" + (financials.length === 1 ? "" : "s") + " of history available.</span>";
     }
 
     showResult(
@@ -184,15 +209,18 @@ async function lookupStock(symbol) {
       "Beta: " + (m.beta !== undefined ? m.beta.toFixed(2) : "N/A") + "<br>" +
       "Dividend yield: " + (m.dividendYieldIndicatedAnnual !== undefined ? m.dividendYieldIndicatedAnnual.toFixed(2) + "%" : "N/A") + "<br>" +
       "52-week high/low: " + (m["52WeekHigh"] !== undefined ? money(m["52WeekHigh"]) : "N/A") + " / " + (m["52WeekLow"] !== undefined ? money(m["52WeekLow"]) : "N/A") + "<br>" +
+      "ROE (TTM): " + (m.roeTTM !== undefined ? (m.roeTTM * 100).toFixed(1) + "%" : "N/A") + " &nbsp;|&nbsp; ROA (TTM): " + (m.roaTTM !== undefined ? (m.roaTTM * 100).toFixed(1) + "%" : "N/A") + "<br>" +
+      "Debt/Equity: " + (m.totalDebtToEquity !== undefined ? m.totalDebtToEquity.toFixed(2) : "N/A") + " &nbsp;|&nbsp; Quick ratio: " + (m.quickRatio !== undefined ? m.quickRatio.toFixed(2) : "N/A") + "<br>" +
 
       "<div style='margin-top:10px;'><a href='https://finance.yahoo.com/quote/" + symbol + "' target='_blank' style='color:#1f4e79;font-size:13px;'>View on Yahoo Finance &rarr;</a></div>" +
 
       newsHtml +
+      financialsHtml +
 
       "<button onclick='getAiSummary(&#39;" + symbol + "&#39;)' style='margin-top:14px;'>Generate AI Summary</button>" +
       "<div id='ss_ai_summary' style='margin-top:10px;font-size:13px;'></div>" +
 
-      "<br><span style='font-size:11px;color:#888;'>Data from Finnhub. Financial statement detail is a planned follow-up once field coverage is confirmed against your account's tier.</span>"
+      "<br><span style='font-size:11px;color:#888;'>Data from Finnhub.</span>"
     );
   } catch (err) {
     showResult("<strong style='color:#c0392b;'>Could not reach the search service.</strong> Confirm WORKER_URL is set to your deployed Finnhub Worker, and that the Worker is running.");
