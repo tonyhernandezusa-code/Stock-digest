@@ -3,6 +3,7 @@ warnings.filterwarnings("ignore")
 
 import yfinance as yf
 import requests
+import json
 import html as html_escape_mod
 from datetime import datetime, timedelta
 
@@ -167,7 +168,8 @@ NAV_HTML = """
   <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
   <a href="realestate.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
   <a href="calculators.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Calculators</a>
-  <a href="search.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
+  <a href="search.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
+  <a href="stocksearch.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
 </div>
 """
 
@@ -400,7 +402,26 @@ def fetch_state_hpi(abbr):
     yoy = (latest["value"] - year_ago["value"]) / year_ago["value"] * 100
     return {"yoy": round(yoy, 2), "date": latest["date"]}
 
+def fetch_all_us_tickers():
+    """SEC's official, free, comprehensive list of all SEC-registered tickers.
+    Format is a JSON object keyed by index number: {"0": {"cik_str":..,"ticker":..,"title":..}, ...}
+    SEC requires a descriptive User-Agent identifying the requester on all requests."""
+    try:
+        url = "https://www.sec.gov/files/company_tickers.json"
+        headers = {"User-Agent": "USA Tools Inc Stock Portal contact@usatoolsinc.com"}
+        resp = requests.get(url, headers=headers, timeout=30)
+        data = resp.json()
+        tickers = []
+        for entry in data.values():
+            tickers.append({"ticker": entry.get("ticker", ""), "name": entry.get("title", "")})
+        return tickers
+    except Exception as e:
+        print(f"Warning: could not fetch SEC ticker list ({e}) - stocksearch.html will use an empty list")
+        return []
+
 # ------------------- FETCH EVERYTHING -------------------
+
+all_us_tickers = fetch_all_us_tickers()
 
 rows = []
 for t in WATCHLIST:
@@ -2704,6 +2725,207 @@ search_html = (SEARCH_TEMPLATE
                .replace("__CSS__", PAGE_CSS)
                .replace("__NAV__", NAV_HTML))
 
+# ------------------- PAGE 5: STOCK SEARCH -------------------
+
+STOCKSEARCH_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stock Search</title>
+<style>__CSS__
+.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
+.calc h3 { margin:0 0 12px; font-size:16px; }
+.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
+.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
+.calc button:hover { background:#163a5c; }
+.result { margin-top:14px; padding:12px; background:#f0f6ec; border-radius:6px; font-size:14px; display:none; }
+.setup-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
+.setup-banner code { background:#fde68a; padding:2px 5px; border-radius:3px; }
+.ss-dropdown { position:relative; }
+.ss-matches { position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #ccc; border-top:none; border-radius:0 0 6px 6px; max-height:260px; overflow-y:auto; z-index:10; display:none; }
+.ss-match-item { padding:8px 10px; cursor:pointer; font-size:13px; border-bottom:1px solid #eee; }
+.ss-match-item:hover { background:#f0f6ec; }
+.ss-match-item .ticker { font-weight:600; color:#1f4e79; }
+@media (max-width: 600px) {
+  body { padding:12px; }
+  .calc { padding:14px; max-width:100%; }
+  .calc input { font-size:16px !important; padding:10px !important; }
+  .calc button { width:100%; }
+}
+</style>
+</head>
+<body>
+__NAV__
+<h1>Stock Search</h1>
+<p class="timestamp">Search any U.S. publicly traded company - live data via Finnhub, through a Cloudflare Worker proxy.</p>
+
+<div class="setup-banner" id="setup-banner">
+  <strong>One-time setup:</strong> replace <code>WORKER_URL</code> near the top of this page's script with your deployed Finnhub Worker URL (looks like <code>https://finnhub-proxy.YOUR-SUBDOMAIN.workers.dev</code>).
+</div>
+
+<div class="calc">
+<h3>Search by Ticker or Company Name</h3>
+<div class="ss-dropdown">
+<label>Start typing a ticker or company name</label>
+<input type="text" id="ss_query" placeholder="e.g. AAPL or Apple" autocomplete="off">
+<div class="ss-matches" id="ss_matches"></div>
+</div>
+<p class="note" id="ss_ticker_count">Loading company list...</p>
+</div>
+
+<div class="result" id="ss_result"></div>
+
+<script>
+// Replace this with your own deployed Finnhub Cloudflare Worker URL (see setup banner above).
+var WORKER_URL = "https://finnhub-proxy.YOUR-SUBDOMAIN.workers.dev";
+
+if (WORKER_URL.indexOf("YOUR-SUBDOMAIN") === -1) {
+  var setupBanner = document.getElementById("setup-banner");
+  if (setupBanner) { setupBanner.style.display = "none"; }
+}
+
+var ALL_TICKERS = [];
+fetch("tickers.json").then(function(r) { return r.json(); }).then(function(data) {
+  ALL_TICKERS = data;
+  document.getElementById("ss_ticker_count").textContent = ALL_TICKERS.length.toLocaleString() + " companies loaded from SEC's official list.";
+}).catch(function() {
+  document.getElementById("ss_ticker_count").textContent = "Could not load the company list (tickers.json). Try refreshing the page.";
+});
+
+function money(x) {
+  if (x === undefined || x === null || x === "") return "N/A";
+  return "$" + Number(x).toLocaleString("en-US", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+function bigNumber(n) {
+  if (n === undefined || n === null || n === "") return "N/A";
+  n = Number(n);
+  if (n >= 1e6) return "$" + (n / 1e3).toFixed(2) + "B"; // Finnhub marketCap is already in millions
+  return "$" + n.toFixed(1) + "M";
+}
+
+document.getElementById("ss_query").addEventListener("input", function() {
+  var q = this.value.trim().toUpperCase();
+  var matchesEl = document.getElementById("ss_matches");
+  if (!q || q.length < 1) { matchesEl.style.display = "none"; return; }
+
+  var matches = ALL_TICKERS.filter(function(t) {
+    return t.ticker.toUpperCase().indexOf(q) === 0 || t.name.toUpperCase().indexOf(q) !== -1;
+  }).slice(0, 15);
+
+  if (!matches.length) { matchesEl.style.display = "none"; return; }
+
+  matchesEl.innerHTML = matches.map(function(t) {
+    return "<div class='ss-match-item' data-ticker='" + t.ticker + "'><span class='ticker'>" + t.ticker + "</span> - " + t.name + "</div>";
+  }).join("");
+  matchesEl.style.display = "block";
+
+  matchesEl.querySelectorAll(".ss-match-item").forEach(function(el) {
+    el.addEventListener("click", function() {
+      document.getElementById("ss_query").value = el.getAttribute("data-ticker");
+      matchesEl.style.display = "none";
+      lookupStock(el.getAttribute("data-ticker"));
+    });
+  });
+});
+
+document.getElementById("ss_query").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    document.getElementById("ss_matches").style.display = "none";
+    lookupStock(this.value.trim().toUpperCase());
+  }
+});
+
+function showResult(html) {
+  var el = document.getElementById("ss_result");
+  el.innerHTML = html;
+  el.style.display = "block";
+}
+
+async function lookupStock(symbol) {
+  if (!symbol) return;
+  showResult("Looking up " + symbol + "...");
+  try {
+    var resp = await fetch(WORKER_URL + "/stock-profile?symbol=" + encodeURIComponent(symbol));
+    var data = await resp.json();
+
+    if (data.error) {
+      showResult("<strong style='color:#c0392b;'>" + data.error + "</strong>");
+      return;
+    }
+
+    var p = data.profile || {};
+    var q = data.quote || {};
+    var m = (data.metric && data.metric.metric) || {};
+    var news = data.news || [];
+
+    var changeColor = (q.d || 0) >= 0 ? "#1a8a3d" : "#c0392b";
+
+    var newsHtml = "";
+    if (Array.isArray(news) && news.length) {
+      newsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Recent News</h4><ul style='margin:0;padding-left:18px;font-size:13px;'>";
+      news.slice(0, 5).forEach(function(n) {
+        newsHtml += "<li style='margin-bottom:6px;'><a href='" + n.url + "' target='_blank' style='color:#1f4e79;'>" + n.headline + "</a> <span style='color:#999;font-size:11px;'>(" + (n.source || "") + ")</span></li>";
+      });
+      newsHtml += "</ul>";
+    }
+
+    showResult(
+      "<div style='display:flex;align-items:center;gap:10px;margin-bottom:10px;'>" +
+      (p.logo ? "<img src='" + p.logo + "' style='width:40px;height:40px;border-radius:6px;' onerror='this.style.display=&#39;none&#39;'>" : "") +
+      "<div><strong style='font-size:16px;'>" + (p.name || symbol) + " (" + symbol + ")</strong><br>" +
+      "<span style='font-size:12px;color:#666;'>" + (p.finnhubIndustry || "") + (p.exchange ? " &middot; " + p.exchange : "") + "</span></div></div>" +
+
+      "<div style='font-size:22px;font-weight:700;'>" + money(q.c) + " <span style='font-size:14px;font-weight:600;color:" + changeColor + ";'>" +
+      (q.d >= 0 ? "+" : "") + (q.d !== undefined ? q.d.toFixed(2) : "N/A") + " (" + (q.dp !== undefined ? q.dp.toFixed(2) : "N/A") + "%)</span></div>" +
+      "<span style='font-size:11px;color:#888;'>Day range: " + money(q.l) + " - " + money(q.h) + " &middot; Prev close: " + money(q.pc) + "</span>" +
+
+      "<h4 style='font-size:13px;margin:14px 0 6px;'>Key Stats</h4>" +
+      "Market cap: " + bigNumber(p.marketCapitalization) + "<br>" +
+      "Shares outstanding: " + (p.shareOutstanding ? (p.shareOutstanding).toLocaleString() + "M" : "N/A") + "<br>" +
+      "P/E (TTM): " + (m.peBasicExclExtraTTM !== undefined ? m.peBasicExclExtraTTM.toFixed(2) : "N/A") + "<br>" +
+      "EPS (TTM): " + (m.epsBasicExclExtraItemsTTM !== undefined ? money(m.epsBasicExclExtraItemsTTM) : "N/A") + "<br>" +
+      "Beta: " + (m.beta !== undefined ? m.beta.toFixed(2) : "N/A") + "<br>" +
+      "Dividend yield: " + (m.dividendYieldIndicatedAnnual !== undefined ? m.dividendYieldIndicatedAnnual.toFixed(2) + "%" : "N/A") + "<br>" +
+      "52-week high/low: " + (m["52WeekHigh"] !== undefined ? money(m["52WeekHigh"]) : "N/A") + " / " + (m["52WeekLow"] !== undefined ? money(m["52WeekLow"]) : "N/A") + "<br>" +
+
+      "<div style='margin-top:10px;'><a href='https://finance.yahoo.com/quote/" + symbol + "' target='_blank' style='color:#1f4e79;font-size:13px;'>View on Yahoo Finance &rarr;</a></div>" +
+
+      newsHtml +
+
+      "<button onclick='getAiSummary(&#39;" + symbol + "&#39;)' style='margin-top:14px;'>Generate AI Summary</button>" +
+      "<div id='ss_ai_summary' style='margin-top:10px;font-size:13px;'></div>" +
+
+      "<br><span style='font-size:11px;color:#888;'>Data from Finnhub. Financial statement detail is a planned follow-up once field coverage is confirmed against your account's tier.</span>"
+    );
+  } catch (err) {
+    showResult("<strong style='color:#c0392b;'>Could not reach the search service.</strong> Confirm WORKER_URL is set to your deployed Finnhub Worker, and that the Worker is running.");
+  }
+}
+
+async function getAiSummary(symbol) {
+  var el = document.getElementById("ss_ai_summary");
+  el.textContent = "Generating...";
+  try {
+    var resp = await fetch(WORKER_URL + "/ai-summary?symbol=" + encodeURIComponent(symbol));
+    var data = await resp.json();
+    el.innerHTML = data.error ? ("<span style='color:#c0392b;'>" + data.error + "</span>") : ("<em>" + data.summary + "</em>");
+  } catch (err) {
+    el.innerHTML = "<span style='color:#c0392b;'>Could not reach the AI summary service.</span>";
+  }
+}
+</script>
+
+</body>
+</html>"""
+
+stocksearch_html = (STOCKSEARCH_TEMPLATE
+                     .replace("__CSS__", PAGE_CSS)
+                     .replace("__NAV__", NAV_HTML))
+
+tickers_json = json.dumps(all_us_tickers)
+
 with open("index.html", "w") as f:
     f.write(stocks_html)
 
@@ -2716,4 +2938,10 @@ with open("calculators.html", "w") as f:
 with open("search.html", "w") as f:
     f.write(search_html)
 
-print("index.html, realestate.html, calculators.html, and search.html generated successfully")
+with open("stocksearch.html", "w") as f:
+    f.write(stocksearch_html)
+
+with open("tickers.json", "w") as f:
+    f.write(tickers_json)
+
+print("index.html, realestate.html, calculators.html, search.html, stocksearch.html, and tickers.json generated successfully")
