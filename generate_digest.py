@@ -2532,30 +2532,139 @@ async function searchProperty() {
     }
 
     var addr = prop.address || {};
+    var loc = prop.location || {};
+    var area = prop.area || {};
+    var lot = prop.lot || {};
     var summary = prop.summary || {};
+    var utilities = prop.utilities || {};
     var building = prop.building || {};
     var rooms = building.rooms || {};
     var size = building.size || {};
-    var lot = prop.lot || {};
+    var interior = building.interior || {};
+    var construction = building.construction || {};
+    var bldgSummary = building.summary || {};
     var assessment = prop.assessment || {};
     var assessed = assessment.assessed || {};
+    var market = assessment.market || {};
     var tax = assessment.tax || {};
+    var owner = assessment.owner || {};
+    var mortgage = (assessment.mortgage || {}).FirstConcurrent || {};
     var sale = prop.sale || {};
     var saleAmount = sale.amount || {};
+    var fullHistory = prop.fullSalesHistory;
+    var avm = prop.avmDetail || {};
+    var avmAmount = avm.amount || {};
+    var compsRaw = data.compsRaw;
+    var compsError = data.compsError;
+
+    function row(label, value) {
+      return value !== undefined && value !== null && value !== "" ? "<strong>" + label + ":</strong> " + value + "<br>" : "";
+    }
+    function money(n) {
+      return (n !== undefined && n !== null && n !== "") ? "$" + Number(n).toLocaleString() : null;
+    }
+
+    var mapEmbed = "";
+    if (loc.latitude && loc.longitude) {
+      mapEmbed = "<iframe src='https://maps.google.com/maps?q=" + loc.latitude + "," + loc.longitude +
+        "&z=19&t=k&output=embed' style='width:100%;height:260px;border:0;border-radius:8px;margin-bottom:14px;' loading='lazy'></iframe>";
+    }
+
+    var historyHtml = "";
+    if (fullHistory && fullHistory.length) {
+      historyHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Sales History</h4><div class='table-wrap'><table><tr><th>Date</th><th style='text-align:right;'>Amount</th><th>Type</th><th>Buyer/Seller</th></tr>";
+      fullHistory.forEach(function(h) {
+        var hAmt = h.amount || {};
+        historyHtml += "<tr><td>" + (h.saleTransDate || h.saleSearchDate || "N/A") + "</td>" +
+          "<td style='text-align:right;'>" + (money(hAmt.saleAmt) || "N/A") + "</td>" +
+          "<td>" + (hAmt.saleTransType || "N/A") + "</td>" +
+          "<td>" + (h.sellerName || "N/A") + "</td></tr>";
+      });
+      historyHtml += "</table></div>";
+    } else if (saleAmount.saleAmt) {
+      historyHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Sales History</h4>" +
+        row("Most recent sale", (money(saleAmount.saleAmt) || "N/A") + (sale.saleSearchDate ? " on " + sale.saleSearchDate : "")) +
+        "<span style='font-size:11px;color:#888;'>Full multi-year history unavailable for this property/account tier - showing most recent sale only.</span>";
+    }
+
+    var avmHtml = "";
+    if (avmAmount.value) {
+      avmHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Automated Valuation (AVM)</h4>" +
+        row("Estimated value", money(avmAmount.value)) +
+        row("Value range", (money(avmAmount.low) || "N/A") + " - " + (money(avmAmount.high) || "N/A")) +
+        row("Confidence score", avmAmount.scr ? avmAmount.scr + "/100" : null) +
+        row("As of", avm.eventDate) +
+        "<span style='font-size:11px;color:#888;'>An algorithmic estimate, not an appraisal - treat the range, not just the point value, as the honest answer. Confidence score reflects how much comparable data was available.</span>";
+    }
+
+    var compsHtml = "";
+    if (compsRaw && compsRaw.RESPONSE_GROUP && compsRaw.RESPONSE_GROUP.RESPONSE_DATA && compsRaw.RESPONSE_GROUP.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext) {
+      var compsList = compsRaw.RESPONSE_GROUP.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext.COMPARABLE_PROPERTY_ext;
+      if (Array.isArray(compsList) && compsList.length) {
+        compsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Comparable Sales</h4><div class='table-wrap'><table><tr><th>Address</th><th style='text-align:right;'>Sale Price</th><th>Sale Date</th></tr>";
+        compsList.forEach(function(c) {
+          compsHtml += "<tr><td>" + (c.SITUS_ext || "N/A") + "</td><td style='text-align:right;'>" + (money(c.SALE_AMOUNT_ext) || "N/A") + "</td><td>" + (c.SALE_DATE_ext || "N/A") + "</td></tr>";
+        });
+        compsHtml += "</table></div>";
+      }
+    }
+    if (!compsHtml && compsError) {
+      compsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Comparable Sales</h4><span style='font-size:11px;color:#888;'>Not available right now (" + compsError + "). This is an experimental integration - if you'd like it working, send Claude the raw response your Worker is getting from the comps endpoint and it can be corrected.</span>";
+    }
 
     showResult("ps_result",
-      "<strong>" + (addr.line1 || address) + "</strong><br>" +
-      (addr.line2 || "") + "<br><br>" +
-      "Property type: " + (summary.propType || summary.propClass || "N/A") + "<br>" +
-      "Year built: " + (summary.yearBuilt || "N/A") + "<br>" +
-      "Bedrooms: " + (rooms.beds || "N/A") + " &nbsp;|&nbsp; Bathrooms: " + (rooms.bathsTotal || "N/A") + "<br>" +
-      "Living area: " + (size.universalSize || size.livingSize || "N/A") + " sq ft<br>" +
-      "Lot size: " + (lot.lotSize1 ? lot.lotSize1 + " acres" : "N/A") + "<br><br>" +
-      "Assessed value: " + (assessed.assdTtlValue ? "$" + Number(assessed.assdTtlValue).toLocaleString() : "N/A") + "<br>" +
-      "Annual tax: " + (tax.taxAmt ? "$" + Number(tax.taxAmt).toLocaleString() + " (" + (tax.taxYear || "") + ")" : "N/A") + "<br>" +
-      "Last sale: " + (saleAmount.saleAmt ? "$" + Number(saleAmount.saleAmt).toLocaleString() : "N/A") +
-      (sale.saleSearchDate ? " on " + sale.saleSearchDate : "") +
-      "<br><br><span style='font-size:11px;color:#888;'>Data from ATTOM. Field availability varies by property and county recorder data quality.</span>");
+      mapEmbed +
+      "<strong style='font-size:16px;'>" + (addr.oneLine || addr.line1 || address) + "</strong><br><br>" +
+
+      "<h4 style='font-size:13px;margin:0 0 6px;'>Property Details</h4>" +
+      row("Type", summary.propType || summary.propClass) +
+      row("Land use", summary.propLandUse) +
+      row("Year built", summary.yearBuilt) +
+      row("Stories", bldgSummary.levels) +
+      row("Construction", construction.constructionType) +
+      row("Wall type", construction.wallType) +
+      row("Flooring", interior.floors) +
+      row("View", bldgSummary.view) +
+      row("Zoning", lot.zoningType) +
+      row("Legal description", summary.legal1) +
+
+      "<h4 style='font-size:13px;margin:14px 0 6px;'>Building</h4>" +
+      row("Bedrooms", rooms.beds) +
+      row("Bathrooms (full / total)", (rooms.bathsFull || "N/A") + " / " + (rooms.bathsTotal || "N/A")) +
+      row("Living area", size.livingSize ? size.livingSize + " sq ft" : null) +
+      row("Universal size", size.universalSize ? size.universalSize + " sq ft" : null) +
+
+      "<h4 style='font-size:13px;margin:14px 0 6px;'>Lot</h4>" +
+      row("Lot size", lot.lotSize1 ? lot.lotSize1 + " acres (" + (lot.lotSize2 || "N/A") + " sq ft)" : null) +
+      row("Frontage / Depth", (lot.frontage || "N/A") + " ft / " + (lot.depth || "N/A") + " ft") +
+      row("Subdivision", area.subdName) +
+      row("County", area.countrySecSubd) +
+
+      "<h4 style='font-size:13px;margin:14px 0 6px;'>Assessment &amp; Tax</h4>" +
+      row("Assessed total value", money(assessed.assdTtlValue)) +
+      row("Assessed land value", money(assessed.assdLandValue)) +
+      row("Assessed improvement value", money(assessed.assdImprValue)) +
+      row("Market total value", money(market.mktTtlValue)) +
+      row("Annual property tax", tax.taxAmt ? money(tax.taxAmt) + " (" + (tax.taxYear || "N/A") + ")" : null) +
+
+      "<h4 style='font-size:13px;margin:14px 0 6px;'>Ownership</h4>" +
+      row("Owner", (owner.owner1 || {}).fullName) +
+      row("Owner type", owner.type) +
+      row("Mailing address", owner.mailingAddressOneLine) +
+      row("Absentee owner", owner.absenteeOwnerStatus === "A" ? "Yes" : (owner.absenteeOwnerStatus ? "No" : null)) +
+
+      (mortgage.amount ? "<h4 style='font-size:13px;margin:14px 0 6px;'>Most Recent Mortgage</h4>" +
+        row("Lender", mortgage.lenderLastName) +
+        row("Amount", money(mortgage.amount)) +
+        row("Recorded", mortgage.date) +
+        row("Term (years)", mortgage.term) +
+        row("Due date", mortgage.dueDate) : "") +
+
+      historyHtml +
+      avmHtml +
+      compsHtml +
+
+      "<br><span style='font-size:11px;color:#888;'>Data from ATTOM public records. Satellite image via Google Maps, based on the property's coordinates - not an MLS listing photo. Field availability varies by property and county recorder data quality.</span>");
   } catch (err) {
     showResult("ps_result", "<strong style='color:#c0392b;'>Could not reach the search service.</strong> Confirm WORKER_URL is set to your deployed Cloudflare Worker, and that the Worker is running.");
   }
