@@ -2779,7 +2779,7 @@ __NAV__
 
 <script>
 // Replace this with your own deployed Finnhub Cloudflare Worker URL (see setup banner above).
-var WORKER_URL = "https://finnhub-proxy.YOUR-SUBDOMAIN.workers.dev";
+var WORKER_URL = "https://finnhub-proxy.tonyhernandezusa.workers.dev";
 
 if (WORKER_URL.indexOf("YOUR-SUBDOMAIN") === -1) {
   var setupBanner = document.getElementById("setup-banner");
