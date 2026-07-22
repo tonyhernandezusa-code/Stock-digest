@@ -66,6 +66,38 @@ BANK_RATES = [
     ("Capital One 360 (Savings)", "3.00%"),
 ]
 
+# Major world currencies vs USD - Federal Reserve H.10 daily rates via FRED.
+# This is the complete set of individual currency pairs FRED publishes (23) - confirmed directly
+# against FRED's own H.10 release page. (FRED's "26" total also includes 3 broad trade-weighted
+# dollar indices, which are composite baskets, not individual currencies, so not included here.)
+# "usd_per" = value is USD per 1 unit of that currency (rate rises when that currency strengthens).
+# "per_usd" = value is that currency per 1 USD (rate rises when USD strengthens).
+CURRENCY_SERIES = [
+    ("Euro", "EUR", "DEXUSEU", "usd_per"),
+    ("British Pound", "GBP", "DEXUSUK", "usd_per"),
+    ("Australian Dollar", "AUD", "DEXUSAL", "usd_per"),
+    ("New Zealand Dollar", "NZD", "DEXUSNZ", "usd_per"),
+    ("Japanese Yen", "JPY", "DEXJPUS", "per_usd"),
+    ("Chinese Yuan", "CNY", "DEXCHUS", "per_usd"),
+    ("Canadian Dollar", "CAD", "DEXCAUS", "per_usd"),
+    ("Mexican Peso", "MXN", "DEXMXUS", "per_usd"),
+    ("Swiss Franc", "CHF", "DEXSZUS", "per_usd"),
+    ("Hong Kong Dollar", "HKD", "DEXHKUS", "per_usd"),
+    ("South Korean Won", "KRW", "DEXKOUS", "per_usd"),
+    ("Indian Rupee", "INR", "DEXINUS", "per_usd"),
+    ("Brazilian Real", "BRL", "DEXBZUS", "per_usd"),
+    ("Malaysian Ringgit", "MYR", "DEXMAUS", "per_usd"),
+    ("Thai Baht", "THB", "DEXTHUS", "per_usd"),
+    ("Taiwan Dollar", "TWD", "DEXTAUS", "per_usd"),
+    ("South African Rand", "ZAR", "DEXSFUS", "per_usd"),
+    ("Singapore Dollar", "SGD", "DEXSIUS", "per_usd"),
+    ("Swedish Krona", "SEK", "DEXSDUS", "per_usd"),
+    ("Norwegian Krone", "NOK", "DEXNOUS", "per_usd"),
+    ("Danish Krone", "DKK", "DEXDNUS", "per_usd"),
+    ("Sri Lankan Rupee", "LKR", "DEXSLUS", "per_usd"),
+    ("Venezuelan Bolivar", "VES", "DEXVZUS", "per_usd"),
+]
+
 # Real estate: national indicators from FRED
 RE_NATIONAL = [
     ("Mortgage Delinquency Rate", "DRSFRMACBS", "%"),
@@ -476,6 +508,12 @@ for name, series_id, unit in RE_NATIONAL:
     if r:
         re_national_rows.append({"name": name, "unit": unit, **r})
 
+currency_rows = []
+for name, code, series_id, direction in CURRENCY_SERIES:
+    r = fetch_fred_rate(series_id)
+    if r:
+        currency_rows.append({"name": name, "code": code, "direction": direction, **r})
+
 state_rows = []
 for state_name, abbr in STATES:
     r = fetch_state_hpi(abbr)
@@ -607,6 +645,23 @@ def re_national_cards(items):
     </div>"""
     return out
 
+def currency_cards(items):
+    out = ""
+    for i in items:
+        if i["direction"] == "usd_per":
+            val = f"1 {i['code']} = ${i['value']:.4f}"
+        else:
+            val = f"1 USD = {i['value']:.4f} {i['code']}"
+        six = sixmo_line(i.get("value_6mo"), i["value"], unit="")
+        out += f"""
+    <div class="card" title="{i['name']} ({i['code']}) vs US Dollar, Federal Reserve H.10 daily rate">
+      <p class="label">{i['name']} ({i['code']})</p>
+      <p class="value" style="font-size:16px;">{val}</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {six}
+    </div>"""
+    return out
+
 def state_table_rows(items):
     out = ""
     for rank, s in enumerate(items, 1):
@@ -697,6 +752,10 @@ stocks_html = f"""<!DOCTYPE html>
 
 <h2>Commodities</h2>
 <div class="row">{simple_cards(commodity_rows)}</div>
+
+<h2>Currency Exchange Rates</h2>
+<div class="row">{currency_cards(currency_rows)}</div>
+<p class="note">Federal Reserve H.10 daily noon buying rates vs the US Dollar - all 23 individual currency pairs the Fed publishes daily. "USD per" currencies (Euro, Pound, Australian Dollar, New Zealand Dollar) rise when that currency strengthens against the dollar; "per USD" currencies rise when the dollar strengthens. "6 mo ago" compares to the reading six months earlier. Source: Federal Reserve (FRED).</p>
 
 <h2>Top Savings Rates (updated manually)</h2>
 <table>
