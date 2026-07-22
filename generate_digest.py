@@ -2495,6 +2495,7 @@ __NAV__
 <label>Full street address (e.g. "123 Main St, Miami, FL 33101")</label>
 <input type="text" id="ps_address" placeholder="Street, City, State ZIP">
 <button onclick="searchProperty()">Search</button>
+<div id="ps_recent" style="margin-top:10px;font-size:12px;"></div>
 <div class="result" id="ps_result"></div>
 </div>
 
@@ -2532,6 +2533,34 @@ function showResult(id, html) {
   el.style.display = "block";
 }
 
+function loadRecentSearches() {
+  var recentEl = document.getElementById("ps_recent");
+  var recent = [];
+  try { recent = JSON.parse(localStorage.getItem("recentPropertySearches") || "[]"); } catch (e) { recent = []; }
+  if (!recent.length) { recentEl.innerHTML = ""; return; }
+  recentEl.innerHTML = "<span style='color:#888;'>Recent:</span> " + recent.map(function(a) {
+    return "<a href='#' data-addr='" + a.replace(/'/g, "&#39;") + "' style='color:#1f4e79;margin-right:10px;'>" + a + "</a>";
+  }).join("");
+  recentEl.querySelectorAll("a").forEach(function(el) {
+    el.addEventListener("click", function(e) {
+      e.preventDefault();
+      var a = el.getAttribute("data-addr");
+      document.getElementById("ps_address").value = a;
+      searchProperty();
+    });
+  });
+}
+function saveRecentSearch(address) {
+  var recent = [];
+  try { recent = JSON.parse(localStorage.getItem("recentPropertySearches") || "[]"); } catch (e) { recent = []; }
+  recent = recent.filter(function(a) { return a.toLowerCase() !== address.toLowerCase(); });
+  recent.unshift(address);
+  recent = recent.slice(0, 5);
+  localStorage.setItem("recentPropertySearches", JSON.stringify(recent));
+  loadRecentSearches();
+}
+loadRecentSearches();
+
 async function searchProperty() {
   var address = document.getElementById("ps_address").value.trim();
   if (!address) { showResult("ps_result", "Enter an address to search."); return; }
@@ -2551,6 +2580,7 @@ async function searchProperty() {
       showResult("ps_result", "No property found for that address. Check the spelling/format and try again.");
       return;
     }
+    saveRecentSearch(address);
 
     var addr = prop.address || {};
     var loc = prop.location || {};
@@ -2672,7 +2702,10 @@ async function searchProperty() {
 
     showResult("ps_result",
       mapEmbed +
-      "<strong style='font-size:16px;'>" + (addr.oneLine || addr.line1 || address) + "</strong><br><br>" +
+      "<strong style='font-size:16px;'>" + (addr.oneLine || addr.line1 || address) + "</strong><br>" +
+      "<a href='https://www.zillow.com/homes/" + encodeURIComponent((addr.oneLine || address).replace(/,/g, '')).replace(/%20/g, '-') + "_rb/' target='_blank' style='color:#1f4e79;font-size:12px;'>View on Zillow</a> &nbsp;|&nbsp; " +
+      "<a href='https://www.realtor.com/realestateandhomes-search/" + encodeURIComponent((addr.oneLine || address).replace(/,/g, '')).replace(/%20/g, '-') + "' target='_blank' style='color:#1f4e79;font-size:12px;'>View on Realtor.com</a>" +
+      "<br><br>" +
 
       "<h4 style='font-size:13px;margin:0 0 6px;'>Property Details</h4>" +
       row("Type", summary.propType || summary.propClass) +
@@ -2797,6 +2830,7 @@ __NAV__
 <div class="ss-matches" id="ss_matches"></div>
 </div>
 <p class="note" id="ss_ticker_count">Loading company list...</p>
+<div id="ss_recent" style="margin-top:6px;font-size:12px;"></div>
 </div>
 
 <div class="result" id="ss_result"></div>
@@ -2867,6 +2901,34 @@ function showResult(html) {
   el.style.display = "block";
 }
 
+function loadRecentStockSearches() {
+  var recentEl = document.getElementById("ss_recent");
+  var recent = [];
+  try { recent = JSON.parse(localStorage.getItem("recentStockSearches") || "[]"); } catch (e) { recent = []; }
+  if (!recent.length) { recentEl.innerHTML = ""; return; }
+  recentEl.innerHTML = "<span style='color:#888;'>Recent:</span> " + recent.map(function(t) {
+    return "<a href='#' data-ticker='" + t + "' style='color:#1f4e79;margin-right:10px;font-weight:600;'>" + t + "</a>";
+  }).join("");
+  recentEl.querySelectorAll("a").forEach(function(el) {
+    el.addEventListener("click", function(e) {
+      e.preventDefault();
+      var t = el.getAttribute("data-ticker");
+      document.getElementById("ss_query").value = t;
+      lookupStock(t);
+    });
+  });
+}
+function saveRecentStockSearch(symbol) {
+  var recent = [];
+  try { recent = JSON.parse(localStorage.getItem("recentStockSearches") || "[]"); } catch (e) { recent = []; }
+  recent = recent.filter(function(t) { return t !== symbol; });
+  recent.unshift(symbol);
+  recent = recent.slice(0, 8);
+  localStorage.setItem("recentStockSearches", JSON.stringify(recent));
+  loadRecentStockSearches();
+}
+loadRecentStockSearches();
+
 async function lookupStock(symbol) {
   if (!symbol) return;
   showResult("Looking up " + symbol + "...");
@@ -2880,6 +2942,7 @@ async function lookupStock(symbol) {
     }
 
     var p = data.profile || {};
+    saveRecentStockSearch(symbol);
     var q = data.quote || {};
     var m = (data.metric && data.metric.metric) || {};
     var news = data.news || [];
