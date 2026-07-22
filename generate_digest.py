@@ -12,20 +12,62 @@ FRED_API_KEY = "d6150924a7a201d4e891d082f7123818"
 WATCHLIST = ["AAPL", "GOOGL", "VTI", "QCOM", "TSM", "META", "TSLA", "MSFT", "INTC", "NVDA", "AMD", "ORCL", "DRIV", "ARTY", "ROBO", "SHOP", "SNPS", "VHT", "CRDO", "RMBS", "SDY", "VYM", "IVE", "AVGO", "JNJ", "AMZN", "BMY", "MRVL", "SCHD", "SPY", "WM", "RSG", "IDU", "MKC", "MRK", "ADM", "GIS", "BRK-B", "LLY", "VOO", "QQQ", "TQQQ", "SQQQ", "SDS", "CSCO", "WMT", "DE", "PEP", "KO", "V", "MA", "CMI", "CAT", "UNP", "CSX", "NSC", "PLTR", "DELL", "MU", "SNDK", "LMT", "AMGN", "ABBV", "RTX", "IONQ", "KEEL", "JCI", "HONA", "HON"]
 
 INDEXES = [
+    # US
     ("Dow Jones", "^DJI"),
     ("S&P 500", "^GSPC"),
-    ("Nasdaq", "^IXIC"),
+    ("Nasdaq Composite", "^IXIC"),
     ("Nasdaq-100", "^NDX"),
     ("Russell 2000", "^RUT"),
+    ("Russell 1000", "^RUI"),
+    ("S&P MidCap 400", "^MID"),
     ("US Dollar (DXY)", "DX-Y.NYB"),
     ("VIX (Volatility)", "^VIX"),
+    # Europe
+    ("FTSE 100 (UK)", "^FTSE"),
+    ("DAX (Germany)", "^GDAXI"),
+    ("CAC 40 (France)", "^FCHI"),
+    ("Euro Stoxx 50", "^STOXX50E"),
+    ("IBEX 35 (Spain)", "^IBEX"),
+    ("FTSE MIB (Italy)", "FTSEMIB.MI"),
+    # Asia-Pacific
+    ("Nikkei 225 (Japan)", "^N225"),
+    ("Hang Seng (Hong Kong)", "^HSI"),
+    ("Shanghai Composite (China)", "000001.SS"),
+    ("Sensex (India)", "^BSESN"),
+    ("Nifty 50 (India)", "^NSEI"),
+    ("KOSPI (South Korea)", "^KS11"),
+    ("ASX 200 (Australia)", "^AXJO"),
+    ("Taiwan Weighted", "^TWII"),
+    # Americas
+    ("TSX Composite (Canada)", "^GSPTSE"),
+    ("Bovespa (Brazil)", "^BVSP"),
+    ("IPC (Mexico)", "^MXX"),
 ]
 
 COMMODITIES = [
+    # Energy
     ("Oil (WTI)", "CL=F"),
+    ("Oil (Brent)", "BZ=F"),
+    ("Natural Gas", "NG=F"),
+    ("Heating Oil", "HO=F"),
+    ("RBOB Gasoline", "RB=F"),
+    # Metals
     ("Gold", "GC=F"),
     ("Silver", "SI=F"),
     ("Copper", "HG=F"),
+    ("Platinum", "PL=F"),
+    ("Palladium", "PA=F"),
+    # Agriculture
+    ("Corn", "ZC=F"),
+    ("Wheat", "ZW=F"),
+    ("Soybeans", "ZS=F"),
+    ("Soybean Oil", "ZL=F"),
+    ("Coffee", "KC=F"),
+    ("Cotton", "CT=F"),
+    ("Sugar", "SB=F"),
+    ("Cocoa", "CC=F"),
+    ("Live Cattle", "LE=F"),
+    ("Lean Hogs", "HE=F"),
 ]
 
 FRED_RATES = [
