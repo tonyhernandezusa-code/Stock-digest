@@ -68,6 +68,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <div class="ss-matches" id="ss_matches"></div>
 </div>
 <p class="note" id="ss_ticker_count">Loading company list...</p>
+<div id="ss_recent" style="margin-top:6px;font-size:12px;"></div>
 </div>
 
 <div class="result" id="ss_result"></div>
@@ -138,6 +139,34 @@ function showResult(html) {
   el.style.display = "block";
 }
 
+function loadRecentStockSearches() {
+  var recentEl = document.getElementById("ss_recent");
+  var recent = [];
+  try { recent = JSON.parse(localStorage.getItem("recentStockSearches") || "[]"); } catch (e) { recent = []; }
+  if (!recent.length) { recentEl.innerHTML = ""; return; }
+  recentEl.innerHTML = "<span style='color:#888;'>Recent:</span> " + recent.map(function(t) {
+    return "<a href='#' data-ticker='" + t + "' style='color:#1f4e79;margin-right:10px;font-weight:600;'>" + t + "</a>";
+  }).join("");
+  recentEl.querySelectorAll("a").forEach(function(el) {
+    el.addEventListener("click", function(e) {
+      e.preventDefault();
+      var t = el.getAttribute("data-ticker");
+      document.getElementById("ss_query").value = t;
+      lookupStock(t);
+    });
+  });
+}
+function saveRecentStockSearch(symbol) {
+  var recent = [];
+  try { recent = JSON.parse(localStorage.getItem("recentStockSearches") || "[]"); } catch (e) { recent = []; }
+  recent = recent.filter(function(t) { return t !== symbol; });
+  recent.unshift(symbol);
+  recent = recent.slice(0, 8);
+  localStorage.setItem("recentStockSearches", JSON.stringify(recent));
+  loadRecentStockSearches();
+}
+loadRecentStockSearches();
+
 async function lookupStock(symbol) {
   if (!symbol) return;
   showResult("Looking up " + symbol + "...");
@@ -151,6 +180,7 @@ async function lookupStock(symbol) {
     }
 
     var p = data.profile || {};
+    saveRecentStockSearch(symbol);
     var q = data.quote || {};
     var m = (data.metric && data.metric.metric) || {};
     var news = data.news || [];
