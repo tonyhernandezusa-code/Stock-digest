@@ -42,7 +42,33 @@ INDEXES = [
     ("TSX Composite (Canada)", "^GSPTSE"),
     ("Bovespa (Brazil)", "^BVSP"),
     ("IPC (Mexico)", "^MXX"),
+    # More Europe / Nordics
+    ("SMI (Switzerland)", "^SSMI"),
+    ("AEX (Netherlands)", "^AEX"),
+    ("OMX Stockholm 30 (Sweden)", "^OMX"),
+    ("BEL 20 (Belgium)", "^BFX"),
+    ("ATX (Austria)", "^ATX"),
+    ("ISEQ (Ireland)", "^ISEQ"),
+    # More Asia-Pacific
+    ("Straits Times (Singapore)", "^STI"),
+    ("KLCI (Malaysia)", "^KLSE"),
+    ("Jakarta Composite (Indonesia)", "^JKSE"),
+    ("NZX 50 (New Zealand)", "^NZ50"),
+    # Other
+    ("JSE Top 40 (South Africa)", "^J203.JO"),
 ]
+
+# Stock index FUTURES - different from the spot indices above: these trade nearly 24 hours
+# and reflect where traders expect the index to open, unlike the cash index which only prices
+# during market hours.
+INDEX_FUTURES = [
+    ("S&P 500 Futures (E-mini)", "ES=F"),
+    ("Dow Futures (E-mini)", "YM=F"),
+    ("Nasdaq-100 Futures (E-mini)", "NQ=F"),
+    ("Russell 2000 Futures (E-mini)", "RTY=F"),
+    ("Nikkei 225 Futures", "NIY=F"),
+]
+
 
 COMMODITIES = [
     # Energy
@@ -509,6 +535,12 @@ for name, symbol in INDEXES:
     if r:
         index_rows.append({"name": name, **r})
 
+futures_rows = []
+for name, symbol in INDEX_FUTURES:
+    r = fetch_simple_price(symbol)
+    if r:
+        futures_rows.append({"name": name, **r})
+
 commodity_rows = []
 for name, symbol in COMMODITIES:
     r = fetch_simple_price(symbol)
@@ -791,6 +823,10 @@ stocks_html = f"""<!DOCTYPE html>
 
 <h2>Market Indexes</h2>
 <div class="row">{simple_cards(index_rows, dollar=False)}</div>
+
+<h2>Index Futures</h2>
+<div class="row">{simple_cards(futures_rows, dollar=False)}</div>
+<p class="note">Stock index futures trade nearly 24 hours a day, including outside regular market hours - often what's behind "futures point to a lower/higher open" headlines. Not directly comparable to the cash index level above since futures prices include financing costs and dividend expectations.</p>
 
 <h2>Commodities</h2>
 <div class="row">{simple_cards(commodity_rows)}</div>
