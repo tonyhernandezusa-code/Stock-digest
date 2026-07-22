@@ -151,6 +151,9 @@ async function searchProperty() {
     var sale = prop.sale || {};
     var saleAmount = sale.amount || {};
     var fullHistory = prop.fullSalesHistory;
+    var schoolsRawProp = data.schoolsRaw && data.schoolsRaw.property && data.schoolsRaw.property[0];
+    var schoolDistrict = schoolsRawProp ? (schoolsRawProp.schoolDistrict || {}) : {};
+    var schoolsList = schoolsRawProp ? schoolsRawProp.school : null;
     var avm = prop.avmDetail || {};
     var avmAmount = avm.amount || {};
     var compsRaw = data.compsRaw;
@@ -184,6 +187,26 @@ async function searchProperty() {
       historyHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Sales History</h4>" +
         row("Most recent sale", (money(saleAmount.saleAmt) || "N/A") + (sale.saleSearchDate ? " on " + sale.saleSearchDate : "")) +
         "<span style='font-size:11px;color:#888;'>Full multi-year history unavailable for this property/account tier - showing most recent sale only.</span>";
+    }
+
+    var schoolsHtml = "";
+    if (schoolDistrict.districtname || (schoolsList && schoolsList.length)) {
+      schoolsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Schools</h4>";
+      if (schoolDistrict.districtname) {
+        schoolsHtml += "District: " + schoolDistrict.districtname + "<br><br>";
+      }
+      if (Array.isArray(schoolsList) && schoolsList.length) {
+        schoolsHtml += "<div class='table-wrap'><table><tr><th>School</th><th>Grades</th><th>Rating</th><th>Type</th><th style='text-align:right;'>Distance</th></tr>";
+        schoolsList.forEach(function(s) {
+          schoolsHtml += "<tr><td>" + (s.InstitutionName || "N/A") + "</td>" +
+            "<td>" + (s.lowAssignedGrade || "N/A") + "-" + (s.highAssignedGrade || "N/A") + "</td>" +
+            "<td>" + (s.schoolRating || "N/A") + "</td>" +
+            "<td>" + (s.Filetypetext || "N/A") + "</td>" +
+            "<td style='text-align:right;'>" + (s.distance !== undefined ? s.distance + " mi" : "N/A") + "</td></tr>";
+        });
+        schoolsHtml += "</table></div>";
+      }
+      schoolsHtml += "<span style='font-size:11px;color:#888;'>School ratings from GreatSchools via ATTOM. Assigned schools reflect attendance boundaries, which can change - verify with the district for enrollment decisions.</span>";
     }
 
     var avmHtml = "";
@@ -276,6 +299,7 @@ async function searchProperty() {
       historyHtml +
       avmHtml +
       compsHtml +
+      schoolsHtml +
 
       "<br><span style='font-size:11px;color:#888;'>Data from ATTOM public records. Satellite image via Google Maps, based on the property's coordinates - not an MLS listing photo. Field availability varies by property and county recorder data quality.</span>");
   } catch (err) {
