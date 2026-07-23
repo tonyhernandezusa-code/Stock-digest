@@ -304,9 +304,7 @@ function addUnitBatch() {
   if (!unitType) { showError("unit-error", "Enter a unit type, e.g. '1 Bed / 1 Bath'."); return; }
   if (count < 1) { showError("unit-error", "Enter how many units of this type to add."); return; }
 
-  // Number placeholders starting after any existing units of the same type, so adding
-  // more of the same type later doesn't collide with earlier numbering.
-  var existingOfType = currentUnits.filter(function(u) { return u.unitType === unitType; }).length;
+  var maxSort = currentUnits.reduce(function(max, u) { return Math.max(max, u.sortOrder || 0); }, 0);
 
   var batch = db.batch();
   var entriesRef = db.collection("properties").doc(currentPropertyId).collection("entries");
@@ -315,9 +313,18 @@ function addUnitBatch() {
     batch.set(docRef, {
       type: "unit",
       unitType: unitType,
-      label: unitType + " - " + (existingOfType + i),
+      unitNumber: "",
       rent: rent,
       occupied: true,
+      sortOrder: maxSort + i,
+      leaseType: "month-to-month",
+      leaseTermMonths: null,
+      moveInDate: "",
+      leaseEndDate: "",
+      securityDeposit: 0,
+      firstMonthDeposit: 0,
+      lastMonthDeposit: 0,
+      noDeposit: false,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }
@@ -328,38 +335,117 @@ function addUnitBatch() {
   }).catch(function(err) { showError("unit-error", err.message); });
 }
 
-function renameUnit(unitId, newLabel) {
-  if (!newLabel.trim()) return;
-  db.collection("properties").doc(currentPropertyId).collection("entries").doc(unitId).update({ label: newLabel.trim() });
+function unitDocRef(unitId) {
+  return db.collection("properties").doc(currentPropertyId).collection("entries").doc(unitId);
+}
+
+function updateUnitField(unitId, field, value) {
+  var update = {};
+  update[field] = value;
+  unitDocRef(unitId).update(update);
 }
 
 function toggleUnitOccupied(unitId, occupied) {
-  db.collection("properties").doc(currentPropertyId).collection("entries").doc(unitId).update({ occupied: occupied });
+  updateUnitField(unitId, "occupied", occupied);
+}
+
+function moveUnit(unitId, direction) {
+  var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
+  var idx = sorted.findIndex(function(u) { return u.id === unitId; });
+  var swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= sorted.length) return;
+
+  var a = sorted[idx], b = sorted[swapIdx];
+  var aOrder = a.sortOrder || 0, bOrder = b.sortOrder || 0;
+  var batch = db.batch();
+  batch.update(unitDocRef(a.id), { sortOrder: bOrder });
+  batch.update(unitDocRef(b.id), { sortOrder: aOrder });
+  batch.commit();
+}
+
+var openDetailPanels = {};
+
+function toggleDetailPanel(unitId) {
+  openDetailPanels[unitId] = !openDetailPanels[unitId];
+  renderUnits();
+}
+
+function saveLeaseDetails(unitId) {
+  var noDeposit = document.getElementById("nd-" + unitId).checked;
+  updateUnitField(unitId, "moveInDate", document.getElementById("mi-" + unitId).value);
+  updateUnitField(unitId, "leaseType", document.getElementById("lt-" + unitId).value);
+  updateUnitField(unitId, "leaseTermMonths", parseInt(document.getElementById("term-" + unitId).value, 10) || null);
+  updateUnitField(unitId, "leaseEndDate", document.getElementById("le-" + unitId).value);
+  updateUnitField(unitId, "noDeposit", noDeposit);
+  updateUnitField(unitId, "securityDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("sd-" + unitId).value) || 0));
+  updateUnitField(unitId, "firstMonthDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("fm-" + unitId).value) || 0));
+  updateUnitField(unitId, "lastMonthDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("lm-" + unitId).value) || 0));
 }
 
 function renderUnits() {
   var el = document.getElementById("unit-list");
   if (!currentUnits.length) { el.innerHTML = "<p class='note'>No units yet.</p>"; return; }
-  var sorted = currentUnits.slice().sort(function(a, b) { return (a.label || "").localeCompare(b.label || ""); });
-  var html = "<div class='table-wrap'><table><tr><th>Type</th><th>Unit #</th><th style='text-align:right;'>Rent</th><th>Occupied</th><th></th></tr>";
-  sorted.forEach(function(u) {
-    html += "<tr><td>" + (u.unitType || "N/A") + "</td>" +
-      "<td><input type='text' value='" + (u.label || "").replace(/'/g, "&#39;") + "' data-rename-id='" + u.id + "' style='width:120px;padding:4px;font-size:12px;'></td>" +
-      "<td style='text-align:right;'>$" + Number(u.rent).toLocaleString() + "</td>" +
+  var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
+  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Unit #</th><th style='text-align:right;'>Rent</th><th>Occupied</th><th>Lease</th><th></th></tr>";
+  sorted.forEach(function(u, i) {
+    var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
+    html += "<tr><td style='white-space:nowrap;'>" +
+      "<button class='secondary' style='margin:0;padding:2px 6px;font-size:11px;' data-move-up='" + u.id + "'" + (i === 0 ? " disabled" : "") + ">&uarr;</button> " +
+      "<button class='secondary' style='margin:0;padding:2px 6px;font-size:11px;' data-move-down='" + u.id + "'" + (i === sorted.length - 1 ? " disabled" : "") + ">&darr;</button></td>" +
+      "<td>" + (u.unitType || "N/A") + "</td>" +
+      "<td><input type='text' value='" + esc(u.unitNumber !== undefined ? u.unitNumber : u.label) + "' placeholder='e.g. 204' data-field-id='" + u.id + "' data-field='unitNumber' style='width:90px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='number' value='" + Number(u.rent || 0) + "' data-field-id='" + u.id + "' data-field='rent' style='width:80px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td><input type='checkbox' data-occ-id='" + u.id + "' " + (u.occupied ? "checked" : "") + " style='width:auto;'></td>" +
+      "<td><button style='margin:0;padding:4px 8px;font-size:11px;' data-toggle-detail='" + u.id + "'>" + (openDetailPanels[u.id] ? "Hide" : "Details") + "</button></td>" +
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-unit-id='" + u.id + "'>Delete</button></td></tr>";
+
+    if (openDetailPanels[u.id]) {
+      html += "<tr><td colspan='7'><div style='background:#f7f6f2;padding:12px;border-radius:6px;'>" +
+        "<div style='display:flex;flex-wrap:wrap;gap:14px;'>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Move-In Date</label><input type='date' id='mi-" + u.id + "' value='" + esc(u.moveInDate) + "' style='padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Lease Type</label><select id='lt-" + u.id + "' style='padding:6px;font-size:12px;'>" +
+          "<option value='month-to-month'" + (u.leaseType === "month-to-month" ? " selected" : "") + ">Month-to-Month</option>" +
+          "<option value='lease'" + (u.leaseType === "lease" ? " selected" : "") + ">Fixed-Term Lease</option>" +
+        "</select></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Term (months)</label><input type='number' id='term-" + u.id + "' value='" + (u.leaseTermMonths || "") + "' style='width:70px;padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Lease End Date</label><input type='date' id='le-" + u.id + "' value='" + esc(u.leaseEndDate) + "' style='padding:6px;font-size:12px;'></div>" +
+        "</div>" +
+        "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;align-items:end;'>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Security Deposit</label><input type='number' id='sd-" + u.id + "' value='" + Number(u.securityDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>1st Month Collected</label><input type='number' id='fm-" + u.id + "' value='" + Number(u.firstMonthDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Last Month Collected</label><input type='number' id='lm-" + u.id + "' value='" + Number(u.lastMonthDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:12px;'><input type='checkbox' id='nd-" + u.id + "' " + (u.noDeposit ? "checked" : "") + " style='width:auto;'> No deposit collected</label></div>" +
+        "</div>" +
+        "<button data-save-detail='" + u.id + "' style='margin-top:12px;'>Save Lease Details</button>" +
+        "</div></td></tr>";
+    }
   });
   html += "</table></div>";
   el.innerHTML = html;
-  el.querySelectorAll("input[data-rename-id]").forEach(function(input) {
+
+  el.querySelectorAll("input[data-field]").forEach(function(input) {
     input.addEventListener("blur", function() {
-      renameUnit(input.getAttribute("data-rename-id"), input.value);
+      var field = input.getAttribute("data-field");
+      var value = field === "rent" ? (parseFloat(input.value) || 0) : input.value.trim();
+      updateUnitField(input.getAttribute("data-field-id"), field, value);
     });
   });
   el.querySelectorAll("input[data-occ-id]").forEach(function(input) {
     input.addEventListener("change", function() {
       toggleUnitOccupied(input.getAttribute("data-occ-id"), input.checked);
     });
+  });
+  el.querySelectorAll("button[data-move-up]").forEach(function(btn) {
+    btn.addEventListener("click", function() { moveUnit(btn.getAttribute("data-move-up"), -1); });
+  });
+  el.querySelectorAll("button[data-move-down]").forEach(function(btn) {
+    btn.addEventListener("click", function() { moveUnit(btn.getAttribute("data-move-down"), 1); });
+  });
+  el.querySelectorAll("button[data-toggle-detail]").forEach(function(btn) {
+    btn.addEventListener("click", function() { toggleDetailPanel(btn.getAttribute("data-toggle-detail")); });
+  });
+  el.querySelectorAll("button[data-save-detail]").forEach(function(btn) {
+    btn.addEventListener("click", function() { saveLeaseDetails(btn.getAttribute("data-save-detail")); });
   });
   el.querySelectorAll("button[data-unit-id]").forEach(function(btn) {
     btn.addEventListener("click", function() {
