@@ -3430,6 +3430,7 @@ function openPropertyDetail(propertyId, address) {
     .where("type", "==", "unit").onSnapshot(function(snapshot) {
       currentUnits = [];
       snapshot.forEach(function(doc) { currentUnits.push({ id: doc.id, ...doc.data() }); });
+      backfillSortOrder();
       renderUnits();
       renderSummary();
     });
@@ -3491,6 +3492,20 @@ function addUnitBatch() {
     document.getElementById("u-count").value = "1";
     document.getElementById("u-rent").value = "";
   }).catch(function(err) { showError("unit-error", err.message); });
+}
+
+function backfillSortOrder() {
+  var missing = currentUnits.filter(function(u) { return u.sortOrder === undefined || u.sortOrder === null; });
+  if (!missing.length) return; // already backfilled - nothing to do, avoids re-writing every time
+
+  var batch = db.batch();
+  var nextOrder = currentUnits.reduce(function(max, u) { return Math.max(max, u.sortOrder || 0); }, 0) + 1;
+  missing.forEach(function(u) {
+    u.sortOrder = nextOrder; // update in-memory too, so this render already reflects it
+    batch.update(unitDocRef(u.id), { sortOrder: nextOrder });
+    nextOrder++;
+  });
+  batch.commit();
 }
 
 function unitDocRef(unitId) {
