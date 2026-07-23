@@ -105,12 +105,14 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 
     <div class="calc">
       <h3>Units</h3>
-      <label>Unit Label</label>
-      <input type="text" id="u-label" placeholder="Apt 1A">
-      <label>Monthly Rent</label>
+      <p class="note">Add units in a batch by type (e.g. 10 x "1 Bed / 1 Bath"), then rename each one's unit number below.</p>
+      <label>Unit Type</label>
+      <input type="text" id="u-type" placeholder="1 Bed / 1 Bath">
+      <label>How Many of This Type</label>
+      <input type="number" id="u-count" value="1" min="1">
+      <label>Rent per Unit</label>
       <input type="number" id="u-rent">
-      <label><input type="checkbox" id="u-occupied" checked style="width:auto;display:inline-block;"> Currently occupied</label>
-      <button onclick="addUnit()">Add Unit</button>
+      <button onclick="addUnitBatch()">Add Units</button>
       <div class="err" id="unit-error"></div>
       <div id="unit-list" style="margin-top:12px;"></div>
     </div>
@@ -293,35 +295,72 @@ document.getElementById("back-to-properties").addEventListener("click", function
   document.getElementById("property-list").parentElement.querySelector("h3").style.display = "block";
 });
 
-function addUnit() {
+function addUnitBatch() {
   if (!currentPropertyId) return;
-  var label = document.getElementById("u-label").value.trim();
+  var unitType = document.getElementById("u-type").value.trim();
+  var count = parseInt(document.getElementById("u-count").value, 10) || 0;
   var rent = parseFloat(document.getElementById("u-rent").value) || 0;
-  var occupied = document.getElementById("u-occupied").checked;
   showError("unit-error", "");
-  if (!label) { showError("unit-error", "Enter a unit label."); return; }
+  if (!unitType) { showError("unit-error", "Enter a unit type, e.g. '1 Bed / 1 Bath'."); return; }
+  if (count < 1) { showError("unit-error", "Enter how many units of this type to add."); return; }
 
-  db.collection("properties").doc(currentPropertyId).collection("entries").add({
-    type: "unit", label: label, rent: rent, occupied: occupied,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function() {
-    document.getElementById("u-label").value = "";
+  // Number placeholders starting after any existing units of the same type, so adding
+  // more of the same type later doesn't collide with earlier numbering.
+  var existingOfType = currentUnits.filter(function(u) { return u.unitType === unitType; }).length;
+
+  var batch = db.batch();
+  var entriesRef = db.collection("properties").doc(currentPropertyId).collection("entries");
+  for (var i = 1; i <= count; i++) {
+    var docRef = entriesRef.doc();
+    batch.set(docRef, {
+      type: "unit",
+      unitType: unitType,
+      label: unitType + " - " + (existingOfType + i),
+      rent: rent,
+      occupied: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }
+  batch.commit().then(function() {
+    document.getElementById("u-type").value = "";
+    document.getElementById("u-count").value = "1";
     document.getElementById("u-rent").value = "";
-    document.getElementById("u-occupied").checked = true;
   }).catch(function(err) { showError("unit-error", err.message); });
+}
+
+function renameUnit(unitId, newLabel) {
+  if (!newLabel.trim()) return;
+  db.collection("properties").doc(currentPropertyId).collection("entries").doc(unitId).update({ label: newLabel.trim() });
+}
+
+function toggleUnitOccupied(unitId, occupied) {
+  db.collection("properties").doc(currentPropertyId).collection("entries").doc(unitId).update({ occupied: occupied });
 }
 
 function renderUnits() {
   var el = document.getElementById("unit-list");
   if (!currentUnits.length) { el.innerHTML = "<p class='note'>No units yet.</p>"; return; }
-  var html = "<div class='table-wrap'><table><tr><th>Unit</th><th style='text-align:right;'>Rent</th><th>Status</th><th></th></tr>";
-  currentUnits.forEach(function(u) {
-    html += "<tr><td>" + u.label + "</td><td style='text-align:right;'>$" + Number(u.rent).toLocaleString() + "</td>" +
-      "<td>" + (u.occupied ? "<span style='color:#1a8a3d;'>Occupied</span>" : "<span style='color:#c0392b;'>Vacant</span>") + "</td>" +
+  var sorted = currentUnits.slice().sort(function(a, b) { return (a.label || "").localeCompare(b.label || ""); });
+  var html = "<div class='table-wrap'><table><tr><th>Type</th><th>Unit #</th><th style='text-align:right;'>Rent</th><th>Occupied</th><th></th></tr>";
+  sorted.forEach(function(u) {
+    html += "<tr><td>" + (u.unitType || "N/A") + "</td>" +
+      "<td><input type='text' value='" + (u.label || "").replace(/'/g, "&#39;") + "' data-rename-id='" + u.id + "' style='width:120px;padding:4px;font-size:12px;'></td>" +
+      "<td style='text-align:right;'>$" + Number(u.rent).toLocaleString() + "</td>" +
+      "<td><input type='checkbox' data-occ-id='" + u.id + "' " + (u.occupied ? "checked" : "") + " style='width:auto;'></td>" +
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-unit-id='" + u.id + "'>Delete</button></td></tr>";
   });
   html += "</table></div>";
   el.innerHTML = html;
+  el.querySelectorAll("input[data-rename-id]").forEach(function(input) {
+    input.addEventListener("blur", function() {
+      renameUnit(input.getAttribute("data-rename-id"), input.value);
+    });
+  });
+  el.querySelectorAll("input[data-occ-id]").forEach(function(input) {
+    input.addEventListener("change", function() {
+      toggleUnitOccupied(input.getAttribute("data-occ-id"), input.checked);
+    });
+  });
   el.querySelectorAll("button[data-unit-id]").forEach(function(btn) {
     btn.addEventListener("click", function() {
       db.collection("properties").doc(currentPropertyId).collection("entries").doc(btn.getAttribute("data-unit-id")).delete();
