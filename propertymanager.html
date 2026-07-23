@@ -95,6 +95,39 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 
   <h3>Your Properties</h3>
   <div id="property-list"></div>
+
+  <div id="property-detail" style="display:none;">
+    <div class="calc">
+      <a href="#" id="back-to-properties" style="font-size:13px;color:#1f4e79;">&larr; Back to Properties</a>
+      <h3 id="detail-address" style="margin-top:8px;"></h3>
+      <div id="detail-summary" style="font-size:14px;"></div>
+    </div>
+
+    <div class="calc">
+      <h3>Units</h3>
+      <label>Unit Label</label>
+      <input type="text" id="u-label" placeholder="Apt 1A">
+      <label>Monthly Rent</label>
+      <input type="number" id="u-rent">
+      <label><input type="checkbox" id="u-occupied" checked style="width:auto;display:inline-block;"> Currently occupied</label>
+      <button onclick="addUnit()">Add Unit</button>
+      <div class="err" id="unit-error"></div>
+      <div id="unit-list" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="calc">
+      <h3>Expenses</h3>
+      <label>Category</label>
+      <input type="text" id="e-category" placeholder="Property tax, insurance, repairs, etc.">
+      <label>Amount</label>
+      <input type="number" id="e-amount">
+      <label>Date</label>
+      <input type="date" id="e-date">
+      <button onclick="addExpense()">Add Expense</button>
+      <div class="err" id="expense-error"></div>
+      <div id="expense-list" style="margin-top:12px;"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -197,10 +230,16 @@ function loadProperties(uid) {
         (p.city || p.state || p.zip ? "<span style='font-size:13px;color:#666;'>" + [p.city, p.state, p.zip].filter(Boolean).join(", ") + "</span><br>" : "") +
         "Units: " + p.units +
         (p.purchasePrice ? " &nbsp;|&nbsp; Purchase price: $" + Number(p.purchasePrice).toLocaleString() : "") +
-        "<br><button class='secondary' style='margin-top:8px;padding:6px 12px;font-size:12px;' data-id='" + doc.id + "'>Delete</button>" +
+        "<br><button style='margin-top:8px;padding:6px 12px;font-size:12px;' data-view-id='" + doc.id + "' data-view-address='" + p.address.replace(/'/g, "&#39;") + "'>Manage Units &amp; Expenses</button> " +
+        "<button class='secondary' style='margin-top:8px;padding:6px 12px;font-size:12px;' data-id='" + doc.id + "'>Delete</button>" +
         "</div>";
     });
     listEl.innerHTML = html;
+    listEl.querySelectorAll("button[data-view-id]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        openPropertyDetail(btn.getAttribute("data-view-id"), btn.getAttribute("data-view-address"));
+      });
+    });
     listEl.querySelectorAll("button[data-id]").forEach(function(btn) {
       btn.addEventListener("click", function() {
         if (confirm("Delete this property?")) {
@@ -209,6 +248,144 @@ function loadProperties(uid) {
       });
     });
   });
+}
+
+var currentPropertyId = null;
+var unitsUnsub = null;
+var expensesUnsub = null;
+var currentUnits = [];
+var currentExpenses = [];
+
+function openPropertyDetail(propertyId, address) {
+  currentPropertyId = propertyId;
+  document.getElementById("property-list").parentElement.querySelector("h3").style.display = "none";
+  document.getElementById("property-list").style.display = "none";
+  document.getElementById("property-detail").style.display = "block";
+  document.getElementById("detail-address").textContent = address;
+
+  if (unitsUnsub) unitsUnsub();
+  if (expensesUnsub) expensesUnsub();
+
+  unitsUnsub = db.collection("properties").doc(propertyId).collection("entries")
+    .where("type", "==", "unit").onSnapshot(function(snapshot) {
+      currentUnits = [];
+      snapshot.forEach(function(doc) { currentUnits.push({ id: doc.id, ...doc.data() }); });
+      renderUnits();
+      renderSummary();
+    });
+
+  expensesUnsub = db.collection("properties").doc(propertyId).collection("entries")
+    .where("type", "==", "expense").onSnapshot(function(snapshot) {
+      currentExpenses = [];
+      snapshot.forEach(function(doc) { currentExpenses.push({ id: doc.id, ...doc.data() }); });
+      renderExpenses();
+      renderSummary();
+    });
+}
+
+document.getElementById("back-to-properties").addEventListener("click", function(e) {
+  e.preventDefault();
+  if (unitsUnsub) { unitsUnsub(); unitsUnsub = null; }
+  if (expensesUnsub) { expensesUnsub(); expensesUnsub = null; }
+  currentPropertyId = null;
+  document.getElementById("property-detail").style.display = "none";
+  document.getElementById("property-list").style.display = "block";
+  document.getElementById("property-list").parentElement.querySelector("h3").style.display = "block";
+});
+
+function addUnit() {
+  if (!currentPropertyId) return;
+  var label = document.getElementById("u-label").value.trim();
+  var rent = parseFloat(document.getElementById("u-rent").value) || 0;
+  var occupied = document.getElementById("u-occupied").checked;
+  showError("unit-error", "");
+  if (!label) { showError("unit-error", "Enter a unit label."); return; }
+
+  db.collection("properties").doc(currentPropertyId).collection("entries").add({
+    type: "unit", label: label, rent: rent, occupied: occupied,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById("u-label").value = "";
+    document.getElementById("u-rent").value = "";
+    document.getElementById("u-occupied").checked = true;
+  }).catch(function(err) { showError("unit-error", err.message); });
+}
+
+function renderUnits() {
+  var el = document.getElementById("unit-list");
+  if (!currentUnits.length) { el.innerHTML = "<p class='note'>No units yet.</p>"; return; }
+  var html = "<div class='table-wrap'><table><tr><th>Unit</th><th style='text-align:right;'>Rent</th><th>Status</th><th></th></tr>";
+  currentUnits.forEach(function(u) {
+    html += "<tr><td>" + u.label + "</td><td style='text-align:right;'>$" + Number(u.rent).toLocaleString() + "</td>" +
+      "<td>" + (u.occupied ? "<span style='color:#1a8a3d;'>Occupied</span>" : "<span style='color:#c0392b;'>Vacant</span>") + "</td>" +
+      "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-unit-id='" + u.id + "'>Delete</button></td></tr>";
+  });
+  html += "</table></div>";
+  el.innerHTML = html;
+  el.querySelectorAll("button[data-unit-id]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      db.collection("properties").doc(currentPropertyId).collection("entries").doc(btn.getAttribute("data-unit-id")).delete();
+    });
+  });
+}
+
+function addExpense() {
+  if (!currentPropertyId) return;
+  var category = document.getElementById("e-category").value.trim();
+  var amount = parseFloat(document.getElementById("e-amount").value) || 0;
+  var date = document.getElementById("e-date").value;
+  showError("expense-error", "");
+  if (!category) { showError("expense-error", "Enter a category."); return; }
+  if (!date) { showError("expense-error", "Select a date."); return; }
+
+  db.collection("properties").doc(currentPropertyId).collection("entries").add({
+    type: "expense", category: category, amount: amount, date: date,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById("e-category").value = "";
+    document.getElementById("e-amount").value = "";
+    document.getElementById("e-date").value = "";
+  }).catch(function(err) { showError("expense-error", err.message); });
+}
+
+function renderExpenses() {
+  var el = document.getElementById("expense-list");
+  if (!currentExpenses.length) { el.innerHTML = "<p class='note'>No expenses logged yet.</p>"; return; }
+  var sorted = currentExpenses.slice().sort(function(a, b) { return (b.date || "").localeCompare(a.date || ""); });
+  var html = "<div class='table-wrap'><table><tr><th>Date</th><th>Category</th><th style='text-align:right;'>Amount</th><th></th></tr>";
+  sorted.forEach(function(e) {
+    html += "<tr><td>" + e.date + "</td><td>" + e.category + "</td><td style='text-align:right;'>$" + Number(e.amount).toLocaleString() + "</td>" +
+      "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-exp-id='" + e.id + "'>Delete</button></td></tr>";
+  });
+  html += "</table></div>";
+  el.innerHTML = html;
+  el.querySelectorAll("button[data-exp-id]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      db.collection("properties").doc(currentPropertyId).collection("entries").doc(btn.getAttribute("data-exp-id")).delete();
+    });
+  });
+}
+
+function renderSummary() {
+  var occupiedUnits = currentUnits.filter(function(u) { return u.occupied; });
+  var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+  var vacantCount = currentUnits.length - occupiedUnits.length;
+
+  var now = new Date();
+  var thisMonth = now.toISOString().slice(0, 7); // YYYY-MM
+  var thisMonthExpenses = currentExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === thisMonth; });
+  var totalThisMonthExpenses = thisMonthExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+  var totalAllExpenses = currentExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+
+  var cashFlow = totalMonthlyRent - totalThisMonthExpenses;
+  var cashFlowColor = cashFlow >= 0 ? "#1a8a3d" : "#c0392b";
+
+  document.getElementById("detail-summary").innerHTML =
+    "Units: " + currentUnits.length + " total &middot; " + occupiedUnits.length + " occupied &middot; " + vacantCount + " vacant<br>" +
+    "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong><br>" +
+    "Expenses this month: $" + totalThisMonthExpenses.toLocaleString() + " &middot; All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
+    "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString() + "</span>" +
+    "<br><span style='font-size:11px;color:#888;'>Cash flow is rent from occupied units minus this calendar month's logged expenses - a simple estimate, not a full P&amp;L.</span>";
 }
 </script>
 
