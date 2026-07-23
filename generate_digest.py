@@ -269,7 +269,8 @@ NAV_HTML = """
   <a href="realestate.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
   <a href="calculators.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Calculators</a>
   <a href="search.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
-  <a href="stocksearch.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
+  <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
+  <a href="propertymanager.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
 </div>
 """
 
@@ -3178,6 +3179,204 @@ stocksearch_html = (STOCKSEARCH_TEMPLATE
 
 tickers_json = json.dumps(all_us_tickers)
 
+# ------------------- PAGE 6: PROPERTY MANAGER -------------------
+
+PROPERTYMANAGER_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Property Manager</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>__CSS__
+.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
+.calc h3 { margin:0 0 12px; font-size:16px; }
+.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
+.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
+.calc button:hover { background:#163a5c; }
+.calc button.secondary { background:#888; }
+.calc button.secondary:hover { background:#666; }
+.result { margin-top:14px; padding:12px; background:#f0f6ec; border-radius:6px; font-size:14px; }
+.err { color:#c0392b; font-size:13px; margin-top:8px; }
+.property-card { background:#fff; border:1px solid #e5e3dc; border-radius:8px; padding:14px; margin-bottom:10px; }
+.property-card h4 { margin:0 0 6px; font-size:15px; }
+@media (max-width: 600px) {
+  body { padding:12px; }
+  .calc { padding:14px; max-width:100%; }
+  .calc input { font-size:16px !important; padding:10px !important; }
+  .calc button { width:100%; }
+}
+</style>
+</head>
+<body>
+__NAV__
+<h1>Property Manager</h1>
+<p class="timestamp">Track your rental properties, units, rent, and expenses in one place.</p>
+
+<div class="calc" id="auth-panel">
+<h3 id="auth-title">Log In</h3>
+<label>Email</label>
+<input type="email" id="auth-email">
+<label>Password</label>
+<input type="password" id="auth-password">
+<button onclick="doLogin()">Log In</button>
+<button class="secondary" onclick="doSignup()">Create Account</button>
+<div class="err" id="auth-error"></div>
+</div>
+
+<div id="dashboard" style="display:none;">
+  <div class="calc">
+    <span id="welcome-msg"></span> &nbsp;
+    <button class="secondary" onclick="doLogout()" style="margin-top:0;">Log Out</button>
+  </div>
+
+  <div class="calc">
+    <h3>Add a Property</h3>
+    <label>Street Address</label>
+    <input type="text" id="p-address" placeholder="123 Main St">
+    <label>City</label>
+    <input type="text" id="p-city">
+    <label>State</label>
+    <input type="text" id="p-state" placeholder="FL">
+    <label>ZIP</label>
+    <input type="text" id="p-zip">
+    <label>Number of Units</label>
+    <input type="number" id="p-units" value="1" min="1">
+    <label>Purchase Price (optional)</label>
+    <input type="number" id="p-price">
+    <button onclick="addProperty()">Add Property</button>
+    <div class="err" id="add-error"></div>
+  </div>
+
+  <h3>Your Properties</h3>
+  <div id="property-list"></div>
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
+  authDomain: "property-manager-9455a.firebaseapp.com",
+  projectId: "property-manager-9455a",
+  storageBucket: "property-manager-9455a.firebasestorage.app",
+  messagingSenderId: "986237651798",
+  appId: "1:986237651798:web:f42e0af8fce40b180064f7"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.firestore();
+
+function showError(elId, message) {
+  document.getElementById(elId).textContent = message;
+}
+
+function doSignup() {
+  var email = document.getElementById("auth-email").value.trim();
+  var password = document.getElementById("auth-password").value;
+  showError("auth-error", "");
+  auth.createUserWithEmailAndPassword(email, password).catch(function(err) {
+    showError("auth-error", err.message);
+  });
+}
+
+function doLogin() {
+  var email = document.getElementById("auth-email").value.trim();
+  var password = document.getElementById("auth-password").value;
+  showError("auth-error", "");
+  auth.signInWithEmailAndPassword(email, password).catch(function(err) {
+    showError("auth-error", err.message);
+  });
+}
+
+function doLogout() {
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    document.getElementById("auth-panel").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
+    loadProperties(user.uid);
+  } else {
+    document.getElementById("auth-panel").style.display = "block";
+    document.getElementById("dashboard").style.display = "none";
+  }
+});
+
+function addProperty() {
+  var user = auth.currentUser;
+  if (!user) return;
+  var address = document.getElementById("p-address").value.trim();
+  var city = document.getElementById("p-city").value.trim();
+  var state = document.getElementById("p-state").value.trim();
+  var zip = document.getElementById("p-zip").value.trim();
+  var units = parseInt(document.getElementById("p-units").value, 10) || 1;
+  var price = document.getElementById("p-price").value ? parseFloat(document.getElementById("p-price").value) : null;
+
+  showError("add-error", "");
+  if (!address) { showError("add-error", "Enter a street address."); return; }
+
+  db.collection("properties").add({
+    ownerId: user.uid,
+    address: address,
+    city: city,
+    state: state,
+    zip: zip,
+    units: units,
+    purchasePrice: price,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById("p-address").value = "";
+    document.getElementById("p-city").value = "";
+    document.getElementById("p-state").value = "";
+    document.getElementById("p-zip").value = "";
+    document.getElementById("p-units").value = "1";
+    document.getElementById("p-price").value = "";
+  }).catch(function(err) {
+    showError("add-error", err.message);
+  });
+}
+
+function loadProperties(uid) {
+  db.collection("properties").where("ownerId", "==", uid).onSnapshot(function(snapshot) {
+    var listEl = document.getElementById("property-list");
+    if (snapshot.empty) {
+      listEl.innerHTML = "<p class='note'>No properties yet - add one above.</p>";
+      return;
+    }
+    var html = "";
+    snapshot.forEach(function(doc) {
+      var p = doc.data();
+      html += "<div class='property-card'>" +
+        "<h4>" + p.address + "</h4>" +
+        (p.city || p.state || p.zip ? "<span style='font-size:13px;color:#666;'>" + [p.city, p.state, p.zip].filter(Boolean).join(", ") + "</span><br>" : "") +
+        "Units: " + p.units +
+        (p.purchasePrice ? " &nbsp;|&nbsp; Purchase price: $" + Number(p.purchasePrice).toLocaleString() : "") +
+        "<br><button class='secondary' style='margin-top:8px;padding:6px 12px;font-size:12px;' data-id='" + doc.id + "'>Delete</button>" +
+        "</div>";
+    });
+    listEl.innerHTML = html;
+    listEl.querySelectorAll("button[data-id]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        if (confirm("Delete this property?")) {
+          db.collection("properties").doc(btn.getAttribute("data-id")).delete();
+        }
+      });
+    });
+  });
+}
+</script>
+
+</body>
+</html>"""
+
+propertymanager_html = (PROPERTYMANAGER_TEMPLATE
+                        .replace("__CSS__", PAGE_CSS)
+                        .replace("__NAV__", NAV_HTML))
+
 with open("index.html", "w") as f:
     f.write(stocks_html)
 
@@ -3196,4 +3395,7 @@ with open("stocksearch.html", "w") as f:
 with open("tickers.json", "w") as f:
     f.write(tickers_json)
 
-print("index.html, realestate.html, calculators.html, search.html, stocksearch.html, and tickers.json generated successfully")
+with open("propertymanager.html", "w") as f:
+    f.write(propertymanager_html)
+
+print("index.html, realestate.html, calculators.html, search.html, stocksearch.html, tickers.json, and propertymanager.html generated successfully")
