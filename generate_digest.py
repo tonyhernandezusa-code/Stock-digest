@@ -3522,17 +3522,23 @@ function toggleUnitOccupied(unitId, occupied) {
   updateUnitField(unitId, "occupied", occupied);
 }
 
-function moveUnit(unitId, direction) {
+function reorderUnits(draggedId, dropOnId) {
+  if (draggedId === dropOnId) return;
   var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
-  var idx = sorted.findIndex(function(u) { return u.id === unitId; });
-  var swapIdx = idx + direction;
-  if (swapIdx < 0 || swapIdx >= sorted.length) return;
+  var fromIdx = sorted.findIndex(function(u) { return u.id === draggedId; });
+  var toIdx = sorted.findIndex(function(u) { return u.id === dropOnId; });
+  if (fromIdx === -1 || toIdx === -1) return;
 
-  var a = sorted[idx], b = sorted[swapIdx];
-  var aOrder = a.sortOrder || 0, bOrder = b.sortOrder || 0;
+  var moved = sorted.splice(fromIdx, 1)[0];
+  sorted.splice(toIdx, 0, moved);
+
+  // Reassign sortOrder for the whole list based on new position - simpler and more robust
+  // than calculating a partial shift, and it's just one batch write either way.
   var batch = db.batch();
-  batch.update(unitDocRef(a.id), { sortOrder: bOrder });
-  batch.update(unitDocRef(b.id), { sortOrder: aOrder });
+  sorted.forEach(function(u, i) {
+    u.sortOrder = i + 1;
+    batch.update(unitDocRef(u.id), { sortOrder: i + 1 });
+  });
   batch.commit();
 }
 
@@ -3562,9 +3568,7 @@ function renderUnits() {
   var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Unit #</th><th style='text-align:right;'>Rent</th><th>Occupied</th><th>Lease</th><th></th></tr>";
   sorted.forEach(function(u, i) {
     var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
-    html += "<tr><td style='white-space:nowrap;'>" +
-      "<button class='secondary' style='margin:0;padding:2px 6px;font-size:11px;' data-move-up='" + u.id + "'" + (i === 0 ? " disabled" : "") + ">&uarr;</button> " +
-      "<button class='secondary' style='margin:0;padding:2px 6px;font-size:11px;' data-move-down='" + u.id + "'" + (i === sorted.length - 1 ? " disabled" : "") + ">&darr;</button></td>" +
+    html += "<tr draggable='true' data-unit-row='" + u.id + "'><td style='cursor:grab;text-align:center;color:#999;font-size:16px;'>&#8942;&#8942;</td>" +
       "<td>" + (u.unitType || "N/A") + "</td>" +
       "<td><input type='text' value='" + esc(u.unitNumber !== undefined ? u.unitNumber : u.label) + "' placeholder='e.g. 204' data-field-id='" + u.id + "' data-field='unitNumber' style='width:90px;padding:4px;font-size:12px;'></td>" +
       "<td><input type='number' value='" + Number(u.rent || 0) + "' data-field-id='" + u.id + "' data-field='rent' style='width:80px;padding:4px;font-size:12px;text-align:right;'></td>" +
@@ -3608,11 +3612,28 @@ function renderUnits() {
       toggleUnitOccupied(input.getAttribute("data-occ-id"), input.checked);
     });
   });
-  el.querySelectorAll("button[data-move-up]").forEach(function(btn) {
-    btn.addEventListener("click", function() { moveUnit(btn.getAttribute("data-move-up"), -1); });
-  });
-  el.querySelectorAll("button[data-move-down]").forEach(function(btn) {
-    btn.addEventListener("click", function() { moveUnit(btn.getAttribute("data-move-down"), 1); });
+  var draggedUnitId = null;
+  el.querySelectorAll("tr[data-unit-row]").forEach(function(row) {
+    row.addEventListener("dragstart", function() {
+      draggedUnitId = row.getAttribute("data-unit-row");
+      row.style.opacity = "0.4";
+    });
+    row.addEventListener("dragend", function() {
+      row.style.opacity = "1";
+    });
+    row.addEventListener("dragover", function(e) {
+      e.preventDefault(); // required to allow dropping
+      row.style.borderTop = "2px solid #1f4e79";
+    });
+    row.addEventListener("dragleave", function() {
+      row.style.borderTop = "";
+    });
+    row.addEventListener("drop", function(e) {
+      e.preventDefault();
+      row.style.borderTop = "";
+      var dropOnId = row.getAttribute("data-unit-row");
+      if (draggedUnitId) reorderUnits(draggedUnitId, dropOnId);
+    });
   });
   el.querySelectorAll("button[data-toggle-detail]").forEach(function(btn) {
     btn.addEventListener("click", function() { toggleDetailPanel(btn.getAttribute("data-toggle-detail")); });
