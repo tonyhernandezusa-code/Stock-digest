@@ -288,7 +288,8 @@ NAV_HTML = """
   <a href="calculators.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Calculators</a>
   <a href="search.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
   <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
-  <a href="propertymanager.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
+  <a href="propertymanager.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
+  <a href="insights.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
 </div>
 """
 
@@ -3833,4 +3834,133 @@ with open("tickers.json", "w") as f:
 with open("propertymanager.html", "w") as f:
     f.write(propertymanager_html)
 
-print("index.html, realestate.html, calculators.html, search.html, stocksearch.html, tickers.json, and propertymanager.html generated successfully")
+# ------------------- PAGE 7: MARKET INSIGHTS (LOGIN-GATED, PERSONAL USE ONLY) -------------------
+
+INSIGHTS_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Insights</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<style>__CSS__
+.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
+.calc h3 { margin:0 0 12px; font-size:16px; }
+.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
+.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
+.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
+.calc button.secondary { background:#888; }
+.err { color:#c0392b; font-size:13px; margin-top:8px; }
+.restricted-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
+@media (max-width: 600px) {
+  body { padding:12px; }
+  .calc { padding:14px; max-width:100%; }
+  .calc input { font-size:16px !important; padding:10px !important; }
+  .calc button { width:100%; }
+}
+</style>
+</head>
+<body>
+__NAV__
+<h1>Market Insights</h1>
+<p class="timestamp">Not yet public - restricted to a single account while data-licensing terms with Finnhub and FINRA are being confirmed.</p>
+
+<div class="calc" id="auth-panel">
+<h3 id="auth-title">Log In</h3>
+<label>Email</label>
+<input type="email" id="auth-email">
+<label>Password</label>
+<input type="password" id="auth-password">
+<button onclick="doLogin()">Log In</button>
+<div class="err" id="auth-error"></div>
+</div>
+
+<div id="restricted-view" style="display:none;">
+  <div class="restricted-banner">
+    You're logged in, but this account doesn't have access to this section. Market Insights is
+    restricted to a single account while licensing terms are confirmed with data providers.
+  </div>
+  <button class="secondary" onclick="doLogout()">Log Out</button>
+</div>
+
+<div id="allowed-view" style="display:none;">
+  <div class="calc">
+    <span id="welcome-msg"></span> &nbsp;
+    <button class="secondary" onclick="doLogout()" style="margin-top:0;">Log Out</button>
+  </div>
+  <div class="calc">
+    <h3>Under development</h3>
+    <p class="note">This section is reserved for AI-generated stock and bond market summaries.
+    It's intentionally empty right now - content will be added once Finnhub and FINRA have
+    confirmed what can be shared under their personal-use terms. This page itself is safe to use
+    in the meantime: it's just a login gate with nothing behind it yet.</p>
+  </div>
+</div>
+
+<script>
+// Same Firebase project as Property Manager - reused here only for its login system,
+// not for sharing any Property Manager data.
+var firebaseConfig = {
+  apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
+  authDomain: "property-manager-9455a.firebaseapp.com",
+  projectId: "property-manager-9455a",
+  storageBucket: "property-manager-9455a.firebasestorage.app",
+  messagingSenderId: "986237651798",
+  appId: "1:986237651798:web:f42e0af8fce40b180064f7"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+
+// Hard allowlist - only these specific accounts can see the "allowed-view" content below,
+// regardless of who else signs up for Property Manager on this same Firebase project.
+var ALLOWED_EMAILS = ["chambelon@aol.com"];
+
+function showError(elId, message) {
+  document.getElementById(elId).textContent = message;
+}
+
+function doLogin() {
+  var email = document.getElementById("auth-email").value.trim();
+  var password = document.getElementById("auth-password").value;
+  showError("auth-error", "");
+  auth.signInWithEmailAndPassword(email, password).catch(function(err) {
+    showError("auth-error", err.message);
+  });
+}
+
+function doLogout() {
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(function(user) {
+  document.getElementById("auth-panel").style.display = "none";
+  document.getElementById("restricted-view").style.display = "none";
+  document.getElementById("allowed-view").style.display = "none";
+
+  if (!user) {
+    document.getElementById("auth-panel").style.display = "block";
+    return;
+  }
+
+  if (ALLOWED_EMAILS.indexOf(user.email) === -1) {
+    document.getElementById("restricted-view").style.display = "block";
+    return;
+  }
+
+  document.getElementById("allowed-view").style.display = "block";
+  document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
+});
+</script>
+
+</body>
+</html>"""
+
+insights_html = (INSIGHTS_TEMPLATE
+                  .replace("__CSS__", PAGE_CSS)
+                  .replace("__NAV__", NAV_HTML))
+
+with open("insights.html", "w") as f:
+    f.write(insights_html)
+
+print("index.html, realestate.html, calculators.html, search.html, stocksearch.html, tickers.json, propertymanager.html, and insights.html generated successfully")
