@@ -166,6 +166,24 @@ CURRENCY_SERIES = [
     ("Venezuelan Bolivar", "VES", "DEXVZUS", "per_usd"),
 ]
 
+# Treasury yields, corporate bond yields, and credit spreads - Federal Reserve via FRED.
+# All series percent, daily. Same fetch_fred_rate() infrastructure already used above.
+TREASURY_YIELDS = [
+    ("3-Month Treasury", "DGS3MO"),
+    ("1-Year Treasury", "DGS1"),
+    ("2-Year Treasury", "DGS2"),
+    ("5-Year Treasury", "DGS5"),
+    ("10-Year Treasury", "DGS10"),
+    ("30-Year Treasury", "DGS30"),
+]
+
+CORPORATE_BOND_SERIES = [
+    ("Aaa Corporate Bond Yield", "DAAA"),
+    ("Baa Corporate Bond Yield", "DBAA"),
+    ("Aaa Spread over 10-Yr Treasury", "AAA10Y"),
+    ("Baa Spread over 10-Yr Treasury", "BAA10Y"),
+]
+
 # Real estate: national indicators from FRED
 RE_NATIONAL = [
     ("Mortgage Delinquency Rate", "DRSFRMACBS", "%"),
@@ -589,6 +607,32 @@ for name, code, series_id, direction in CURRENCY_SERIES:
     if r:
         currency_rows.append({"name": name, "code": code, "direction": direction, **r})
 
+treasury_rows = []
+for name, series_id in TREASURY_YIELDS:
+    r = fetch_fred_rate(series_id)
+    if r:
+        treasury_rows.append({"name": name, **r})
+
+corporate_bond_rows = []
+for name, series_id in CORPORATE_BOND_SERIES:
+    r = fetch_fred_rate(series_id)
+    if r:
+        corporate_bond_rows.append({"name": name, **r})
+
+# 10yr-2yr yield curve spread - a classic recession/inversion indicator. Computed here
+# rather than fetched as its own FRED series, since we already have both legs above.
+yield_curve_spread = None
+_t10 = next((r for r in treasury_rows if r["name"] == "10-Year Treasury"), None)
+_t2 = next((r for r in treasury_rows if r["name"] == "2-Year Treasury"), None)
+if _t10 and _t2:
+    yield_curve_spread = {
+        "name": "10-Yr minus 2-Yr Spread",
+        "value": round(_t10["value"] - _t2["value"], 2),
+        "date": _t10["date"],
+        "value_6mo": (round(_t10["value_6mo"] - _t2["value_6mo"], 2)
+                      if _t10.get("value_6mo") is not None and _t2.get("value_6mo") is not None else None),
+    }
+
 state_rows = []
 for state_name, abbr in STATES:
     r = fetch_state_hpi(abbr)
@@ -697,6 +741,20 @@ def econ_cards(items):
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{i['display']}</p>
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {six}
+    </div>"""
+    return out
+
+def bond_cards(items):
+    out = ""
+    for i in items:
+        val = f"{i['value']:.2f}%"
+        six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
+        out += f"""
+    <div class="card">
+      <p class="label">{i['name']}</p>
+      <p class="value">{val}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
       {six}
     </div>"""
@@ -835,6 +893,14 @@ stocks_html = f"""<!DOCTYPE html>
 <h2>Currency Exchange Rates</h2>
 <div class="row">{currency_cards(currency_rows)}</div>
 <p class="note">Federal Reserve H.10 daily noon buying rates vs the US Dollar - all 23 individual currency pairs the Fed publishes daily. "USD per" currencies (Euro, Pound, Australian Dollar, New Zealand Dollar) rise when that currency strengthens against the dollar; "per USD" currencies rise when the dollar strengthens. "6 mo ago" compares to the reading six months earlier. Source: Federal Reserve (FRED).</p>
+
+<h2>Treasury Yields</h2>
+<div class="row">{bond_cards(treasury_rows)}{bond_cards([yield_curve_spread]) if yield_curve_spread else ""}</div>
+<p class="note">Constant-maturity Treasury yields across the curve. The 10-Yr minus 2-Yr spread is a widely watched recession indicator - it turns negative ("inverts") when short-term yields exceed long-term yields, which has preceded past recessions, though with variable and sometimes long lead times. Source: Federal Reserve (FRED).</p>
+
+<h2>Corporate Bond Yields &amp; Spreads</h2>
+<div class="row">{bond_cards(corporate_bond_rows)}</div>
+<p class="note">Moody's seasoned corporate bond yields (Aaa = highest credit quality, Baa = lowest investment-grade) and their spread over the 10-Year Treasury - the extra yield investors demand to hold corporate debt over risk-free government debt. Widening spreads generally signal rising perceived credit risk or heavier corporate borrowing demand; this is worth watching given the current wave of AI-infrastructure-related corporate bond issuance. Source: Federal Reserve (FRED), based on Moody's data.</p>
 
 <h2>Top Savings Rates (updated manually)</h2>
 <table>
