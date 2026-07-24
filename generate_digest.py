@@ -3968,8 +3968,10 @@ function generateYTDReportPDF() {
   doc.setFontSize(8);
   doc.setTextColor(140);
   doc.text(
-    "Rental income and fixed costs are held constant across all months at their current values - this does not reflect\n" +
-    "historical changes in occupancy, rent, or fixed costs during the year. Variable expenses reflect actual logged entries per month.",
+    [
+      "Rental income and fixed costs are held constant across all months at their current values - this does not reflect",
+      "historical changes in occupancy, rent, or fixed costs during the year. Variable expenses reflect actual logged entries per month."
+    ],
     14, afterTableY + 15
   );
 
@@ -4078,8 +4080,10 @@ function generateIncomeStatementPDF() {
   doc.setFontSize(8);
   doc.setTextColor(140);
   doc.text(
-    "Rental Income and Fixed Costs use current values applied across all months in the period - this does not reflect\n" +
-    "historical changes in occupancy, rent, or fixed costs. Operating expense categories reflect actual logged entries.",
+    [
+      "Rental Income and Fixed Costs use current values applied across all months in the period - this does not reflect",
+      "historical changes in occupancy, rent, or fixed costs. Operating expense categories reflect actual logged entries."
+    ],
     14, afterTableY
   );
 
