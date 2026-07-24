@@ -316,9 +316,8 @@ function addUnitBatch() {
       unitType: unitType,
       unitNumber: "",
       rent: rent,
-      occupied: true,
+      status: "vacant",
       sortOrder: maxSort + i,
-      leaseType: "month-to-month",
       leaseTermMonths: null,
       moveInDate: "",
       leaseEndDate: "",
@@ -326,6 +325,9 @@ function addUnitBatch() {
       firstMonthDeposit: 0,
       lastMonthDeposit: 0,
       noDeposit: false,
+      tenantName: "",
+      tenantPhone: "",
+      tenantEmail: "",
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }
@@ -360,8 +362,17 @@ function updateUnitField(unitId, field, value) {
   unitDocRef(unitId).update(update);
 }
 
-function toggleUnitOccupied(unitId, occupied) {
-  updateUnitField(unitId, "occupied", occupied);
+function setUnitStatus(unitId, status) {
+  updateUnitField(unitId, "status", status);
+}
+
+// Backward compatibility: units created before "status" existed only have the old
+// occupied (boolean) + leaseType fields - derive an equivalent status from those.
+function getUnitStatus(u) {
+  if (u.status) return u.status;
+  if (u.occupied === false) return "vacant";
+  if (u.leaseType === "lease") return "leased";
+  return "rental";
 }
 
 function reorderUnits(draggedId, dropOnId) {
@@ -394,46 +405,54 @@ function toggleDetailPanel(unitId) {
 function saveLeaseDetails(unitId) {
   var noDeposit = document.getElementById("nd-" + unitId).checked;
   updateUnitField(unitId, "moveInDate", document.getElementById("mi-" + unitId).value);
-  updateUnitField(unitId, "leaseType", document.getElementById("lt-" + unitId).value);
   updateUnitField(unitId, "leaseTermMonths", parseInt(document.getElementById("term-" + unitId).value, 10) || null);
   updateUnitField(unitId, "leaseEndDate", document.getElementById("le-" + unitId).value);
   updateUnitField(unitId, "noDeposit", noDeposit);
   updateUnitField(unitId, "securityDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("sd-" + unitId).value) || 0));
   updateUnitField(unitId, "firstMonthDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("fm-" + unitId).value) || 0));
   updateUnitField(unitId, "lastMonthDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("lm-" + unitId).value) || 0));
+  updateUnitField(unitId, "tenantName", document.getElementById("tn-" + unitId).value.trim());
+  updateUnitField(unitId, "tenantPhone", document.getElementById("tp-" + unitId).value.trim());
+  updateUnitField(unitId, "tenantEmail", document.getElementById("te-" + unitId).value.trim());
 }
 
 function renderUnits() {
   var el = document.getElementById("unit-list");
   if (!currentUnits.length) { el.innerHTML = "<p class='note'>No units yet.</p>"; return; }
   var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
-  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Unit #</th><th style='text-align:right;'>Rent</th><th>Occupied</th><th>Lease</th><th></th></tr>";
+  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Apartment #</th><th style='text-align:right;'>Rent</th><th>Status</th><th>Lease</th><th></th></tr>";
   sorted.forEach(function(u, i) {
     var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
+    var status = getUnitStatus(u);
     html += "<tr draggable='true' data-unit-row='" + u.id + "'><td style='cursor:grab;text-align:center;color:#999;font-size:16px;'>&#8942;&#8942;</td>" +
       "<td>" + (u.unitType || "N/A") + "</td>" +
       "<td><input type='text' value='" + esc(u.unitNumber !== undefined ? u.unitNumber : u.label) + "' placeholder='e.g. 204' data-field-id='" + u.id + "' data-field='unitNumber' style='width:90px;padding:4px;font-size:12px;'></td>" +
       "<td><input type='number' value='" + Number(u.rent || 0) + "' data-field-id='" + u.id + "' data-field='rent' style='width:80px;padding:4px;font-size:12px;text-align:right;'></td>" +
-      "<td><input type='checkbox' data-occ-id='" + u.id + "' " + (u.occupied ? "checked" : "") + " style='width:auto;'></td>" +
+      "<td><select data-status-id='" + u.id + "' style='padding:4px;font-size:12px;'>" +
+        "<option value='rental'" + (status === "rental" ? " selected" : "") + ">Rental</option>" +
+        "<option value='leased'" + (status === "leased" ? " selected" : "") + ">Leased</option>" +
+        "<option value='vacant'" + (status === "vacant" ? " selected" : "") + ">Vacant</option>" +
+      "</select></td>" +
       "<td><button style='margin:0;padding:4px 8px;font-size:11px;' data-toggle-detail='" + u.id + "'>" + (openDetailPanels[u.id] ? "Hide" : "Details") + "</button></td>" +
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-unit-id='" + u.id + "'>Delete</button></td></tr>";
 
     if (openDetailPanels[u.id]) {
       html += "<tr><td colspan='7'><div style='background:#f7f6f2;padding:12px;border-radius:6px;'>" +
         "<div style='display:flex;flex-wrap:wrap;gap:14px;'>" +
-        "<div><label style='font-size:11px;color:#666;display:block;'>Move-In Date</label><input type='date' id='mi-" + u.id + "' value='" + esc(u.moveInDate) + "' style='padding:6px;font-size:12px;'></div>" +
-        "<div><label style='font-size:11px;color:#666;display:block;'>Lease Type</label><select id='lt-" + u.id + "' style='padding:6px;font-size:12px;'>" +
-          "<option value='month-to-month'" + (u.leaseType === "month-to-month" ? " selected" : "") + ">Month-to-Month</option>" +
-          "<option value='lease'" + (u.leaseType === "lease" ? " selected" : "") + ">Fixed-Term Lease</option>" +
-        "</select></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Lease Beginning Date</label><input type='date' id='mi-" + u.id + "' value='" + esc(u.moveInDate) + "' style='padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Term (months)</label><input type='number' id='term-" + u.id + "' value='" + (u.leaseTermMonths || "") + "' style='width:70px;padding:6px;font-size:12px;'></div>" +
-        "<div><label style='font-size:11px;color:#666;display:block;'>Lease End Date</label><input type='date' id='le-" + u.id + "' value='" + esc(u.leaseEndDate) + "' style='padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Lease Ending Date</label><input type='date' id='le-" + u.id + "' value='" + esc(u.leaseEndDate) + "' style='padding:6px;font-size:12px;'></div>" +
         "</div>" +
         "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;align-items:end;'>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Security Deposit</label><input type='number' id='sd-" + u.id + "' value='" + Number(u.securityDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>1st Month Collected</label><input type='number' id='fm-" + u.id + "' value='" + Number(u.firstMonthDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Last Month Collected</label><input type='number' id='lm-" + u.id + "' value='" + Number(u.lastMonthDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:12px;'><input type='checkbox' id='nd-" + u.id + "' " + (u.noDeposit ? "checked" : "") + " style='width:auto;'> No deposit collected</label></div>" +
+        "</div>" +
+        "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;'>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Tenant Name</label><input type='text' id='tn-" + u.id + "' value='" + esc(u.tenantName) + "' style='padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Telephone</label><input type='tel' id='tp-" + u.id + "' value='" + esc(u.tenantPhone) + "' style='padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Email</label><input type='email' id='te-" + u.id + "' value='" + esc(u.tenantEmail) + "' style='padding:6px;font-size:12px;'></div>" +
         "</div>" +
         "<button data-save-detail='" + u.id + "' style='margin-top:12px;'>Save Lease Details</button>" +
         "</div></td></tr>";
@@ -449,9 +468,9 @@ function renderUnits() {
       updateUnitField(input.getAttribute("data-field-id"), field, value);
     });
   });
-  el.querySelectorAll("input[data-occ-id]").forEach(function(input) {
-    input.addEventListener("change", function() {
-      toggleUnitOccupied(input.getAttribute("data-occ-id"), input.checked);
+  el.querySelectorAll("select[data-status-id]").forEach(function(select) {
+    select.addEventListener("change", function() {
+      setUnitStatus(select.getAttribute("data-status-id"), select.value);
     });
   });
   var draggedUnitId = null;
@@ -528,7 +547,7 @@ function renderExpenses() {
 }
 
 function renderSummary() {
-  var occupiedUnits = currentUnits.filter(function(u) { return u.occupied; });
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var vacantCount = currentUnits.length - occupiedUnits.length;
 
