@@ -3334,6 +3334,11 @@ __NAV__
         <button onclick="generateRentRollPDF()">Download Rent Roll PDF</button>
         <button onclick="generateYTDReportPDF()">Download YTD Summary PDF</button>
       </div>
+      <div style="margin-top:14px;">
+        <label style="display:inline-block;">Statement Month</label>
+        <input type="month" id="income-statement-month" style="max-width:160px;display:inline-block;">
+        <button onclick="generateIncomeStatementPDF()">Download Income Statement PDF</button>
+      </div>
     </div>
 
     <div class="calc">
@@ -3506,6 +3511,7 @@ function openPropertyDetail(propertyId, address) {
     var val = parseFloat(this.value) || 0;
     db.collection("properties").doc(currentPropertyId).update({ fixedMonthlyCosts: val });
   };
+  document.getElementById("income-statement-month").value = new Date().toISOString().slice(0, 7);
 
   if (unitsUnsub) unitsUnsub();
   if (expensesUnsub) expensesUnsub();
@@ -3969,6 +3975,116 @@ function generateYTDReportPDF() {
 
   var fileSafeAddress = address.replace(/[^a-z0-9]/gi, "_").slice(0, 40);
   doc.save("YTDSummary_" + fileSafeAddress + "_" + year + ".pdf");
+}
+
+function groupExpensesByCategory(expenses) {
+  var groups = {};
+  var order = [];
+  expenses.forEach(function(e) {
+    var key = (e.category || "Uncategorized").trim().toLowerCase();
+    if (!groups[key]) { groups[key] = { label: (e.category || "Uncategorized").trim(), total: 0 }; order.push(key); }
+    groups[key].total += Number(e.amount || 0);
+  });
+  return order.map(function(key) { return groups[key]; });
+}
+
+function generateIncomeStatementPDF() {
+  if (!currentPropertyId) return;
+  var address = document.getElementById("detail-address").textContent;
+  var fixedMonthlyCosts = parseFloat(document.getElementById("fixed-monthly-costs").value) || 0;
+  var selectedMonth = document.getElementById("income-statement-month").value; // "YYYY-MM"
+  if (!selectedMonth) { alert("Select a statement month first."); return; }
+
+  var year = parseInt(selectedMonth.slice(0, 4), 10);
+  var monthIdx = parseInt(selectedMonth.slice(5, 7), 10) - 1; // 0-based
+
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+  var monthsElapsedInYear = monthIdx + 1; // Jan=1 through selected month, inclusive
+
+  // This month's expenses, grouped by category
+  var thisMonthExpenses = currentExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === selectedMonth; });
+  var thisMonthGroups = groupExpensesByCategory(thisMonthExpenses);
+  var thisMonthVariableTotal = thisMonthGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
+
+  // Year-to-date (Jan through selected month) expenses, grouped by category
+  var ytdExpenses = currentExpenses.filter(function(e) {
+    var d = e.date || "";
+    return d.slice(0, 4) === String(year) && parseInt(d.slice(5, 7), 10) - 1 <= monthIdx;
+  });
+  var ytdGroups = groupExpensesByCategory(ytdExpenses);
+  var ytdVariableTotal = ytdGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
+
+  // Union of category labels appearing in either period, so both columns line up on the same rows
+  var allCategoryLabels = {};
+  thisMonthGroups.forEach(function(g) { allCategoryLabels[g.label.toLowerCase()] = g.label; });
+  ytdGroups.forEach(function(g) { allCategoryLabels[g.label.toLowerCase()] = g.label; });
+  function monthAmountFor(label) {
+    var g = thisMonthGroups.find(function(x) { return x.label.toLowerCase() === label.toLowerCase(); });
+    return g ? g.total : 0;
+  }
+  function ytdAmountFor(label) {
+    var g = ytdGroups.find(function(x) { return x.label.toLowerCase() === label.toLowerCase(); });
+    return g ? g.total : 0;
+  }
+
+  var ytdRentalIncome = totalMonthlyRent * monthsElapsedInYear;
+  var ytdFixedCosts = fixedMonthlyCosts * monthsElapsedInYear;
+  var thisMonthTotalExpenses = fixedMonthlyCosts + thisMonthVariableTotal;
+  var ytdTotalExpenses = ytdFixedCosts + ytdVariableTotal;
+  var thisMonthNOI = totalMonthlyRent - thisMonthTotalExpenses;
+  var ytdNOI = ytdRentalIncome - ytdTotalExpenses;
+
+  var rows = [];
+  rows.push(["REVENUE", "", ""]);
+  rows.push(["  Rental Income", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString()]);
+  rows.push(["TOTAL REVENUE", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString()]);
+  rows.push(["", "", ""]);
+  rows.push(["OPERATING EXPENSES", "", ""]);
+  rows.push(["  Fixed Costs (taxes, insurance, etc.)", "$" + fixedMonthlyCosts.toLocaleString(), "$" + ytdFixedCosts.toLocaleString()]);
+  Object.keys(allCategoryLabels).sort().forEach(function(key) {
+    var label = allCategoryLabels[key];
+    rows.push(["  " + label, "$" + monthAmountFor(label).toLocaleString(), "$" + ytdAmountFor(label).toLocaleString()]);
+  });
+  rows.push(["TOTAL OPERATING EXPENSES", "$" + thisMonthTotalExpenses.toLocaleString(), "$" + ytdTotalExpenses.toLocaleString()]);
+  rows.push(["", "", ""]);
+  rows.push(["NET OPERATING INCOME", "$" + thisMonthNOI.toLocaleString(), "$" + ytdNOI.toLocaleString()]);
+
+  var boldRowIndexes = [0, 2, 4, rows.length - 3, rows.length - 1];
+
+  var doc = new jspdf.jsPDF();
+  var today = new Date().toLocaleDateString();
+
+  doc.setFontSize(16);
+  doc.text("Income Statement", 14, 18);
+  doc.setFontSize(11);
+  doc.setTextColor(80);
+  doc.text(address, 14, 26);
+  doc.text("Statement Month: " + MONTH_NAMES[monthIdx] + " " + year + "  |  Generated: " + today, 14, 32);
+
+  doc.autoTable({
+    startY: 40,
+    head: [["Line Item", MONTH_NAMES[monthIdx] + " " + year, "Year-to-Date"]],
+    body: rows,
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [31, 78, 121] },
+    columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
+    didParseCell: function(data) {
+      if (boldRowIndexes.indexOf(data.row.index) !== -1) { data.cell.styles.fontStyle = "bold"; }
+    }
+  });
+
+  var afterTableY = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(8);
+  doc.setTextColor(140);
+  doc.text(
+    "Rental Income and Fixed Costs use current values applied across all months in the period - this does not reflect\n" +
+    "historical changes in occupancy, rent, or fixed costs. Operating expense categories reflect actual logged entries.",
+    14, afterTableY
+  );
+
+  var fileSafeAddress = address.replace(/[^a-z0-9]/gi, "_").slice(0, 40);
+  doc.save("IncomeStatement_" + fileSafeAddress + "_" + selectedMonth + ".pdf");
 }
 </script>
 
