@@ -3257,6 +3257,8 @@ PROPERTYMANAGER_TEMPLATE = """<!DOCTYPE html>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>__CSS__
 .calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
 .calc h3 { margin:0 0 12px; font-size:16px; }
@@ -3326,6 +3328,7 @@ __NAV__
       <a href="#" id="back-to-properties" style="font-size:13px;color:#1f4e79;">&larr; Back to Properties</a>
       <h3 id="detail-address" style="margin-top:8px;"></h3>
       <div id="detail-summary" style="font-size:14px;"></div>
+      <button onclick="generateRentRollPDF()" style="margin-top:14px;">Download Rent Roll PDF</button>
     </div>
 
     <div class="calc">
@@ -3803,6 +3806,61 @@ function renderSummary() {
     "Expenses this month: $" + totalThisMonthExpenses.toLocaleString() + " &middot; All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
     "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString() + "</span>" +
     "<br><span style='font-size:11px;color:#888;'>Cash flow is rent from occupied units minus this calendar month's logged expenses - a simple estimate, not a full P&amp;L.</span>";
+}
+
+function statusLabel(status) {
+  var labels = { rental: "Rental", leased: "Leased", eviction: "Eviction", vacant: "Vacant" };
+  return labels[status] || status;
+}
+
+function generateRentRollPDF() {
+  if (!currentPropertyId) return;
+  var address = document.getElementById("detail-address").textContent;
+  var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
+
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+  var vacantCount = currentUnits.length - occupiedUnits.length;
+  var occupancyPct = currentUnits.length ? Math.round((occupiedUnits.length / currentUnits.length) * 100) : 0;
+
+  var doc = new jspdf.jsPDF();
+  var today = new Date().toLocaleDateString();
+
+  doc.setFontSize(16);
+  doc.text("Rent Roll Report", 14, 18);
+  doc.setFontSize(11);
+  doc.setTextColor(80);
+  doc.text(address, 14, 26);
+  doc.text("Generated: " + today, 14, 32);
+
+  doc.setFontSize(10);
+  doc.text(
+    "Units: " + currentUnits.length + "   Occupied: " + occupiedUnits.length + " (" + occupancyPct + "%)   " +
+    "Vacant: " + vacantCount + "   Total Monthly Rent: $" + totalMonthlyRent.toLocaleString(),
+    14, 40
+  );
+
+  var rows = sorted.map(function(u) {
+    return [
+      u.unitNumber || u.label || "N/A",
+      u.unitType || "N/A",
+      statusLabel(getUnitStatus(u)),
+      u.tenantName || "-",
+      "$" + Number(u.rent || 0).toLocaleString(),
+      u.leaseEndDate || "-"
+    ];
+  });
+
+  doc.autoTable({
+    startY: 46,
+    head: [["Apt #", "Type", "Status", "Tenant", "Rent", "Lease End"]],
+    body: rows,
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [31, 78, 121] }
+  });
+
+  var fileSafeAddress = address.replace(/[^a-z0-9]/gi, "_").slice(0, 40);
+  doc.save("RentRoll_" + fileSafeAddress + "_" + new Date().toISOString().slice(0, 10) + ".pdf");
 }
 </script>
 
