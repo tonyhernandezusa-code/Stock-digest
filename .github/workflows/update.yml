@@ -26,6 +26,9 @@ jobs:
       - name: Generate digest
         run: python generate_digest.py
 
+      - name: Pull latest changes before pushing
+        run: git pull --rebase --autostash origin main
+
       - name: Commit and push updated dashboard
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
