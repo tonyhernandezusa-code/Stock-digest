@@ -104,7 +104,12 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <a href="#" id="back-to-properties" style="font-size:13px;color:#1f4e79;">&larr; Back to Properties</a>
       <h3 id="detail-address" style="margin-top:8px;"></h3>
       <div id="detail-summary" style="font-size:14px;"></div>
-      <button onclick="generateRentRollPDF()" style="margin-top:14px;">Download Rent Roll PDF</button>
+      <label style="margin-top:14px;">Fixed Monthly Costs (taxes, insurance, etc. - allocated evenly per month)</label>
+      <input type="number" id="fixed-monthly-costs" style="max-width:160px;">
+      <div style="margin-top:14px;">
+        <button onclick="generateRentRollPDF()">Download Rent Roll PDF</button>
+        <button onclick="generateYTDReportPDF()">Download YTD Summary PDF</button>
+      </div>
     </div>
 
     <div class="calc">
@@ -268,6 +273,15 @@ function openPropertyDetail(propertyId, address) {
   document.getElementById("property-list").style.display = "none";
   document.getElementById("property-detail").style.display = "block";
   document.getElementById("detail-address").textContent = address;
+
+  db.collection("properties").doc(propertyId).get().then(function(doc) {
+    var data = doc.data() || {};
+    document.getElementById("fixed-monthly-costs").value = data.fixedMonthlyCosts || 0;
+  });
+  document.getElementById("fixed-monthly-costs").onblur = function() {
+    var val = parseFloat(this.value) || 0;
+    db.collection("properties").doc(currentPropertyId).update({ fixedMonthlyCosts: val });
+  };
 
   if (unitsUnsub) unitsUnsub();
   if (expensesUnsub) expensesUnsub();
@@ -637,6 +651,101 @@ function generateRentRollPDF() {
 
   var fileSafeAddress = address.replace(/[^a-z0-9]/gi, "_").slice(0, 40);
   doc.save("RentRoll_" + fileSafeAddress + "_" + new Date().toISOString().slice(0, 10) + ".pdf");
+}
+
+var MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function generateYTDReportPDF() {
+  if (!currentPropertyId) return;
+  var address = document.getElementById("detail-address").textContent;
+  var fixedMonthlyCosts = parseFloat(document.getElementById("fixed-monthly-costs").value) || 0;
+
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+
+  var now = new Date();
+  var year = now.getFullYear();
+  var currentMonthIdx = now.getMonth(); // 0 = January
+
+  var rows = [];
+  var ytdIncome = 0, ytdFixed = 0, ytdVariable = 0;
+
+  for (var m = 0; m <= currentMonthIdx; m++) {
+    var monthKey = year + "-" + String(m + 1).padStart(2, "0");
+    var monthExpenses = currentExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === monthKey; });
+    var variableTotal = monthExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+    var totalExpenses = fixedMonthlyCosts + variableTotal;
+    var netCashFlow = totalMonthlyRent - totalExpenses;
+
+    ytdIncome += totalMonthlyRent;
+    ytdFixed += fixedMonthlyCosts;
+    ytdVariable += variableTotal;
+
+    rows.push([
+      MONTH_NAMES[m],
+      "$" + totalMonthlyRent.toLocaleString(),
+      "$" + fixedMonthlyCosts.toLocaleString(),
+      "$" + variableTotal.toLocaleString(),
+      "$" + totalExpenses.toLocaleString(),
+      "$" + netCashFlow.toLocaleString()
+    ]);
+  }
+
+  var ytdTotalExpenses = ytdFixed + ytdVariable;
+  var ytdNetCashFlow = ytdIncome - ytdTotalExpenses;
+  rows.push([
+    "YTD Total", "$" + ytdIncome.toLocaleString(), "$" + ytdFixed.toLocaleString(),
+    "$" + ytdVariable.toLocaleString(), "$" + ytdTotalExpenses.toLocaleString(), "$" + ytdNetCashFlow.toLocaleString()
+  ]);
+
+  var doc = new jspdf.jsPDF();
+  var today = new Date().toLocaleDateString();
+
+  doc.setFontSize(16);
+  doc.text("Year-to-Date Financial Summary", 14, 18);
+  doc.setFontSize(11);
+  doc.setTextColor(80);
+  doc.text(address, 14, 26);
+  doc.text("Generated: " + today + "  (January - " + MONTH_NAMES[currentMonthIdx] + " " + year + ")", 14, 32);
+
+  doc.autoTable({
+    startY: 40,
+    head: [["Month", "Rental Income", "Fixed Costs", "Variable Expenses", "Total Expenses", "Net Cash Flow"]],
+    body: rows,
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [31, 78, 121] },
+    didParseCell: function(data) {
+      if (data.row.index === rows.length - 1) { data.cell.styles.fontStyle = "bold"; }
+    }
+  });
+
+  var afterTableY = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(11);
+  doc.setTextColor(0);
+  doc.text("Current Apartment Status (as of " + today + ")", 14, afterTableY);
+
+  var statusCounts = { rental: 0, leased: 0, eviction: 0, vacant: 0 };
+  currentUnits.forEach(function(u) { statusCounts[getUnitStatus(u)] = (statusCounts[getUnitStatus(u)] || 0) + 1; });
+
+  doc.setFontSize(10);
+  doc.setTextColor(80);
+  doc.text(
+    currentUnits.length + " units total:  " + statusCounts.rental + " Rental,  " + statusCounts.leased + " Leased,  " +
+    statusCounts.eviction + " Eviction,  " + statusCounts.vacant + " Vacant",
+    14, afterTableY + 7
+  );
+
+  doc.setFontSize(8);
+  doc.setTextColor(140);
+  doc.text(
+    "Rental income and fixed costs are held constant across all months at their current values - this does not reflect
+" +
+    "historical changes in occupancy, rent, or fixed costs during the year. Variable expenses reflect actual logged entries per month.",
+    14, afterTableY + 15
+  );
+
+  var fileSafeAddress = address.replace(/[^a-z0-9]/gi, "_").slice(0, 40);
+  doc.save("YTDSummary_" + fileSafeAddress + "_" + year + ".pdf");
 }
 </script>
 
