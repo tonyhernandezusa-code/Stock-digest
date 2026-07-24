@@ -3479,6 +3479,9 @@ function addUnitBatch() {
       leaseTermMonths: null,
       moveInDate: "",
       leaseEndDate: "",
+      threeDayNoticeDate: "",
+      lateFeeAmount: 0,
+      gracePeriodDays: 5,
       securityDeposit: 0,
       firstMonthDeposit: 0,
       lastMonthDeposit: 0,
@@ -3565,6 +3568,9 @@ function saveLeaseDetails(unitId) {
   updateUnitField(unitId, "moveInDate", document.getElementById("mi-" + unitId).value);
   updateUnitField(unitId, "leaseTermMonths", parseInt(document.getElementById("term-" + unitId).value, 10) || null);
   updateUnitField(unitId, "leaseEndDate", document.getElementById("le-" + unitId).value);
+  updateUnitField(unitId, "threeDayNoticeDate", document.getElementById("tdn-" + unitId).value);
+  updateUnitField(unitId, "lateFeeAmount", parseFloat(document.getElementById("lf-" + unitId).value) || 0);
+  updateUnitField(unitId, "gracePeriodDays", parseInt(document.getElementById("gp-" + unitId).value, 10) || 0);
   updateUnitField(unitId, "noDeposit", noDeposit);
   updateUnitField(unitId, "securityDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("sd-" + unitId).value) || 0));
   updateUnitField(unitId, "firstMonthDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("fm-" + unitId).value) || 0));
@@ -3589,6 +3595,7 @@ function renderUnits() {
       "<td><select data-status-id='" + u.id + "' style='padding:4px;font-size:12px;'>" +
         "<option value='rental'" + (status === "rental" ? " selected" : "") + ">Rental</option>" +
         "<option value='leased'" + (status === "leased" ? " selected" : "") + ">Leased</option>" +
+        "<option value='eviction'" + (status === "eviction" ? " selected" : "") + ">Eviction</option>" +
         "<option value='vacant'" + (status === "vacant" ? " selected" : "") + ">Vacant</option>" +
       "</select></td>" +
       "<td><button style='margin:0;padding:4px 8px;font-size:11px;' data-toggle-detail='" + u.id + "'>" + (openDetailPanels[u.id] ? "Hide" : "Details") + "</button></td>" +
@@ -3600,12 +3607,17 @@ function renderUnits() {
         "<div><label style='font-size:11px;color:#666;display:block;'>Lease Beginning Date</label><input type='date' id='mi-" + u.id + "' value='" + esc(u.moveInDate) + "' style='padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Term (months)</label><input type='number' id='term-" + u.id + "' value='" + (u.leaseTermMonths || "") + "' style='width:70px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Lease Ending Date</label><input type='date' id='le-" + u.id + "' value='" + esc(u.leaseEndDate) + "' style='padding:6px;font-size:12px;'></div>" +
+        (status === "eviction" ? "<div><label style='font-size:11px;color:#c0392b;font-weight:600;display:block;'>Date of 3-Day Notice</label><input type='date' id='tdn-" + u.id + "' value='" + esc(u.threeDayNoticeDate) + "' style='padding:6px;font-size:12px;border:1px solid #c0392b;'></div>" : "<input type='hidden' id='tdn-" + u.id + "' value='" + esc(u.threeDayNoticeDate) + "'>") +
         "</div>" +
         "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;align-items:end;'>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Security Deposit</label><input type='number' id='sd-" + u.id + "' value='" + Number(u.securityDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>1st Month Collected</label><input type='number' id='fm-" + u.id + "' value='" + Number(u.firstMonthDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Last Month Collected</label><input type='number' id='lm-" + u.id + "' value='" + Number(u.lastMonthDeposit || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:12px;'><input type='checkbox' id='nd-" + u.id + "' " + (u.noDeposit ? "checked" : "") + " style='width:auto;'> No deposit collected</label></div>" +
+        "</div>" +
+        "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;'>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Late Fee Amount</label><input type='number' id='lf-" + u.id + "' value='" + Number(u.lateFeeAmount || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
+        "<div><label style='font-size:11px;color:#666;display:block;'>Grace Period (days)</label><input type='number' id='gp-" + u.id + "' value='" + (u.gracePeriodDays !== undefined && u.gracePeriodDays !== null ? u.gracePeriodDays : "") + "' style='width:80px;padding:6px;font-size:12px;'></div>" +
         "</div>" +
         "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;'>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Tenant Name</label><input type='text' id='tn-" + u.id + "' value='" + esc(u.tenantName) + "' style='padding:6px;font-size:12px;'></div>" +
