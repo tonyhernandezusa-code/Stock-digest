@@ -4099,7 +4099,10 @@ function generateIncomeStatementPDF() {
   var monthIdx = parseInt(selectedMonth.slice(5, 7), 10) - 1; // 0-based
 
   var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var vacantUnits = currentUnits.filter(function(u) { return getUnitStatus(u) === "vacant"; });
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+  var grossScheduledIncome = currentUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+  var vacancyLoss = vacantUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var monthsElapsedInYear = monthIdx + 1; // Jan=1 through selected month, inclusive
 
   // This month: split into auto-fixed (annual-flagged, /12) and variable (one-time, dated this month)
@@ -4159,7 +4162,9 @@ function generateIncomeStatementPDF() {
 
   var rows = [];
   rows.push(["REVENUE", "", "", ""]);
-  rows.push(["  Rental Income", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
+  rows.push(["  Gross Scheduled Income", "$" + grossScheduledIncome.toLocaleString(), "$" + (grossScheduledIncome * monthsElapsedInYear).toLocaleString(), "$" + (grossScheduledIncome * 12).toLocaleString()]);
+  rows.push(["  Less: Vacancy Loss", "-$" + vacancyLoss.toLocaleString(), "-$" + (vacancyLoss * monthsElapsedInYear).toLocaleString(), "-$" + (vacancyLoss * 12).toLocaleString()]);
+  rows.push(["  Effective Rental Income", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
   rows.push(["TOTAL REVENUE", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
   rows.push(["", "", "", ""]);
   rows.push(["OPERATING EXPENSES", "", "", ""]);
@@ -4192,7 +4197,7 @@ function generateIncomeStatementPDF() {
     "$" + projectedNOI.toLocaleString(undefined, {maximumFractionDigits: 0})
   ]);
 
-  var boldRowIndexes = [0, 2, 4, rows.length - 3, rows.length - 1];
+  var boldRowIndexes = [0, 4, 6, rows.length - 3, rows.length - 1];
 
   var doc = new jspdf.jsPDF();
   var today = new Date().toLocaleDateString();
