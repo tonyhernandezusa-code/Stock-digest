@@ -4140,31 +4140,56 @@ function generateIncomeStatementPDF() {
   var thisMonthNOI = totalMonthlyRent - thisMonthTotalExpenses;
   var ytdNOI = ytdRentalIncome - ytdTotalExpenses;
 
+  // Projected Annual: Rental Income and Fixed Costs just annualize directly since they're already
+  // held constant per month. Variable expenses use a run-rate: the YTD pace extrapolated to 12 months,
+  // since these vary and a straight multiply-by-12 of any single month wouldn't be representative.
+  function projectRunRate(ytdTotal) {
+    return monthsElapsedInYear > 0 ? (ytdTotal / monthsElapsedInYear) * 12 : 0;
+  }
+  var projectedRentalIncome = totalMonthlyRent * 12;
+  var projectedFixedCosts = thisMonthFixedCosts * 12;
+  function projectedAmountFor(label) {
+    return projectRunRate(ytdAmountFor(label));
+  }
+  var projectedVariableTotal = Object.keys(allCategoryLabels).reduce(function(sum, key) {
+    return sum + projectedAmountFor(allCategoryLabels[key]);
+  }, 0);
+  var projectedTotalExpenses = projectedFixedCosts + projectedVariableTotal;
+  var projectedNOI = projectedRentalIncome - projectedTotalExpenses;
+
   var rows = [];
-  rows.push(["REVENUE", "", ""]);
-  rows.push(["  Rental Income", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString()]);
-  rows.push(["TOTAL REVENUE", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString()]);
-  rows.push(["", "", ""]);
-  rows.push(["OPERATING EXPENSES", "", ""]);
-  rows.push(["  Fixed Costs (taxes, insurance, etc.)", "$" + thisMonthFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + ytdFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0})]);
+  rows.push(["REVENUE", "", "", ""]);
+  rows.push(["  Rental Income", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
+  rows.push(["TOTAL REVENUE", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
+  rows.push(["", "", "", ""]);
+  rows.push(["OPERATING EXPENSES", "", "", ""]);
+  rows.push([
+    "  Fixed Costs (taxes, insurance, etc.)",
+    "$" + thisMonthFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + ytdFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + projectedFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0})
+  ]);
   Object.keys(allCategoryLabels).sort().forEach(function(key) {
     var label = allCategoryLabels[key];
     rows.push([
       "  " + label,
       "$" + monthAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0}),
-      "$" + ytdAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0})
+      "$" + ytdAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + projectedAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0})
     ]);
   });
   rows.push([
     "TOTAL OPERATING EXPENSES",
     "$" + thisMonthTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}),
-    "$" + ytdTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0})
+    "$" + ytdTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + projectedTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0})
   ]);
-  rows.push(["", "", ""]);
+  rows.push(["", "", "", ""]);
   rows.push([
     "NET OPERATING INCOME",
     "$" + thisMonthNOI.toLocaleString(undefined, {maximumFractionDigits: 0}),
-    "$" + ytdNOI.toLocaleString(undefined, {maximumFractionDigits: 0})
+    "$" + ytdNOI.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + projectedNOI.toLocaleString(undefined, {maximumFractionDigits: 0})
   ]);
 
   var boldRowIndexes = [0, 2, 4, rows.length - 3, rows.length - 1];
@@ -4181,11 +4206,11 @@ function generateIncomeStatementPDF() {
 
   doc.autoTable({
     startY: 40,
-    head: [["Line Item", MONTH_NAMES[monthIdx] + " " + year, "Year-to-Date"]],
+    head: [["Line Item", MONTH_NAMES[monthIdx] + " " + year, "Year-to-Date", "Projected Annual"]],
     body: rows,
     styles: { fontSize: 9 },
     headStyles: { fillColor: [31, 78, 121] },
-    columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
+    columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } },
     didParseCell: function(data) {
       if (boldRowIndexes.indexOf(data.row.index) !== -1) { data.cell.styles.fontStyle = "bold"; }
     }
@@ -4198,7 +4223,10 @@ function generateIncomeStatementPDF() {
     [
       "Rental Income and the manually-entered Fixed Costs figure use current values applied across all months. Expenses",
       "flagged as Annual (property tax, insurance, etc.) are divided by 12 and spread evenly across every month of the",
-      "year, rather than counted entirely in the month logged. Other expense categories reflect actual logged entries."
+      "year, rather than counted entirely in the month logged. Other expense categories reflect actual logged entries.",
+      "Projected Annual: Rental Income and Fixed Costs are annualized directly from current values (x 12). Variable",
+      "expense categories use a run-rate projection - the Year-to-Date pace extrapolated to a full 12 months - since",
+      "these vary month to month. Treat this as an estimate based on the pace so far, not a guarantee."
     ],
     14, afterTableY
   );
