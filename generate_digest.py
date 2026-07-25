@@ -3452,7 +3452,16 @@ __NAV__
       <label>Date</label>
       <input type="date" id="e-date">
       <label style="margin-top:10px;"><input type="checkbox" id="e-annual" style="width:auto;display:inline-block;"> Annual cost (spread evenly across all 12 months, e.g. property tax, insurance)</label>
-      <label><input type="checkbox" id="e-capex" style="width:auto;display:inline-block;"> Capital improvement (roof, HVAC replacement, etc. - kept separate from operating expenses)</label>
+      <label><input type="checkbox" id="e-capex" onchange="toggleCapExFinancing()" style="width:auto;display:inline-block;"> Capital improvement (roof, HVAC replacement, etc. - kept separate from operating expenses)</label>
+      <div id="capex-financing-fields" style="display:none;margin-top:10px;padding:10px;background:#f7f6f2;border-radius:6px;">
+        <label><input type="checkbox" id="e-financed" style="width:auto;display:inline-block;"> This improvement is financed (not paid in cash)</label>
+        <label style="max-width:200px;">Financed Amount</label>
+        <input type="number" id="e-financed-amount" style="max-width:200px;">
+        <label style="max-width:200px;">Interest Rate (%)</label>
+        <input type="number" step="0.01" id="e-financed-rate" style="max-width:200px;">
+        <label style="max-width:200px;">Term (years)</label>
+        <input type="number" step="0.5" id="e-financed-term" style="max-width:200px;">
+      </div>
       <button onclick="addExpense()">Add Expense</button>
       <div class="err" id="expense-error"></div>
       <div id="expense-list" style="margin-top:12px;"></div>
@@ -3526,6 +3535,30 @@ function calculateMonthlyPI(loanAmount, annualRatePct, termYears) {
   if (!annualRatePct || annualRatePct === 0) return loanAmount / n;
   var r = (annualRatePct / 100) / 12;
   return loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+// Financed capital improvements (e.g. a roof paid off over 5 years) show up as a recurring
+// monthly payment for the life of that specific loan, not a one-time hit in the month incurred -
+// same treatment as the property's main mortgage, just per-improvement and time-bounded.
+function getCapExFinancingForMonth(capExExpenses, year, monthIdx) {
+  var targetLinearMonth = year * 12 + monthIdx;
+  var items = [];
+  capExExpenses.forEach(function(e) {
+    if (!e.isFinanced) return;
+    var d = e.date || "";
+    var startYear = parseInt(d.slice(0, 4), 10);
+    var startMonthIdx = parseInt(d.slice(5, 7), 10) - 1;
+    if (isNaN(startYear) || isNaN(startMonthIdx)) return;
+    var startLinearMonth = startYear * 12 + startMonthIdx;
+    var termMonths = Math.round((e.financedTermYears || 0) * 12);
+    if (termMonths <= 0) return;
+    var endLinearMonth = startLinearMonth + termMonths; // exclusive - loan is paid off by this month
+    if (targetLinearMonth >= startLinearMonth && targetLinearMonth < endLinearMonth) {
+      var payment = calculateMonthlyPI(e.financedAmount || e.amount, e.financedRate || 0, e.financedTermYears);
+      items.push({ category: e.category, amount: payment });
+    }
+  });
+  return items;
 }
 
 function addProperty() {
@@ -4007,6 +4040,14 @@ function renderUnits() {
   });
 }
 
+function toggleCapExFinancing() {
+  var isCapEx = document.getElementById("e-capex").checked;
+  document.getElementById("capex-financing-fields").style.display = isCapEx ? "block" : "none";
+  if (isCapEx && !document.getElementById("e-financed-amount").value) {
+    document.getElementById("e-financed-amount").value = document.getElementById("e-amount").value;
+  }
+}
+
 function addExpense() {
   if (!currentPropertyId) return;
   var category = document.getElementById("e-category").value.trim();
@@ -4014,12 +4055,17 @@ function addExpense() {
   var date = document.getElementById("e-date").value;
   var isAnnual = document.getElementById("e-annual").checked;
   var isCapEx = document.getElementById("e-capex").checked;
+  var isFinanced = isCapEx && document.getElementById("e-financed").checked;
+  var financedAmount = isFinanced ? (parseFloat(document.getElementById("e-financed-amount").value) || amount) : 0;
+  var financedRate = isFinanced ? (parseFloat(document.getElementById("e-financed-rate").value) || 0) : 0;
+  var financedTermYears = isFinanced ? (parseFloat(document.getElementById("e-financed-term").value) || 0) : 0;
   showError("expense-error", "");
   if (!category) { showError("expense-error", "Enter a category."); return; }
   if (!date) { showError("expense-error", "Select a date."); return; }
 
   db.collection("properties").doc(currentPropertyId).collection("entries").add({
     type: "expense", category: category, amount: amount, date: date, isAnnual: isAnnual, isCapEx: isCapEx,
+    isFinanced: isFinanced, financedAmount: financedAmount, financedRate: financedRate, financedTermYears: financedTermYears,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
     document.getElementById("e-category").value = "";
@@ -4027,6 +4073,11 @@ function addExpense() {
     document.getElementById("e-date").value = "";
     document.getElementById("e-annual").checked = false;
     document.getElementById("e-capex").checked = false;
+    document.getElementById("e-financed").checked = false;
+    document.getElementById("e-financed-amount").value = "";
+    document.getElementById("e-financed-rate").value = "";
+    document.getElementById("e-financed-term").value = "";
+    document.getElementById("capex-financing-fields").style.display = "none";
   }).catch(function(err) { showError("expense-error", err.message); });
 }
 
@@ -4190,7 +4241,13 @@ function renderKeyRatios() {
   var interestRate = currentPropertyData.interestRate || 0;
   var loanTermYears = currentPropertyData.loanTermYears || 0;
   var downPayment = currentPropertyData.downPayment || 0;
-  var monthlyDebtService = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+  var monthlyMortgagePayment = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+
+  var capExExpenses = currentExpenses.filter(function(e) { return e.isCapEx; });
+  var activeCapExFinancing = getCapExFinancingForMonth(capExExpenses, now.getFullYear(), now.getMonth());
+  var monthlyCapExFinancing = activeCapExFinancing.reduce(function(sum, item) { return sum + item.amount; }, 0);
+
+  var monthlyDebtService = monthlyMortgagePayment + monthlyCapExFinancing;
   var annualDebtService = monthlyDebtService * 12;
 
   var expenseRatio = totalMonthlyIncome > 0 ? (totalMonthlyOpEx * 12) / (totalMonthlyIncome * 12) * 100 : 0;
@@ -4202,11 +4259,12 @@ function renderKeyRatios() {
     "<div><strong>Expense Ratio:</strong> " + expenseRatio.toFixed(1) + "%</div>" +
     "<div><strong>GRM:</strong> " + (grm ? grm.toFixed(2) : "N/A") + "</div>";
 
-  if (loanAmount > 0) {
+  if (loanAmount > 0 || monthlyCapExFinancing > 0) {
     var dscr = annualDebtService > 0 ? annualNOI / annualDebtService : 0;
     var annualCashFlowAfterDebt = annualNOI - annualDebtService;
     var cashOnCash = downPayment > 0 ? (annualCashFlowAfterDebt / downPayment) * 100 : null;
-    html += "<div><strong>Monthly Debt Service:</strong> $" + monthlyDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</div>" +
+    html += "<div><strong>Monthly Debt Service:</strong> $" + monthlyDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}) +
+      (monthlyCapExFinancing > 0 ? " <span style='font-size:11px;color:#888;'>(incl. $" + monthlyCapExFinancing.toLocaleString(undefined, {maximumFractionDigits: 0}) + " financed CapEx)</span>" : "") + "</div>" +
       "<div><strong>DSCR:</strong> " + dscr.toFixed(2) + (dscr < 1.25 ? " <span style='color:#c0392b;'>(below typical 1.25 lender minimum)</span>" : "") + "</div>" +
       (cashOnCash !== null ? "<div><strong>Cash-on-Cash Return:</strong> " + cashOnCash.toFixed(2) + "%</div>" : "");
   }
@@ -4562,12 +4620,28 @@ function generateIncomeStatementPDF() {
   var thisMonthNOI = thisMonthTotalRevenue - thisMonthTotalExpenses;
   var ytdNOI = ytdTotalRevenue - ytdTotalExpenses;
 
-  // Debt service (if financing details are on file for this property)
+  // Debt service: primary mortgage (if financing details are on file) plus any actively-financed
+  // capital improvements (e.g. a roof loan) - summed month-by-month for YTD since a CapEx loan
+  // may have started partway through the year and shouldn't be counted before it existed.
   var loanAmount = currentPropertyData.loanAmount || 0;
   var interestRate = currentPropertyData.interestRate || 0;
   var loanTermYears = currentPropertyData.loanTermYears || 0;
-  var monthlyDebtService = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
-  var ytdDebtService = monthlyDebtService * monthsElapsedInYear;
+  var monthlyMortgagePayment = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+
+  var thisMonthCapExFinancingItems = getCapExFinancingForMonth(capExExpenses, year, monthIdx);
+  var thisMonthCapExFinancing = thisMonthCapExFinancingItems.reduce(function(sum, item) { return sum + item.amount; }, 0);
+  var ytdCapExFinancing = 0;
+  var ytdCapExFinancingByCategory = {};
+  for (var cf = 0; cf <= monthIdx; cf++) {
+    getCapExFinancingForMonth(capExExpenses, year, cf).forEach(function(item) {
+      ytdCapExFinancing += item.amount;
+      ytdCapExFinancingByCategory[item.category] = (ytdCapExFinancingByCategory[item.category] || 0) + item.amount;
+    });
+  }
+
+  var monthlyDebtService = monthlyMortgagePayment + thisMonthCapExFinancing;
+  var ytdMortgagePayments = monthlyMortgagePayment * monthsElapsedInYear;
+  var ytdDebtService = ytdMortgagePayments + ytdCapExFinancing;
   var thisMonthCashFlowAfterDebt = thisMonthNOI - monthlyDebtService;
   var ytdCashFlowAfterDebt = ytdNOI - ytdDebtService;
 
@@ -4669,11 +4743,17 @@ function generateIncomeStatementPDF() {
   var noiRowIndex = rows.length - 1;
 
   var debtServiceRowIndexes = [];
-  if (loanAmount > 0) {
+  if (loanAmount > 0 || ytdCapExFinancing > 0 || thisMonthCapExFinancing > 0) {
     rows.push(["", "", "", ""]);
     rows.push(["DEBT SERVICE", "", "", ""]);
     debtServiceRowIndexes.push(rows.length - 1);
-    rows.push(["  Principal & Interest", "-$" + monthlyDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + ytdDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + projectedDebtService.toLocaleString(undefined, {maximumFractionDigits: 0})]);
+    if (loanAmount > 0) {
+      rows.push(["  Principal & Interest (Mortgage)", "-$" + monthlyMortgagePayment.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + ytdMortgagePayments.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + (monthlyMortgagePayment * 12).toLocaleString(undefined, {maximumFractionDigits: 0})]);
+    }
+    thisMonthCapExFinancingItems.forEach(function(item) {
+      var itemYtd = ytdCapExFinancingByCategory[item.category] || 0;
+      rows.push(["  " + item.category + " (Financed)", "-$" + item.amount.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + itemYtd.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + (item.amount * 12).toLocaleString(undefined, {maximumFractionDigits: 0})]);
+    });
     rows.push(["CASH FLOW AFTER DEBT SERVICE", "$" + thisMonthCashFlowAfterDebt.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + ytdCashFlowAfterDebt.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + projectedCashFlowAfterDebt.toLocaleString(undefined, {maximumFractionDigits: 0})]);
     debtServiceRowIndexes.push(rows.length - 1);
   }
