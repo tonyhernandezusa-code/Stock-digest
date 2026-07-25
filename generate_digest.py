@@ -3366,8 +3366,12 @@ __NAV__
     <input type="number" id="p-loanamount">
     <label>Interest Rate (%)</label>
     <input type="number" step="0.01" id="p-rate">
-    <label>Loan Term (years)</label>
+    <label>Amortization Term (years) - used to calculate the monthly payment</label>
     <input type="number" id="p-term" value="30">
+    <label>Balloon Term (years, optional) - if the full balance comes due sooner than the amortization period (common in commercial loans)</label>
+    <input type="number" id="p-balloon">
+    <label>Loan Start Date</label>
+    <input type="date" id="p-loanstart">
     <button onclick="addProperty()">Add Property</button>
     <div class="err" id="add-error"></div>
     </div>
@@ -3399,8 +3403,12 @@ __NAV__
         <input type="number" id="d-loanamount" style="max-width:160px;">
         <label>Interest Rate (%)</label>
         <input type="number" step="0.01" id="d-rate" style="max-width:160px;">
-        <label>Loan Term (years)</label>
+        <label>Amortization Term (years)</label>
         <input type="number" id="d-term" style="max-width:160px;">
+        <label>Balloon Term (years, optional)</label>
+        <input type="number" id="d-balloon" style="max-width:160px;">
+        <label>Loan Start Date</label>
+        <input type="date" id="d-loanstart" style="max-width:160px;">
         <button onclick="saveFinancingDetails()">Save Financing Details</button>
       </div>
       <div style="margin-top:14px;">
@@ -3537,6 +3545,19 @@ function calculateMonthlyPI(loanAmount, annualRatePct, termYears) {
   return loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 }
 
+// Remaining principal balance after a given number of payments into an amortizing loan -
+// used for balloon payment calculations (e.g. a loan amortized over 25 years but with the
+// full remaining balance due after 10 years, common in commercial financing).
+function calculateRemainingBalance(loanAmount, annualRatePct, amortTermYears, paymentsAlreadyMade) {
+  if (!loanAmount || loanAmount <= 0 || !amortTermYears || amortTermYears <= 0) return 0;
+  var n = amortTermYears * 12;
+  var p = paymentsAlreadyMade;
+  if (p >= n) return 0;
+  if (!annualRatePct || annualRatePct === 0) return loanAmount * (1 - p / n);
+  var r = (annualRatePct / 100) / 12;
+  return loanAmount * (Math.pow(1 + r, n) - Math.pow(1 + r, p)) / (Math.pow(1 + r, n) - 1);
+}
+
 // Financed capital improvements (e.g. a roof paid off over 5 years) show up as a recurring
 // monthly payment for the life of that specific loan, not a one-time hit in the month incurred -
 // same treatment as the property's main mortgage, just per-improvement and time-bounded.
@@ -3574,6 +3595,8 @@ function addProperty() {
   var loanAmount = parseFloat(document.getElementById("p-loanamount").value) || 0;
   var interestRate = parseFloat(document.getElementById("p-rate").value) || 0;
   var loanTermYears = parseFloat(document.getElementById("p-term").value) || 30;
+  var balloonTermYears = parseFloat(document.getElementById("p-balloon").value) || 0;
+  var loanStartDate = document.getElementById("p-loanstart").value || "";
 
   showError("add-error", "");
   if (!address) { showError("add-error", "Enter a street address."); return; }
@@ -3590,6 +3613,8 @@ function addProperty() {
     loanAmount: loanAmount,
     interestRate: interestRate,
     loanTermYears: loanTermYears,
+    balloonTermYears: balloonTermYears,
+    loanStartDate: loanStartDate,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
     document.getElementById("p-address").value = "";
@@ -3602,6 +3627,8 @@ function addProperty() {
     document.getElementById("p-loanamount").value = "";
     document.getElementById("p-rate").value = "";
     document.getElementById("p-term").value = "30";
+    document.getElementById("p-balloon").value = "";
+    document.getElementById("p-loanstart").value = "";
     toggleAddPropertyForm();
   }).catch(function(err) {
     showError("add-error", err.message);
@@ -3763,6 +3790,8 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-loanamount").value = data.loanAmount || "";
     document.getElementById("d-rate").value = data.interestRate || "";
     document.getElementById("d-term").value = data.loanTermYears || "";
+    document.getElementById("d-balloon").value = data.balloonTermYears || "";
+    document.getElementById("d-loanstart").value = data.loanStartDate || "";
     renderKeyRatios();
   });
   document.getElementById("fixed-monthly-costs").onblur = function() {
@@ -4201,7 +4230,9 @@ function saveFinancingDetails() {
     downPayment: parseFloat(document.getElementById("d-downpayment").value) || 0,
     loanAmount: parseFloat(document.getElementById("d-loanamount").value) || 0,
     interestRate: parseFloat(document.getElementById("d-rate").value) || 0,
-    loanTermYears: parseFloat(document.getElementById("d-term").value) || 0
+    loanTermYears: parseFloat(document.getElementById("d-term").value) || 0,
+    balloonTermYears: parseFloat(document.getElementById("d-balloon").value) || 0,
+    loanStartDate: document.getElementById("d-loanstart").value || ""
   };
   db.collection("properties").doc(currentPropertyId).update(updates).then(function() {
     currentPropertyData = Object.assign({}, currentPropertyData, updates);
@@ -4269,7 +4300,29 @@ function renderKeyRatios() {
       (cashOnCash !== null ? "<div><strong>Cash-on-Cash Return:</strong> " + cashOnCash.toFixed(2) + "%</div>" : "");
   }
 
-  html += "</div><span style='font-size:11px;color:#888;'>Based on this month's rent and expenses, annualized. Cap Rate and Expense Ratio don't depend on financing; DSCR and Cash-on-Cash require loan details under Financing Details.</span>";
+  var balloonTermYears = currentPropertyData.balloonTermYears || 0;
+  var loanStartDate = currentPropertyData.loanStartDate || "";
+  if (loanAmount > 0 && balloonTermYears > 0 && loanStartDate) {
+    var startYear = parseInt(loanStartDate.slice(0, 4), 10);
+    var startMonthIdx = parseInt(loanStartDate.slice(5, 7), 10) - 1;
+    var startLinearMonth = startYear * 12 + startMonthIdx;
+    var nowLinearMonth = now.getFullYear() * 12 + now.getMonth();
+    var paymentsMade = Math.max(0, nowLinearMonth - startLinearMonth);
+    var remainingBalance = calculateRemainingBalance(loanAmount, interestRate, loanTermYears, paymentsMade);
+    var balloonDueLinearMonth = startLinearMonth + Math.round(balloonTermYears * 12);
+    var balloonDueYear = Math.floor(balloonDueLinearMonth / 12);
+    var balloonDueMonth = (balloonDueLinearMonth % 12) + 1;
+    var monthsUntilBalloon = balloonDueLinearMonth - nowLinearMonth;
+    html += "</div><div style='margin-top:10px;padding:10px;background:#fef3c7;border-radius:6px;font-size:13px;'>" +
+      "<strong>Balloon Payment Due:</strong> $" + remainingBalance.toLocaleString(undefined, {maximumFractionDigits: 0}) +
+      " (remaining principal) due " + balloonDueMonth + "/" + balloonDueYear +
+      (monthsUntilBalloon > 0 ? " (" + monthsUntilBalloon + " months from now)" : " <span style='color:#c0392b;'>(past due or due now - refinance or payoff needed)</span>") +
+      "</div>";
+  } else {
+    html += "</div>";
+  }
+
+  html += "<span style='font-size:11px;color:#888;'>Based on this month's rent and expenses, annualized. Cap Rate and Expense Ratio don't depend on financing; DSCR and Cash-on-Cash require loan details under Financing Details.</span>";
   el.innerHTML = html;
 }
 
