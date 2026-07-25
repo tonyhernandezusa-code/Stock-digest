@@ -628,7 +628,7 @@ function renderSummary() {
     "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong><br>" +
     "Expenses this month: $" + totalThisMonthExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}) + " &middot; All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
     "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</span>" +
-    "<br><span style='font-size:11px;color:#888;'>Cash flow is rent from occupied units minus this month's expenses. Expenses flagged "Annual" (property tax, insurance, etc.) are divided by 12 and spread evenly across all 12 months rather than counted entirely in the month they were logged. A simple estimate, not a full P&amp;L.</span>";
+    "<br><span style='font-size:11px;color:#888;'>Cash flow is rent from occupied units minus this month's expenses. Expenses flagged as Annual (property tax, insurance, etc.) are divided by 12 and spread evenly across all 12 months rather than counted entirely in the month they were logged. A simple estimate, not a full P&amp;L.</span>";
 }
 
 function statusLabel(status) {
