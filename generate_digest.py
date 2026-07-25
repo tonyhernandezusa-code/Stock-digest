@@ -96,6 +96,26 @@ COMMODITIES = [
     ("Lean Hogs", "HE=F"),
 ]
 
+CRYPTO = [
+    ("Bitcoin", "BTC-USD"),
+    ("Ethereum", "ETH-USD"),
+    ("Tether", "USDT-USD"),
+    ("BNB", "BNB-USD"),
+    ("Solana", "SOL-USD"),
+    ("XRP", "XRP-USD"),
+    ("USD Coin", "USDC-USD"),
+    ("Cardano", "ADA-USD"),
+    ("Dogecoin", "DOGE-USD"),
+    ("TRON", "TRX-USD"),
+    ("Avalanche", "AVAX-USD"),
+    ("Chainlink", "LINK-USD"),
+    ("Polkadot", "DOT-USD"),
+    ("Litecoin", "LTC-USD"),
+    ("Shiba Inu", "SHIB-USD"),
+    ("Bitcoin Cash", "BCH-USD"),
+    ("Stellar", "XLM-USD"),
+]
+
 FRED_RATES = [
     ("Fed Funds Rate", "DFF"),
     ("2-Yr Treasury", "DGS2"),
@@ -567,6 +587,12 @@ for name, symbol in COMMODITIES:
     if r:
         commodity_rows.append({"name": name, **r})
 
+crypto_rows = []
+for name, symbol in CRYPTO:
+    r = fetch_simple_price(symbol)
+    if r:
+        crypto_rows.append({"name": name, **r})
+
 rate_rows = []
 for name, series_id in FRED_RATES:
     r = fetch_fred_rate(series_id)
@@ -890,6 +916,10 @@ stocks_html = f"""<!DOCTYPE html>
 
 <h2>Commodities</h2>
 <div class="row">{simple_cards(commodity_rows)}</div>
+
+<h2>Cryptocurrency</h2>
+<div class="row">{simple_cards(crypto_rows)}</div>
+<p class="note">Prices via Yahoo Finance, quoted in USD. Crypto trades 24/7, unlike stocks and most commodities/indices - these prices can change even when traditional markets are closed. Extremely volatile compared to traditional assets - treat accordingly.</p>
 
 <h2>Currency Exchange Rates</h2>
 <div class="row">{currency_cards(currency_rows)}</div>
