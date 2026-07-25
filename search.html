@@ -356,11 +356,14 @@ function loadNeighborhoodData(address) {
     .then(function(resp) { return resp.json(); })
     .then(function(data) {
       if (data.error) { el.innerHTML = ""; return; }
-      var vacancy = data.rentalVacancyRatePercent;
-      var rent = data.medianGrossRent;
+      // The Census Bureau uses negative "sentinel" codes (e.g. -888888888) to mean "no reliable
+      // estimate available for this specific small geography" - not a real percentage/dollar value.
+      var isSentinel = function(v) { return v == null || Number(v) < 0; };
+      var vacancy = isSentinel(data.rentalVacancyRatePercent) ? null : data.rentalVacancyRatePercent;
+      var rent = isSentinel(data.medianGrossRent) ? null : data.medianGrossRent;
       if (vacancy == null && rent == null) { el.innerHTML = ""; return; }
       el.innerHTML = "<h4 style='font-size:13px;margin:14px 0 6px;'>Neighborhood Data</h4>" +
-        (vacancy != null ? "Rental vacancy rate: " + vacancy + "%<br>" : "") +
+        (vacancy != null ? "Rental vacancy rate: " + vacancy + "%<br>" : "Rental vacancy rate: not available (sample too small for this specific area)<br>") +
         (rent != null && rent > 0 ? "Median gross rent: $" + Number(rent).toLocaleString() + "/mo<br>" : "") +
         "<span style='font-size:11px;color:#888;'>Source: U.S. Census Bureau American Community Survey (5-year estimates), for the Census Tract containing this address - a reasonable proxy for the immediate neighborhood, not the exact block.</span>";
     })
