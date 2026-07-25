@@ -3491,6 +3491,10 @@ firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
 
+// Reuses the same ATTOM Worker already deployed for Property Search, to auto-fetch
+// property tax when a new property is added here.
+var ATTOM_WORKER_URL = "https://attom-proxy.tonyhernandezusa.workers.dev";
+
 function showError(elId, message) {
   document.getElementById(elId).textContent = message;
 }
@@ -3617,7 +3621,7 @@ function addProperty() {
     balloonTermYears: balloonTermYears,
     loanStartDate: loanStartDate,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function() {
+  }).then(function(docRef) {
     document.getElementById("p-address").value = "";
     document.getElementById("p-city").value = "";
     document.getElementById("p-state").value = "";
@@ -3631,10 +3635,37 @@ function addProperty() {
     document.getElementById("p-balloon").value = "";
     document.getElementById("p-loanstart").value = "";
     toggleAddPropertyForm();
+    autoFetchPropertyTax(docRef.id, address, city, state, zip);
   }).catch(function(err) {
     showError("add-error", err.message);
   });
 }
+
+// Reuses the same ATTOM Worker as Property Search to automatically look up and log this
+// property's current annual property tax as an Annual expense entry - no manual entry needed.
+// Runs silently in the background; if the lookup fails or finds nothing, it just does nothing,
+// since the property itself was already created successfully regardless.
+function autoFetchPropertyTax(propertyId, address, city, state, zip) {
+  var fullAddress = [address, city, state, zip].filter(Boolean).join(", ");
+  fetch(ATTOM_WORKER_URL + "/property-search?address=" + encodeURIComponent(fullAddress))
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      var prop = data.property && data.property[0];
+      var tax = prop && prop.assessment && prop.assessment.tax;
+      if (!tax || !tax.taxAmt) return; // no tax data found - silently skip, nothing to add
+      return db.collection("properties").doc(propertyId).collection("entries").add({
+        type: "expense",
+        category: "Property Tax (via ATTOM)",
+        amount: Number(tax.taxAmt),
+        date: new Date().toISOString().slice(0, 10),
+        isAnnual: true,
+        isCapEx: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    })
+    .catch(function() { /* silent - property creation already succeeded either way */ });
+}
+
 
 var portfolioStats = {};
 var portfolioListeners = {};
