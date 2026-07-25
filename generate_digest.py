@@ -3300,20 +3300,23 @@ PROPERTYMANAGER_TEMPLATE = """<!DOCTYPE html>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>__CSS__
 .calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
+.calc-wide { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:100%; }
+.calc-wide h3 { margin:0 0 12px; font-size:16px; }
 .calc h3 { margin:0 0 12px; font-size:16px; }
 .calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
 .calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
-.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
-.calc button:hover { background:#163a5c; }
-.calc button.secondary { background:#888; }
-.calc button.secondary:hover { background:#666; }
+.calc button, .calc-wide button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
+.calc button:hover, .calc-wide button:hover { background:#163a5c; }
+.calc button.secondary, .calc-wide button.secondary { background:#888; }
+.calc button.secondary:hover, .calc-wide button.secondary:hover { background:#666; }
 .result { margin-top:14px; padding:12px; background:#f0f6ec; border-radius:6px; font-size:14px; }
 .err { color:#c0392b; font-size:13px; margin-top:8px; }
-.property-card { background:#fff; border:1px solid #e5e3dc; border-radius:8px; padding:14px; margin-bottom:10px; }
-.property-card h4 { margin:0 0 6px; font-size:15px; }
+.property-card { background:#fff; border:1px solid #e5e3dc; border-radius:8px; padding:16px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.property-card h4 { margin:0 0 6px; font-size:16px; color:#1f4e79; }
 @media (max-width: 600px) {
   body { padding:12px; }
   .calc { padding:14px; max-width:100%; }
+  .calc-wide { padding:14px; }
   .calc input { font-size:16px !important; padding:10px !important; }
   .calc button { width:100%; }
 }
@@ -3342,7 +3345,8 @@ __NAV__
   </div>
 
   <div class="calc">
-    <h3>Add a Property</h3>
+    <h3 style="cursor:pointer;" onclick="toggleAddPropertyForm()">+ Add a Property <span id="add-property-toggle-icon">&#9656;</span></h3>
+    <div id="add-property-form" style="display:none;">
     <label>Street Address</label>
     <input type="text" id="p-address" placeholder="123 Main St">
     <label>City</label>
@@ -3355,8 +3359,23 @@ __NAV__
     <input type="number" id="p-units" value="1" min="1">
     <label>Purchase Price (optional)</label>
     <input type="number" id="p-price">
+    <label style="margin-top:14px;font-weight:600;">Financing (optional - enables Cap Rate, DSCR, and Cash-on-Cash calculations)</label>
+    <label>Down Payment</label>
+    <input type="number" id="p-downpayment">
+    <label>Loan Amount</label>
+    <input type="number" id="p-loanamount">
+    <label>Interest Rate (%)</label>
+    <input type="number" step="0.01" id="p-rate">
+    <label>Loan Term (years)</label>
+    <input type="number" id="p-term" value="30">
     <button onclick="addProperty()">Add Property</button>
     <div class="err" id="add-error"></div>
+    </div>
+  </div>
+
+  <div id="portfolio-dashboard" style="display:none;margin-bottom:20px;">
+    <h3>Portfolio Overview</h3>
+    <div class="row" id="portfolio-cards"></div>
   </div>
 
   <h3>Your Properties</h3>
@@ -3367,8 +3386,23 @@ __NAV__
       <a href="#" id="back-to-properties" style="font-size:13px;color:#1f4e79;">&larr; Back to Properties</a>
       <h3 id="detail-address" style="margin-top:8px;"></h3>
       <div id="detail-summary" style="font-size:14px;"></div>
+      <div id="key-ratios" style="font-size:14px;margin-top:10px;"></div>
       <label style="margin-top:14px;">Fixed Monthly Costs (taxes, insurance, etc. - allocated evenly per month)</label>
       <input type="number" id="fixed-monthly-costs" style="max-width:160px;">
+      <h4 style="margin:16px 0 6px;font-size:13px;cursor:pointer;" onclick="toggleFinancingForm()">Financing Details <span id="financing-toggle-icon">&#9656;</span></h4>
+      <div id="financing-form" style="display:none;">
+        <label>Purchase Price</label>
+        <input type="number" id="d-price" style="max-width:160px;">
+        <label>Down Payment</label>
+        <input type="number" id="d-downpayment" style="max-width:160px;">
+        <label>Loan Amount</label>
+        <input type="number" id="d-loanamount" style="max-width:160px;">
+        <label>Interest Rate (%)</label>
+        <input type="number" step="0.01" id="d-rate" style="max-width:160px;">
+        <label>Loan Term (years)</label>
+        <input type="number" id="d-term" style="max-width:160px;">
+        <button onclick="saveFinancingDetails()">Save Financing Details</button>
+      </div>
       <div style="margin-top:14px;">
         <button onclick="generateRentRollPDF()">Download Rent Roll PDF</button>
         <button onclick="generateYTDReportPDF()">Download YTD Summary PDF</button>
@@ -3380,29 +3414,45 @@ __NAV__
       </div>
     </div>
 
-    <div class="calc">
+    <div class="calc-wide">
       <h3>Units</h3>
       <p class="note">Add units in a batch by type (e.g. 10 x "1 Bed / 1 Bath"), then rename each one's unit number below.</p>
-      <label>Unit Type</label>
-      <input type="text" id="u-type" placeholder="1 Bed / 1 Bath">
-      <label>How Many of This Type</label>
-      <input type="number" id="u-count" value="1" min="1">
-      <label>Rent per Unit</label>
-      <input type="number" id="u-rent">
+      <label style="max-width:400px;">Unit Type</label>
+      <input type="text" id="u-type" placeholder="1 Bed / 1 Bath" style="max-width:400px;">
+      <label style="max-width:400px;">How Many of This Type</label>
+      <input type="number" id="u-count" value="1" min="1" style="max-width:400px;">
+      <label style="max-width:400px;">Rent per Unit</label>
+      <input type="number" id="u-rent" style="max-width:400px;">
       <button onclick="addUnitBatch()">Add Units</button>
       <div class="err" id="unit-error"></div>
       <div id="unit-list" style="margin-top:12px;"></div>
     </div>
 
-    <div class="calc">
+    <div class="calc-wide">
+      <h3>Other Income</h3>
+      <p class="note">Laundry, parking, storage, pet fees, application fees, late fees actually collected, etc. - anything beyond rent.</p>
+      <label style="max-width:400px;">Category</label>
+      <input type="text" id="i-category" placeholder="Laundry, parking, pet fees, etc." style="max-width:400px;">
+      <label style="max-width:400px;">Amount</label>
+      <input type="number" id="i-amount" style="max-width:400px;">
+      <label style="max-width:400px;">Date</label>
+      <input type="date" id="i-date" style="max-width:400px;">
+      <label style="margin-top:10px;"><input type="checkbox" id="i-annual" style="width:auto;display:inline-block;"> Annual (spread evenly across all 12 months)</label>
+      <button onclick="addIncome()">Add Income</button>
+      <div class="err" id="income-error"></div>
+      <div id="income-list" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="calc-wide">
       <h3>Expenses</h3>
-      <label>Category</label>
-      <input type="text" id="e-category" placeholder="Property tax, insurance, repairs, etc.">
-      <label>Amount</label>
+      <label style="max-width:400px;">Category</label>
+      <input type="text" id="e-category" placeholder="Property tax, insurance, repairs, etc." style="max-width:400px;">
+      <label style="max-width:400px;">Amount</label>
       <input type="number" id="e-amount">
       <label>Date</label>
       <input type="date" id="e-date">
       <label style="margin-top:10px;"><input type="checkbox" id="e-annual" style="width:auto;display:inline-block;"> Annual cost (spread evenly across all 12 months, e.g. property tax, insurance)</label>
+      <label><input type="checkbox" id="e-capex" style="width:auto;display:inline-block;"> Capital improvement (roof, HVAC replacement, etc. - kept separate from operating expenses)</label>
       <button onclick="addExpense()">Add Expense</button>
       <div class="err" id="expense-error"></div>
       <div id="expense-list" style="margin-top:12px;"></div>
@@ -3461,6 +3511,23 @@ auth.onAuthStateChanged(function(user) {
   }
 });
 
+function toggleAddPropertyForm() {
+  var form = document.getElementById("add-property-form");
+  var icon = document.getElementById("add-property-toggle-icon");
+  var isHidden = form.style.display === "none";
+  form.style.display = isHidden ? "block" : "none";
+  icon.innerHTML = isHidden ? "&#9662;" : "&#9656;";
+}
+
+// Standard amortization formula for monthly Principal & Interest payment.
+function calculateMonthlyPI(loanAmount, annualRatePct, termYears) {
+  if (!loanAmount || loanAmount <= 0 || !termYears || termYears <= 0) return 0;
+  var n = termYears * 12;
+  if (!annualRatePct || annualRatePct === 0) return loanAmount / n;
+  var r = (annualRatePct / 100) / 12;
+  return loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
 function addProperty() {
   var user = auth.currentUser;
   if (!user) return;
@@ -3470,6 +3537,10 @@ function addProperty() {
   var zip = document.getElementById("p-zip").value.trim();
   var units = parseInt(document.getElementById("p-units").value, 10) || 1;
   var price = document.getElementById("p-price").value ? parseFloat(document.getElementById("p-price").value) : null;
+  var downPayment = parseFloat(document.getElementById("p-downpayment").value) || 0;
+  var loanAmount = parseFloat(document.getElementById("p-loanamount").value) || 0;
+  var interestRate = parseFloat(document.getElementById("p-rate").value) || 0;
+  var loanTermYears = parseFloat(document.getElementById("p-term").value) || 30;
 
   showError("add-error", "");
   if (!address) { showError("add-error", "Enter a street address."); return; }
@@ -3482,6 +3553,10 @@ function addProperty() {
     zip: zip,
     units: units,
     purchasePrice: price,
+    downPayment: downPayment,
+    loanAmount: loanAmount,
+    interestRate: interestRate,
+    loanTermYears: loanTermYears,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
     document.getElementById("p-address").value = "";
@@ -3490,26 +3565,126 @@ function addProperty() {
     document.getElementById("p-zip").value = "";
     document.getElementById("p-units").value = "1";
     document.getElementById("p-price").value = "";
+    document.getElementById("p-downpayment").value = "";
+    document.getElementById("p-loanamount").value = "";
+    document.getElementById("p-rate").value = "";
+    document.getElementById("p-term").value = "30";
+    toggleAddPropertyForm();
   }).catch(function(err) {
     showError("add-error", err.message);
   });
 }
 
+var portfolioStats = {};
+var portfolioListeners = {};
+
+function trackPropertyForPortfolio(propertyId) {
+  if (portfolioListeners[propertyId]) return; // already tracked
+  portfolioStats[propertyId] = { units: 0, occupied: 0, monthlyRent: 0, monthlyOpEx: 0, monthlyOtherIncome: 0 };
+
+  function recompute() {
+    renderPortfolioDashboard();
+  }
+
+  var unitsL = db.collection("properties").doc(propertyId).collection("entries").where("type", "==", "unit")
+    .onSnapshot(function(snap) {
+      var units = [];
+      snap.forEach(function(d) { units.push(d.data()); });
+      var occupied = units.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+      portfolioStats[propertyId].units = units.length;
+      portfolioStats[propertyId].occupied = occupied.length;
+      portfolioStats[propertyId].monthlyRent = occupied.reduce(function(s, u) { return s + Number(u.rent || 0); }, 0);
+      recompute();
+    });
+
+  var expensesL = db.collection("properties").doc(propertyId).collection("entries").where("type", "==", "expense")
+    .onSnapshot(function(snap) {
+      var expenses = [];
+      snap.forEach(function(d) { expenses.push(d.data()); });
+      var operating = expenses.filter(function(e) { return !e.isCapEx; });
+      var now = new Date();
+      var eff = getEffectiveMonthlyExpenses(operating, now.getFullYear(), now.getMonth());
+      var fixed = eff.fixedFromAnnual.reduce(function(s, e) { return s + e.amount; }, 0);
+      var variable = eff.variable.reduce(function(s, e) { return s + e.amount; }, 0);
+      portfolioStats[propertyId].monthlyOpEx = fixed + variable;
+      recompute();
+    });
+
+  var incomeL = db.collection("properties").doc(propertyId).collection("entries").where("type", "==", "income")
+    .onSnapshot(function(snap) {
+      var incomeEntries = [];
+      snap.forEach(function(d) { incomeEntries.push(d.data()); });
+      var now = new Date();
+      var eff = getEffectiveMonthlyExpenses(incomeEntries, now.getFullYear(), now.getMonth());
+      portfolioStats[propertyId].monthlyOtherIncome = eff.fixedFromAnnual.reduce(function(s, e) { return s + e.amount; }, 0) +
+        eff.variable.reduce(function(s, e) { return s + e.amount; }, 0);
+      recompute();
+    });
+
+  portfolioListeners[propertyId] = { unitsL: unitsL, expensesL: expensesL, incomeL: incomeL };
+}
+
+function untrackPropertyForPortfolio(propertyId) {
+  var l = portfolioListeners[propertyId];
+  if (l) { l.unitsL(); l.expensesL(); l.incomeL(); delete portfolioListeners[propertyId]; }
+  delete portfolioStats[propertyId];
+}
+
+function renderPortfolioDashboard() {
+  var el = document.getElementById("portfolio-cards");
+  var ids = Object.keys(portfolioStats);
+  if (!ids.length) { document.getElementById("portfolio-dashboard").style.display = "none"; return; }
+  document.getElementById("portfolio-dashboard").style.display = "block";
+
+  var totalProperties = ids.length;
+  var totalUnits = 0, totalOccupied = 0, totalRent = 0, totalOpEx = 0, totalOtherIncome = 0;
+  ids.forEach(function(id) {
+    var s = portfolioStats[id];
+    totalUnits += s.units;
+    totalOccupied += s.occupied;
+    totalRent += s.monthlyRent;
+    totalOpEx += s.monthlyOpEx;
+    totalOtherIncome += s.monthlyOtherIncome;
+  });
+  var occupancyPct = totalUnits ? Math.round((totalOccupied / totalUnits) * 100) : 0;
+  var totalIncome = totalRent + totalOtherIncome;
+  var cashFlow = totalIncome - totalOpEx;
+  var cashFlowColor = cashFlow >= 0 ? "#1a8a3d" : "#c0392b";
+
+  el.innerHTML =
+    "<div class='card'><p class='label'>Properties</p><p class='value'>" + totalProperties + "</p></div>" +
+    "<div class='card'><p class='label'>Total Units</p><p class='value'>" + totalUnits + "</p></div>" +
+    "<div class='card'><p class='label'>Occupancy</p><p class='value'>" + occupancyPct + "%</p><p style='margin:2px 0 0;font-size:11px;color:#999;'>" + totalOccupied + " of " + totalUnits + " occupied</p></div>" +
+    "<div class='card'><p class='label'>Monthly Income</p><p class='value'>$" + totalIncome.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</p></div>" +
+    "<div class='card'><p class='label'>Monthly Expenses</p><p class='value'>$" + totalOpEx.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</p></div>" +
+    "<div class='card'><p class='label'>Monthly Cash Flow</p><p class='value' style='color:" + cashFlowColor + ";'>$" + cashFlow.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</p></div>";
+}
+
 function loadProperties(uid) {
   db.collection("properties").where("ownerId", "==", uid).onSnapshot(function(snapshot) {
     var listEl = document.getElementById("property-list");
+    var currentIds = [];
+    snapshot.forEach(function(doc) { currentIds.push(doc.id); });
+    Object.keys(portfolioListeners).forEach(function(id) {
+      if (currentIds.indexOf(id) === -1) untrackPropertyForPortfolio(id);
+    });
+    currentIds.forEach(function(id) { trackPropertyForPortfolio(id); });
+
     if (snapshot.empty) {
       listEl.innerHTML = "<p class='note'>No properties yet - add one above.</p>";
+      document.getElementById("portfolio-dashboard").style.display = "none";
       return;
     }
     var html = "";
     snapshot.forEach(function(doc) {
       var p = doc.data();
+      var stats = portfolioStats[doc.id];
+      var quickStats = stats ? (stats.occupied + "/" + stats.units + " occupied &middot; $" + stats.monthlyRent.toLocaleString() + "/mo rent") : "";
       html += "<div class='property-card'>" +
         "<h4>" + p.address + "</h4>" +
         (p.city || p.state || p.zip ? "<span style='font-size:13px;color:#666;'>" + [p.city, p.state, p.zip].filter(Boolean).join(", ") + "</span><br>" : "") +
-        "Units: " + p.units +
-        (p.purchasePrice ? " &nbsp;|&nbsp; Purchase price: $" + Number(p.purchasePrice).toLocaleString() : "") +
+        (quickStats ? "<span style='font-size:13px;color:#1f4e79;font-weight:600;'>" + quickStats + "</span><br>" : "Units: " + p.units + "<br>") +
+        (p.purchasePrice ? "Purchase price: $" + Number(p.purchasePrice).toLocaleString() : "") +
         "<br><button style='margin-top:8px;padding:6px 12px;font-size:12px;' data-view-id='" + doc.id + "' data-view-address='" + p.address.replace(/'/g, "&#39;") + "'>Manage Units &amp; Expenses</button> " +
         "<button class='secondary' style='margin-top:8px;padding:6px 12px;font-size:12px;' data-id='" + doc.id + "'>Delete</button>" +
         "</div>";
@@ -3523,6 +3698,7 @@ function loadProperties(uid) {
     listEl.querySelectorAll("button[data-id]").forEach(function(btn) {
       btn.addEventListener("click", function() {
         if (confirm("Delete this property?")) {
+          untrackPropertyForPortfolio(btn.getAttribute("data-id"));
           db.collection("properties").doc(btn.getAttribute("data-id")).delete();
         }
       });
@@ -3531,8 +3707,10 @@ function loadProperties(uid) {
 }
 
 var currentPropertyId = null;
+var currentPropertyData = {};
 var unitsUnsub = null;
 var expensesUnsub = null;
+var incomeUnsub = null;
 var currentUnits = [];
 var currentExpenses = [];
 
@@ -3545,7 +3723,14 @@ function openPropertyDetail(propertyId, address) {
 
   db.collection("properties").doc(propertyId).get().then(function(doc) {
     var data = doc.data() || {};
+    currentPropertyData = data;
     document.getElementById("fixed-monthly-costs").value = data.fixedMonthlyCosts || 0;
+    document.getElementById("d-price").value = data.purchasePrice || "";
+    document.getElementById("d-downpayment").value = data.downPayment || "";
+    document.getElementById("d-loanamount").value = data.loanAmount || "";
+    document.getElementById("d-rate").value = data.interestRate || "";
+    document.getElementById("d-term").value = data.loanTermYears || "";
+    renderKeyRatios();
   });
   document.getElementById("fixed-monthly-costs").onblur = function() {
     var val = parseFloat(this.value) || 0;
@@ -3555,6 +3740,7 @@ function openPropertyDetail(propertyId, address) {
 
   if (unitsUnsub) unitsUnsub();
   if (expensesUnsub) expensesUnsub();
+  if (incomeUnsub) incomeUnsub();
 
   unitsUnsub = db.collection("properties").doc(propertyId).collection("entries")
     .where("type", "==", "unit").onSnapshot(function(snapshot) {
@@ -3563,6 +3749,7 @@ function openPropertyDetail(propertyId, address) {
       backfillSortOrder();
       renderUnits();
       renderSummary();
+      renderKeyRatios();
     });
 
   expensesUnsub = db.collection("properties").doc(propertyId).collection("entries")
@@ -3571,6 +3758,16 @@ function openPropertyDetail(propertyId, address) {
       snapshot.forEach(function(doc) { currentExpenses.push({ id: doc.id, ...doc.data() }); });
       renderExpenses();
       renderSummary();
+      renderKeyRatios();
+    });
+
+  incomeUnsub = db.collection("properties").doc(propertyId).collection("entries")
+    .where("type", "==", "income").onSnapshot(function(snapshot) {
+      currentIncomeEntries = [];
+      snapshot.forEach(function(doc) { currentIncomeEntries.push({ id: doc.id, ...doc.data() }); });
+      renderIncome();
+      renderSummary();
+      renderKeyRatios();
     });
 }
 
@@ -3578,6 +3775,7 @@ document.getElementById("back-to-properties").addEventListener("click", function
   e.preventDefault();
   if (unitsUnsub) { unitsUnsub(); unitsUnsub = null; }
   if (expensesUnsub) { expensesUnsub(); expensesUnsub = null; }
+  if (incomeUnsub) { incomeUnsub(); incomeUnsub = null; }
   currentPropertyId = null;
   document.getElementById("property-detail").style.display = "none";
   document.getElementById("property-list").style.display = "block";
@@ -3815,19 +4013,85 @@ function addExpense() {
   var amount = parseFloat(document.getElementById("e-amount").value) || 0;
   var date = document.getElementById("e-date").value;
   var isAnnual = document.getElementById("e-annual").checked;
+  var isCapEx = document.getElementById("e-capex").checked;
   showError("expense-error", "");
   if (!category) { showError("expense-error", "Enter a category."); return; }
   if (!date) { showError("expense-error", "Select a date."); return; }
 
   db.collection("properties").doc(currentPropertyId).collection("entries").add({
-    type: "expense", category: category, amount: amount, date: date, isAnnual: isAnnual,
+    type: "expense", category: category, amount: amount, date: date, isAnnual: isAnnual, isCapEx: isCapEx,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
     document.getElementById("e-category").value = "";
     document.getElementById("e-amount").value = "";
     document.getElementById("e-date").value = "";
     document.getElementById("e-annual").checked = false;
+    document.getElementById("e-capex").checked = false;
   }).catch(function(err) { showError("expense-error", err.message); });
+}
+
+var currentIncomeEntries = [];
+
+function addIncome() {
+  if (!currentPropertyId) return;
+  var category = document.getElementById("i-category").value.trim();
+  var amount = parseFloat(document.getElementById("i-amount").value) || 0;
+  var date = document.getElementById("i-date").value;
+  var isAnnual = document.getElementById("i-annual").checked;
+  showError("income-error", "");
+  if (!category) { showError("income-error", "Enter a category."); return; }
+  if (!date) { showError("income-error", "Select a date."); return; }
+
+  db.collection("properties").doc(currentPropertyId).collection("entries").add({
+    type: "income", category: category, amount: amount, date: date, isAnnual: isAnnual,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById("i-category").value = "";
+    document.getElementById("i-amount").value = "";
+    document.getElementById("i-date").value = "";
+    document.getElementById("i-annual").checked = false;
+  }).catch(function(err) { showError("income-error", err.message); });
+}
+
+function updateIncomeField(incomeId, field, value) {
+  var update = {};
+  update[field] = value;
+  db.collection("properties").doc(currentPropertyId).collection("entries").doc(incomeId).update(update);
+}
+
+function renderIncome() {
+  var el = document.getElementById("income-list");
+  if (!currentIncomeEntries.length) { el.innerHTML = "<p class='note'>No other income logged yet.</p>"; return; }
+  var sorted = currentIncomeEntries.slice().sort(function(a, b) { return (b.date || "").localeCompare(a.date || ""); });
+  var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
+  var html = "<div class='table-wrap'><table><tr><th>Date</th><th>Category</th><th style='text-align:right;'>Amount</th><th>Annual</th><th></th></tr>";
+  sorted.forEach(function(inc) {
+    html += "<tr>" +
+      "<td><input type='date' value='" + esc(inc.date) + "' data-inc-field-id='" + inc.id + "' data-inc-field='date' style='width:130px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='text' value='" + esc(inc.category) + "' data-inc-field-id='" + inc.id + "' data-inc-field='category' style='width:160px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='number' value='" + Number(inc.amount || 0) + "' data-inc-field-id='" + inc.id + "' data-inc-field='amount' style='width:90px;padding:4px;font-size:12px;text-align:right;'></td>" +
+      "<td style='text-align:center;'><input type='checkbox' data-inc-annual-id='" + inc.id + "' " + (inc.isAnnual ? "checked" : "") + " style='width:auto;'></td>" +
+      "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-inc-id='" + inc.id + "'>Delete</button></td></tr>";
+  });
+  html += "</table></div>";
+  el.innerHTML = html;
+  el.querySelectorAll("input[data-inc-field]").forEach(function(input) {
+    input.addEventListener("blur", function() {
+      var field = input.getAttribute("data-inc-field");
+      var value = field === "amount" ? (parseFloat(input.value) || 0) : input.value.trim();
+      updateIncomeField(input.getAttribute("data-inc-field-id"), field, value);
+    });
+  });
+  el.querySelectorAll("input[data-inc-annual-id]").forEach(function(input) {
+    input.addEventListener("change", function() {
+      updateIncomeField(input.getAttribute("data-inc-annual-id"), "isAnnual", input.checked);
+    });
+  });
+  el.querySelectorAll("button[data-inc-id]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      db.collection("properties").doc(currentPropertyId).collection("entries").doc(btn.getAttribute("data-inc-id")).delete();
+    });
+  });
 }
 
 function updateExpenseField(expenseId, field, value) {
@@ -3871,6 +4135,86 @@ function renderExpenses() {
   });
 }
 
+function toggleFinancingForm() {
+  var form = document.getElementById("financing-form");
+  var icon = document.getElementById("financing-toggle-icon");
+  var isHidden = form.style.display === "none";
+  form.style.display = isHidden ? "block" : "none";
+  icon.innerHTML = isHidden ? "&#9662;" : "&#9656;";
+}
+
+function saveFinancingDetails() {
+  if (!currentPropertyId) return;
+  var updates = {
+    purchasePrice: parseFloat(document.getElementById("d-price").value) || null,
+    downPayment: parseFloat(document.getElementById("d-downpayment").value) || 0,
+    loanAmount: parseFloat(document.getElementById("d-loanamount").value) || 0,
+    interestRate: parseFloat(document.getElementById("d-rate").value) || 0,
+    loanTermYears: parseFloat(document.getElementById("d-term").value) || 0
+  };
+  db.collection("properties").doc(currentPropertyId).update(updates).then(function() {
+    currentPropertyData = Object.assign({}, currentPropertyData, updates);
+    renderKeyRatios();
+  });
+}
+
+function renderKeyRatios() {
+  var el = document.getElementById("key-ratios");
+  var purchasePrice = currentPropertyData.purchasePrice;
+  if (!purchasePrice) {
+    el.innerHTML = "<span style='font-size:11px;color:#888;'>Enter a purchase price under Financing Details below to see Cap Rate, DSCR, and other key ratios.</span>";
+    return;
+  }
+
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+  var grossScheduledIncome = currentUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+
+  var now = new Date();
+  var manualFixedCosts = parseFloat((document.getElementById("fixed-monthly-costs") || {}).value) || 0;
+  var operatingExpenses = currentExpenses.filter(function(e) { return !e.isCapEx; });
+  var effective = getEffectiveMonthlyExpenses(operatingExpenses, now.getFullYear(), now.getMonth());
+  var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var totalVariableThisMonth = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var totalMonthlyOpEx = manualFixedCosts + autoFixedFromAnnual + totalVariableThisMonth;
+
+  var effectiveIncome = getEffectiveMonthlyExpenses(currentIncomeEntries, now.getFullYear(), now.getMonth());
+  var totalOtherIncomeThisMonth = effectiveIncome.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0) +
+    effectiveIncome.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var totalMonthlyIncome = totalMonthlyRent + totalOtherIncomeThisMonth;
+
+  var annualNOI = (totalMonthlyIncome - totalMonthlyOpEx) * 12;
+  var capRate = (annualNOI / purchasePrice) * 100;
+
+  var loanAmount = currentPropertyData.loanAmount || 0;
+  var interestRate = currentPropertyData.interestRate || 0;
+  var loanTermYears = currentPropertyData.loanTermYears || 0;
+  var downPayment = currentPropertyData.downPayment || 0;
+  var monthlyDebtService = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+  var annualDebtService = monthlyDebtService * 12;
+
+  var expenseRatio = totalMonthlyIncome > 0 ? (totalMonthlyOpEx * 12) / (totalMonthlyIncome * 12) * 100 : 0;
+  var grm = grossScheduledIncome > 0 ? purchasePrice / (grossScheduledIncome * 12) : 0;
+
+  var html = "<h4 style='font-size:13px;margin:0 0 6px;'>Key Financial Ratios</h4>" +
+    "<div style='display:flex;flex-wrap:wrap;gap:16px;font-size:13px;'>" +
+    "<div><strong>Cap Rate:</strong> " + capRate.toFixed(2) + "%</div>" +
+    "<div><strong>Expense Ratio:</strong> " + expenseRatio.toFixed(1) + "%</div>" +
+    "<div><strong>GRM:</strong> " + (grm ? grm.toFixed(2) : "N/A") + "</div>";
+
+  if (loanAmount > 0) {
+    var dscr = annualDebtService > 0 ? annualNOI / annualDebtService : 0;
+    var annualCashFlowAfterDebt = annualNOI - annualDebtService;
+    var cashOnCash = downPayment > 0 ? (annualCashFlowAfterDebt / downPayment) * 100 : null;
+    html += "<div><strong>Monthly Debt Service:</strong> $" + monthlyDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</div>" +
+      "<div><strong>DSCR:</strong> " + dscr.toFixed(2) + (dscr < 1.25 ? " <span style='color:#c0392b;'>(below typical 1.25 lender minimum)</span>" : "") + "</div>" +
+      (cashOnCash !== null ? "<div><strong>Cash-on-Cash Return:</strong> " + cashOnCash.toFixed(2) + "%</div>" : "");
+  }
+
+  html += "</div><span style='font-size:11px;color:#888;'>Based on this month's rent and expenses, annualized. Cap Rate and Expense Ratio don't depend on financing; DSCR and Cash-on-Cash require loan details under Financing Details.</span>";
+  el.innerHTML = html;
+}
+
 function renderSummary() {
   var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
@@ -3880,24 +4224,40 @@ function renderSummary() {
   var thisYear = now.getFullYear();
   var thisMonthIdx = now.getMonth();
   var manualFixedCosts = parseFloat((document.getElementById("fixed-monthly-costs") || {}).value) || 0;
-  var effective = getEffectiveMonthlyExpenses(currentExpenses, thisYear, thisMonthIdx);
+
+  // CapEx (capital improvements) is tracked separately - it's not an operating expense and
+  // shouldn't reduce NOI/cash flow the way routine repairs do.
+  var operatingExpenses = currentExpenses.filter(function(e) { return !e.isCapEx; });
+  var capExExpenses = currentExpenses.filter(function(e) { return e.isCapEx; });
+  var totalCapExThisMonth = capExExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === (thisYear + "-" + String(thisMonthIdx + 1).padStart(2, "0")); })
+    .reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+  var totalAllCapEx = capExExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+
+  var effective = getEffectiveMonthlyExpenses(operatingExpenses, thisYear, thisMonthIdx);
   var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var totalFixedThisMonth = manualFixedCosts + autoFixedFromAnnual;
   var totalVariableThisMonth = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var totalThisMonthExpenses = totalFixedThisMonth + totalVariableThisMonth;
-  var totalAllExpenses = currentExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+  var totalAllExpenses = operatingExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
 
-  var cashFlow = totalMonthlyRent - totalThisMonthExpenses;
+  var effectiveIncome = getEffectiveMonthlyExpenses(currentIncomeEntries, thisYear, thisMonthIdx);
+  var totalOtherIncomeThisMonth = effectiveIncome.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0) +
+    effectiveIncome.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var totalMonthlyIncome = totalMonthlyRent + totalOtherIncomeThisMonth;
+
+  var cashFlow = totalMonthlyIncome - totalThisMonthExpenses;
   var cashFlowColor = cashFlow >= 0 ? "#1a8a3d" : "#c0392b";
 
   document.getElementById("detail-summary").innerHTML =
     "Units: " + currentUnits.length + " total &middot; " + occupiedUnits.length + " occupied &middot; " + vacantCount + " vacant<br>" +
-    "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong><br>" +
+    "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong>" +
+    (totalOtherIncomeThisMonth ? " &middot; Other income this month: $" + totalOtherIncomeThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) : "") + "<br>" +
     "Fixed costs this month: $" + totalFixedThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) +
     " &middot; Variable expenses this month: $" + totalVariableThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) + "<br>" +
+    (totalAllCapEx ? "Capital improvements this month: $" + totalCapExThisMonth.toLocaleString() + " &middot; All-time: $" + totalAllCapEx.toLocaleString() + "<br>" : "") +
     "All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
     "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</span>" +
-    "<br><span style='font-size:11px;color:#888;'>Fixed costs = the Fixed Monthly Costs figure below plus any expenses flagged Annual (property tax, insurance, etc.), divided by 12. Variable expenses are other logged entries dated this month. A simple estimate, not a full P&amp;L.</span>";
+    "<br><span style='font-size:11px;color:#888;'>Fixed costs = the Fixed Monthly Costs figure below plus any expenses flagged Annual, divided by 12. Variable expenses are other logged entries dated this month. Capital improvements (flagged CapEx) are tracked separately and don't reduce cash flow here. A simple estimate, not a full P&amp;L.</span>";
 }
 
 function statusLabel(status) {
@@ -4105,8 +4465,12 @@ function generateIncomeStatementPDF() {
   var vacancyLoss = vacantUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var monthsElapsedInYear = monthIdx + 1; // Jan=1 through selected month, inclusive
 
+  // CapEx (capital improvements) is excluded from operating expenses - tracked in its own section below.
+  var operatingExpenses = currentExpenses.filter(function(e) { return !e.isCapEx; });
+  var capExExpenses = currentExpenses.filter(function(e) { return e.isCapEx; });
+
   // This month: split into auto-fixed (annual-flagged, /12) and variable (one-time, dated this month)
-  var thisMonthEffective = getEffectiveMonthlyExpenses(currentExpenses, year, monthIdx);
+  var thisMonthEffective = getEffectiveMonthlyExpenses(operatingExpenses, year, monthIdx);
   var thisMonthAutoFixed = thisMonthEffective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var thisMonthFixedGroups = groupExpensesByCategory(thisMonthEffective.fixedFromAnnual);
   var thisMonthGroups = groupExpensesByCategory(thisMonthEffective.variable);
@@ -4117,7 +4481,7 @@ function generateIncomeStatementPDF() {
   var ytdFixedFromAnnualEntries = [];
   var ytdVariableEntries = [];
   for (var mm = 0; mm <= monthIdx; mm++) {
-    var monthEffective = getEffectiveMonthlyExpenses(currentExpenses, year, mm);
+    var monthEffective = getEffectiveMonthlyExpenses(operatingExpenses, year, mm);
     ytdAutoFixed += monthEffective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
     ytdFixedFromAnnualEntries = ytdFixedFromAnnualEntries.concat(monthEffective.fixedFromAnnual);
     ytdVariableEntries = ytdVariableEntries.concat(monthEffective.variable);
@@ -4125,6 +4489,42 @@ function generateIncomeStatementPDF() {
   var ytdFixedGroups = groupExpensesByCategory(ytdFixedFromAnnualEntries);
   var ytdGroups = groupExpensesByCategory(ytdVariableEntries);
   var ytdVariableTotal = ytdGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
+
+  // Other Income: same effective-monthly-spreading logic as expenses, applied to income entries.
+  var thisMonthIncomeEffective = getEffectiveMonthlyExpenses(currentIncomeEntries, year, monthIdx);
+  var thisMonthIncomeGroups = groupExpensesByCategory(thisMonthIncomeEffective.fixedFromAnnual.concat(thisMonthIncomeEffective.variable));
+  var thisMonthOtherIncomeTotal = thisMonthIncomeGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
+  var ytdIncomeEntries = [];
+  for (var mi = 0; mi <= monthIdx; mi++) {
+    var monthIncomeEffective = getEffectiveMonthlyExpenses(currentIncomeEntries, year, mi);
+    ytdIncomeEntries = ytdIncomeEntries.concat(monthIncomeEffective.fixedFromAnnual).concat(monthIncomeEffective.variable);
+  }
+  var ytdIncomeGroups = groupExpensesByCategory(ytdIncomeEntries);
+  var ytdOtherIncomeTotal = ytdIncomeGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
+  var allIncomeCategoryLabels = {};
+  thisMonthIncomeGroups.forEach(function(g) { allIncomeCategoryLabels[g.label.toLowerCase()] = g.label; });
+  ytdIncomeGroups.forEach(function(g) { allIncomeCategoryLabels[g.label.toLowerCase()] = g.label; });
+  function monthIncomeAmountFor(label) {
+    var g = thisMonthIncomeGroups.find(function(x) { return x.label.toLowerCase() === label.toLowerCase(); });
+    return g ? g.total : 0;
+  }
+  function ytdIncomeAmountFor(label) {
+    var g = ytdIncomeGroups.find(function(x) { return x.label.toLowerCase() === label.toLowerCase(); });
+    return g ? g.total : 0;
+  }
+
+  // Capital Expenditures: actual logged amounts only - not run-rate projected, since capital
+  // improvements are lumpy/infrequent by nature and a run-rate would be misleading.
+  var thisMonthCapEx = capExExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === selectedMonth; })
+    .reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+  var ytdCapEx = capExExpenses.filter(function(e) {
+    var d = e.date || "";
+    return d.slice(0, 4) === String(year) && (parseInt(d.slice(5, 7), 10) - 1) <= monthIdx;
+  }).reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+  var capExGroups = groupExpensesByCategory(capExExpenses.filter(function(e) {
+    var d = e.date || "";
+    return d.slice(0, 4) === String(year) && (parseInt(d.slice(5, 7), 10) - 1) <= monthIdx;
+  }));
 
   // Union of category labels appearing in either period, so both columns line up on the same rows
   var allCategoryLabels = {};
@@ -4153,12 +4553,23 @@ function generateIncomeStatementPDF() {
   }
 
   var thisMonthFixedCosts = fixedMonthlyCosts + thisMonthAutoFixed;
-  var ytdRentalIncome = totalMonthlyRent * monthsElapsedInYear;
+  var ytdEffectiveRentalIncome = totalMonthlyRent * monthsElapsedInYear;
+  var thisMonthTotalRevenue = totalMonthlyRent + thisMonthOtherIncomeTotal;
+  var ytdTotalRevenue = ytdEffectiveRentalIncome + ytdOtherIncomeTotal;
   var ytdFixedCosts = (fixedMonthlyCosts * monthsElapsedInYear) + ytdAutoFixed;
   var thisMonthTotalExpenses = thisMonthFixedCosts + thisMonthVariableTotal;
   var ytdTotalExpenses = ytdFixedCosts + ytdVariableTotal;
-  var thisMonthNOI = totalMonthlyRent - thisMonthTotalExpenses;
-  var ytdNOI = ytdRentalIncome - ytdTotalExpenses;
+  var thisMonthNOI = thisMonthTotalRevenue - thisMonthTotalExpenses;
+  var ytdNOI = ytdTotalRevenue - ytdTotalExpenses;
+
+  // Debt service (if financing details are on file for this property)
+  var loanAmount = currentPropertyData.loanAmount || 0;
+  var interestRate = currentPropertyData.interestRate || 0;
+  var loanTermYears = currentPropertyData.loanTermYears || 0;
+  var monthlyDebtService = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+  var ytdDebtService = monthlyDebtService * monthsElapsedInYear;
+  var thisMonthCashFlowAfterDebt = thisMonthNOI - monthlyDebtService;
+  var ytdCashFlowAfterDebt = ytdNOI - ytdDebtService;
 
   // Projected Annual: Rental Income and Fixed Costs just annualize directly since they're already
   // held constant per month. Variable expenses use a run-rate: the YTD pace extrapolated to 12 months,
@@ -4171,6 +4582,9 @@ function generateIncomeStatementPDF() {
   function projectedAmountFor(label) {
     return projectRunRate(ytdAmountFor(label));
   }
+  function projectedIncomeAmountFor(label) {
+    return projectRunRate(ytdIncomeAmountFor(label));
+  }
   // Fixed-cost categories are already smoothed (divided by 12), so their monthly value IS
   // the ongoing rate - just annualize directly rather than run-rate from YTD.
   function projectedFixedAmountFor(label) {
@@ -4179,15 +4593,31 @@ function generateIncomeStatementPDF() {
   var projectedVariableTotal = Object.keys(allCategoryLabels).reduce(function(sum, key) {
     return sum + projectedAmountFor(allCategoryLabels[key]);
   }, 0);
+  var projectedOtherIncomeTotal = Object.keys(allIncomeCategoryLabels).reduce(function(sum, key) {
+    return sum + projectedIncomeAmountFor(allIncomeCategoryLabels[key]);
+  }, 0);
+  var projectedTotalRevenue = projectedRentalIncome + projectedOtherIncomeTotal;
   var projectedTotalExpenses = projectedFixedCosts + projectedVariableTotal;
-  var projectedNOI = projectedRentalIncome - projectedTotalExpenses;
+  var projectedNOI = projectedTotalRevenue - projectedTotalExpenses;
+  var projectedDebtService = monthlyDebtService * 12;
+  var projectedCashFlowAfterDebt = projectedNOI - projectedDebtService;
 
   var rows = [];
   rows.push(["REVENUE", "", "", ""]);
   rows.push(["  Gross Scheduled Income", "$" + grossScheduledIncome.toLocaleString(), "$" + (grossScheduledIncome * monthsElapsedInYear).toLocaleString(), "$" + (grossScheduledIncome * 12).toLocaleString()]);
   rows.push(["  Less: Vacancy Loss", "-$" + vacancyLoss.toLocaleString(), "-$" + (vacancyLoss * monthsElapsedInYear).toLocaleString(), "-$" + (vacancyLoss * 12).toLocaleString()]);
-  rows.push(["  Effective Rental Income", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
-  rows.push(["TOTAL REVENUE", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
+  rows.push(["  Effective Rental Income", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdEffectiveRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
+  Object.keys(allIncomeCategoryLabels).sort().forEach(function(key) {
+    var label = allIncomeCategoryLabels[key];
+    rows.push([
+      "  " + label,
+      "$" + monthIncomeAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + ytdIncomeAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + projectedIncomeAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0})
+    ]);
+  });
+  rows.push(["TOTAL REVENUE", "$" + thisMonthTotalRevenue.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + ytdTotalRevenue.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + projectedTotalRevenue.toLocaleString(undefined, {maximumFractionDigits: 0})]);
+  var totalRevenueRowIndex = rows.length - 1;
   rows.push(["", "", "", ""]);
   rows.push(["OPERATING EXPENSES", "", "", ""]);
   if (fixedMonthlyCosts > 0) {
@@ -4236,8 +4666,36 @@ function generateIncomeStatementPDF() {
     "$" + ytdNOI.toLocaleString(undefined, {maximumFractionDigits: 0}),
     "$" + projectedNOI.toLocaleString(undefined, {maximumFractionDigits: 0})
   ]);
+  var noiRowIndex = rows.length - 1;
 
-  var boldRowIndexes = [0, 4, 6, totalFixedRowIndex, rows.length - 3, rows.length - 1];
+  var debtServiceRowIndexes = [];
+  if (loanAmount > 0) {
+    rows.push(["", "", "", ""]);
+    rows.push(["DEBT SERVICE", "", "", ""]);
+    debtServiceRowIndexes.push(rows.length - 1);
+    rows.push(["  Principal & Interest", "-$" + monthlyDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + ytdDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}), "-$" + projectedDebtService.toLocaleString(undefined, {maximumFractionDigits: 0})]);
+    rows.push(["CASH FLOW AFTER DEBT SERVICE", "$" + thisMonthCashFlowAfterDebt.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + ytdCashFlowAfterDebt.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + projectedCashFlowAfterDebt.toLocaleString(undefined, {maximumFractionDigits: 0})]);
+    debtServiceRowIndexes.push(rows.length - 1);
+  }
+
+  var capExRowIndexes = [];
+  if (ytdCapEx > 0 || thisMonthCapEx > 0) {
+    rows.push(["", "", "", ""]);
+    rows.push(["CAPITAL EXPENDITURES (not included in NOI)", "", "", ""]);
+    capExRowIndexes.push(rows.length - 1);
+    capExGroups.forEach(function(g) {
+      var monthAmt = capExExpenses.filter(function(e) { return e.category === g.label && (e.date || "").slice(0, 7) === selectedMonth; })
+        .reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+      rows.push(["  " + g.label, "$" + monthAmt.toLocaleString(), "$" + g.total.toLocaleString(), "N/A"]);
+    });
+    rows.push(["  Total Capital Expenditures", "$" + thisMonthCapEx.toLocaleString(), "$" + ytdCapEx.toLocaleString(), "N/A"]);
+    capExRowIndexes.push(rows.length - 1);
+  }
+
+  var opExHeaderRowIndex = rows.findIndex(function(r) { return r[0] === "OPERATING EXPENSES"; });
+  var boldRowIndexes = [0, totalRevenueRowIndex, opExHeaderRowIndex, totalFixedRowIndex, noiRowIndex].concat(debtServiceRowIndexes).concat(capExRowIndexes);
+  var totalOpExRowIndex = rows.findIndex(function(r) { return r[0] === "TOTAL OPERATING EXPENSES"; });
+  if (totalOpExRowIndex !== -1) boldRowIndexes.push(totalOpExRowIndex);
 
   var doc = new jspdf.jsPDF();
   var today = new Date().toLocaleDateString();
@@ -4262,16 +4720,47 @@ function generateIncomeStatementPDF() {
   });
 
   var afterTableY = doc.lastAutoTable.finalY + 10;
+
+  var purchasePrice = currentPropertyData.purchasePrice;
+  if (purchasePrice) {
+    var annualNOIForRatio = thisMonthNOI * 12;
+    var capRate = (annualNOIForRatio / purchasePrice) * 100;
+    var expenseRatio = thisMonthTotalRevenue > 0 ? (thisMonthTotalExpenses * 12) / (thisMonthTotalRevenue * 12) * 100 : 0;
+    var grm = grossScheduledIncome > 0 ? purchasePrice / (grossScheduledIncome * 12) : 0;
+
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    doc.text("Key Financial Ratios", 14, afterTableY);
+    doc.setFontSize(9);
+    doc.setTextColor(80);
+    var ratioLines = [
+      "Cap Rate: " + capRate.toFixed(2) + "%     Expense Ratio: " + expenseRatio.toFixed(1) + "%     GRM: " + (grm ? grm.toFixed(2) : "N/A")
+    ];
+    if (loanAmount > 0) {
+      var dscr = ytdDebtService > 0 ? ytdNOI / ytdDebtService : 0;
+      var downPayment = currentPropertyData.downPayment || 0;
+      var cashOnCash = downPayment > 0 ? (thisMonthCashFlowAfterDebt * 12 / downPayment) * 100 : null;
+      ratioLines.push(
+        "DSCR: " + dscr.toFixed(2) + (dscr < 1.25 ? " (below typical 1.25 lender minimum)" : "") +
+        (cashOnCash !== null ? "     Cash-on-Cash Return: " + cashOnCash.toFixed(2) + "%" : "")
+      );
+    }
+    doc.text(ratioLines, 14, afterTableY + 7);
+    afterTableY += 7 + (ratioLines.length * 5) + 8;
+  }
+
   doc.setFontSize(8);
   doc.setTextColor(140);
   doc.text(
     [
       "Rental Income and the manually-entered Fixed Costs figure use current values applied across all months. Expenses",
       "flagged as Annual (property tax, insurance, etc.) are divided by 12 and spread evenly across every month of the",
-      "year, rather than counted entirely in the month logged. Other expense categories reflect actual logged entries.",
+      "year, rather than counted entirely in the month logged. Other income and expense categories reflect actual logged",
+      "entries. Capital Expenditures are shown separately and excluded from Net Operating Income. Debt Service (if",
+      "financing details are on file) reflects a standard amortized Principal & Interest payment.",
       "Projected Annual: Rental Income and Fixed Costs are annualized directly from current values (x 12). Variable",
-      "expense categories use a run-rate projection - the Year-to-Date pace extrapolated to a full 12 months - since",
-      "these vary month to month. Treat this as an estimate based on the pace so far, not a guarantee."
+      "income/expense categories use a run-rate projection - the Year-to-Date pace extrapolated to a full 12 months -",
+      "since these vary month to month. Treat this as an estimate based on the pace so far, not a guarantee."
     ],
     14, afterTableY
   );
