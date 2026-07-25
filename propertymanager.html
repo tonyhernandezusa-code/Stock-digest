@@ -154,6 +154,10 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
         <button onclick="generateYTDReportPDF()">Download YTD Summary PDF</button>
       </div>
       <div style="margin-top:14px;">
+        <button onclick="refreshPropertyTaxFromATTOM()">Refresh Property Tax from ATTOM</button>
+        <span id="attom-refresh-status" style="margin-left:10px;font-size:13px;"></span>
+      </div>
+      <div style="margin-top:14px;">
         <label style="display:inline-block;">Statement Month</label>
         <input type="month" id="income-statement-month" style="max-width:160px;display:inline-block;">
         <button onclick="generateIncomeStatementPDF()">Download Income Statement PDF</button>
@@ -401,6 +405,50 @@ function autoFetchPropertyTax(propertyId, address, city, state, zip) {
       });
     })
     .catch(function() { /* silent - property creation already succeeded either way */ });
+}
+
+// Same lookup as autoFetchPropertyTax, but for existing properties triggered manually via
+// button click - shows visible status feedback since there's no "property just got created"
+// context to silently piggyback on.
+function refreshPropertyTaxFromATTOM() {
+  if (!currentPropertyId) return;
+  var statusEl = document.getElementById("attom-refresh-status");
+  var d = currentPropertyData;
+  var fullAddress = [d.address, d.city, d.state, d.zip].filter(Boolean).join(", ");
+  if (!d.address) {
+    statusEl.textContent = "No address on file for this property.";
+    statusEl.style.color = "#c0392b";
+    return;
+  }
+  statusEl.textContent = "Looking up property tax...";
+  statusEl.style.color = "#888";
+  fetch(ATTOM_WORKER_URL + "/property-search?address=" + encodeURIComponent(fullAddress))
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      var prop = data.property && data.property[0];
+      var tax = prop && prop.assessment && prop.assessment.tax;
+      if (!tax || !tax.taxAmt) {
+        statusEl.textContent = "No property tax data found for this address via ATTOM.";
+        statusEl.style.color = "#c0392b";
+        return;
+      }
+      return db.collection("properties").doc(currentPropertyId).collection("entries").add({
+        type: "expense",
+        category: "Property Tax (via ATTOM)",
+        amount: Number(tax.taxAmt),
+        date: new Date().toISOString().slice(0, 10),
+        isAnnual: true,
+        isCapEx: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(function() {
+        statusEl.textContent = "Added: $" + Number(tax.taxAmt).toLocaleString() + " (" + (tax.taxYear || "current") + ")";
+        statusEl.style.color = "#1a8a3d";
+      });
+    })
+    .catch(function(err) {
+      statusEl.textContent = "Error: " + err.message;
+      statusEl.style.color = "#c0392b";
+    });
 }
 
 
