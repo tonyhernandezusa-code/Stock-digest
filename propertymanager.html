@@ -616,8 +616,12 @@ function renderSummary() {
   var now = new Date();
   var thisYear = now.getFullYear();
   var thisMonthIdx = now.getMonth();
-  var effectiveThisMonth = getEffectiveMonthlyExpenses(currentExpenses, thisYear, thisMonthIdx);
-  var totalThisMonthExpenses = effectiveThisMonth.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var manualFixedCosts = parseFloat((document.getElementById("fixed-monthly-costs") || {}).value) || 0;
+  var effective = getEffectiveMonthlyExpenses(currentExpenses, thisYear, thisMonthIdx);
+  var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var totalFixedThisMonth = manualFixedCosts + autoFixedFromAnnual;
+  var totalVariableThisMonth = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var totalThisMonthExpenses = totalFixedThisMonth + totalVariableThisMonth;
   var totalAllExpenses = currentExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
 
   var cashFlow = totalMonthlyRent - totalThisMonthExpenses;
@@ -626,9 +630,11 @@ function renderSummary() {
   document.getElementById("detail-summary").innerHTML =
     "Units: " + currentUnits.length + " total &middot; " + occupiedUnits.length + " occupied &middot; " + vacantCount + " vacant<br>" +
     "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong><br>" +
-    "Expenses this month: $" + totalThisMonthExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}) + " &middot; All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
+    "Fixed costs this month: $" + totalFixedThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) +
+    " &middot; Variable expenses this month: $" + totalVariableThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) + "<br>" +
+    "All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
     "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</span>" +
-    "<br><span style='font-size:11px;color:#888;'>Cash flow is rent from occupied units minus this month's expenses. Expenses flagged as Annual (property tax, insurance, etc.) are divided by 12 and spread evenly across all 12 months rather than counted entirely in the month they were logged. A simple estimate, not a full P&amp;L.</span>";
+    "<br><span style='font-size:11px;color:#888;'>Fixed costs = the Fixed Monthly Costs figure below plus any expenses flagged Annual (property tax, insurance, etc.), divided by 12. Variable expenses are other logged entries dated this month. A simple estimate, not a full P&amp;L.</span>";
 }
 
 function statusLabel(status) {
@@ -704,19 +710,21 @@ function generateYTDReportPDF() {
   var ytdIncome = 0, ytdFixed = 0, ytdVariable = 0;
 
   for (var m = 0; m <= currentMonthIdx; m++) {
-    var effectiveExpenses = getEffectiveMonthlyExpenses(currentExpenses, year, m);
-    var variableTotal = effectiveExpenses.reduce(function(sum, e) { return sum + e.amount; }, 0);
-    var totalExpenses = fixedMonthlyCosts + variableTotal;
+    var effective = getEffectiveMonthlyExpenses(currentExpenses, year, m);
+    var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
+    var monthFixed = fixedMonthlyCosts + autoFixedFromAnnual;
+    var variableTotal = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
+    var totalExpenses = monthFixed + variableTotal;
     var netCashFlow = totalMonthlyRent - totalExpenses;
 
     ytdIncome += totalMonthlyRent;
-    ytdFixed += fixedMonthlyCosts;
+    ytdFixed += monthFixed;
     ytdVariable += variableTotal;
 
     rows.push([
       MONTH_NAMES[m],
       "$" + totalMonthlyRent.toLocaleString(),
-      "$" + fixedMonthlyCosts.toLocaleString(),
+      "$" + monthFixed.toLocaleString(undefined, {maximumFractionDigits: 0}),
       "$" + variableTotal.toLocaleString(undefined, {maximumFractionDigits: 0}),
       "$" + totalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}),
       "$" + netCashFlow.toLocaleString(undefined, {maximumFractionDigits: 0})
@@ -726,7 +734,8 @@ function generateYTDReportPDF() {
   var ytdTotalExpenses = ytdFixed + ytdVariable;
   var ytdNetCashFlow = ytdIncome - ytdTotalExpenses;
   rows.push([
-    "YTD Total", "$" + ytdIncome.toLocaleString(), "$" + ytdFixed.toLocaleString(),
+    "YTD Total", "$" + ytdIncome.toLocaleString(),
+    "$" + ytdFixed.toLocaleString(undefined, {maximumFractionDigits: 0}),
     "$" + ytdVariable.toLocaleString(undefined, {maximumFractionDigits: 0}),
     "$" + ytdTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}),
     "$" + ytdNetCashFlow.toLocaleString(undefined, {maximumFractionDigits: 0})
@@ -784,24 +793,25 @@ function generateYTDReportPDF() {
   doc.save("YTDSummary_" + fileSafeAddress + "_" + year + ".pdf");
 }
 
-// Given all logged expenses, returns the "effective" expenses for one specific month:
-// non-annual expenses dated exactly in that month count in full; expenses flagged "annual"
-// (property tax, insurance, etc.) are divided by 12 and counted in EVERY month of that year,
-// rather than as one lump sum in whichever month they happened to be logged.
+// Given all logged expenses, returns the effective breakdown for one specific month, split into
+// two separate buckets - since expenses flagged "Annual" are meant to be treated as Fixed Costs
+// (spread evenly, divided by 12, counted in every month of that year), not mixed in with genuinely
+// one-time Variable expenses (which only count in full in the specific month they were dated).
 function getEffectiveMonthlyExpenses(allExpenses, year, monthIdx) {
   var monthKey = year + "-" + String(monthIdx + 1).padStart(2, "0");
-  var result = [];
+  var fixedFromAnnual = [];
+  var variable = [];
   allExpenses.forEach(function(e) {
     var d = e.date || "";
     if (e.isAnnual) {
       if (d.slice(0, 4) === String(year)) {
-        result.push({ category: e.category, amount: Number(e.amount || 0) / 12 });
+        fixedFromAnnual.push({ category: e.category, amount: Number(e.amount || 0) / 12 });
       }
     } else if (d.slice(0, 7) === monthKey) {
-      result.push({ category: e.category, amount: Number(e.amount || 0) });
+      variable.push({ category: e.category, amount: Number(e.amount || 0) });
     }
   });
-  return result;
+  return { fixedFromAnnual: fixedFromAnnual, variable: variable };
 }
 
 function groupExpensesByCategory(expenses) {
@@ -829,18 +839,21 @@ function generateIncomeStatementPDF() {
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var monthsElapsedInYear = monthIdx + 1; // Jan=1 through selected month, inclusive
 
-  // This month's effective expenses (annual-flagged ones already divided by 12), grouped by category
+  // This month: split into auto-fixed (annual-flagged, /12) and variable (one-time, dated this month)
   var thisMonthEffective = getEffectiveMonthlyExpenses(currentExpenses, year, monthIdx);
-  var thisMonthGroups = groupExpensesByCategory(thisMonthEffective);
+  var thisMonthAutoFixed = thisMonthEffective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var thisMonthGroups = groupExpensesByCategory(thisMonthEffective.variable);
   var thisMonthVariableTotal = thisMonthGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
 
-  // Year-to-date: accumulate each month's effective expenses (Jan through selected month) by category.
-  // This correctly spreads an annual expense across every month regardless of which month it was actually logged in.
-  var ytdEffective = [];
+  // Year-to-date: accumulate each month's fixed and variable buckets separately (Jan through selected month).
+  var ytdAutoFixed = 0;
+  var ytdVariableEntries = [];
   for (var mm = 0; mm <= monthIdx; mm++) {
-    ytdEffective = ytdEffective.concat(getEffectiveMonthlyExpenses(currentExpenses, year, mm));
+    var monthEffective = getEffectiveMonthlyExpenses(currentExpenses, year, mm);
+    ytdAutoFixed += monthEffective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
+    ytdVariableEntries = ytdVariableEntries.concat(monthEffective.variable);
   }
-  var ytdGroups = groupExpensesByCategory(ytdEffective);
+  var ytdGroups = groupExpensesByCategory(ytdVariableEntries);
   var ytdVariableTotal = ytdGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
 
   // Union of category labels appearing in either period, so both columns line up on the same rows
@@ -856,9 +869,10 @@ function generateIncomeStatementPDF() {
     return g ? g.total : 0;
   }
 
+  var thisMonthFixedCosts = fixedMonthlyCosts + thisMonthAutoFixed;
   var ytdRentalIncome = totalMonthlyRent * monthsElapsedInYear;
-  var ytdFixedCosts = fixedMonthlyCosts * monthsElapsedInYear;
-  var thisMonthTotalExpenses = fixedMonthlyCosts + thisMonthVariableTotal;
+  var ytdFixedCosts = (fixedMonthlyCosts * monthsElapsedInYear) + ytdAutoFixed;
+  var thisMonthTotalExpenses = thisMonthFixedCosts + thisMonthVariableTotal;
   var ytdTotalExpenses = ytdFixedCosts + ytdVariableTotal;
   var thisMonthNOI = totalMonthlyRent - thisMonthTotalExpenses;
   var ytdNOI = ytdRentalIncome - ytdTotalExpenses;
@@ -869,7 +883,7 @@ function generateIncomeStatementPDF() {
   rows.push(["TOTAL REVENUE", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString()]);
   rows.push(["", "", ""]);
   rows.push(["OPERATING EXPENSES", "", ""]);
-  rows.push(["  Fixed Costs (taxes, insurance, etc.)", "$" + fixedMonthlyCosts.toLocaleString(), "$" + ytdFixedCosts.toLocaleString()]);
+  rows.push(["  Fixed Costs (taxes, insurance, etc.)", "$" + thisMonthFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0}), "$" + ytdFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0})]);
   Object.keys(allCategoryLabels).sort().forEach(function(key) {
     var label = allCategoryLabels[key];
     rows.push([
