@@ -369,8 +369,10 @@ def sixmo_line(old, new, unit="", pt_label=False):
             pct_txt = f" ({pct:+.1f}%)"
         else:
             pct_txt = ""
-        return (f'<p class="sixmo">6 mo ago: {old:,.2f}{unit} &middot; '
-                f'<span style="color:{color};">{delta:+,.2f}{amt_label}{pct_txt}</span></p>')
+        # Sub-penny dollar values (e.g. Shiba Inu) need more than 2 decimals or they'd show as $0.00
+        decimals = 8 if (unit == "" and not pt_label and abs(new) < 0.01) else 2
+        return (f'<p class="sixmo">6 mo ago: {old:,.{decimals}f}{unit} &middot; '
+                f'<span style="color:{color};">{delta:+,.{decimals}f}{amt_label}{pct_txt}</span></p>')
     except Exception:
         return ""
 
@@ -460,10 +462,16 @@ def fetch_simple_price(symbol):
     if data.empty or len(data) < 2:
         return None
     close = data['Close']
-    price = round(close.iloc[-1].item(), 2)
-    prev = round(close.iloc[-2].item(), 2)
-    pct = round((price - prev) / prev * 100, 2)
-    old = round(close.iloc[0].item(), 2)
+    price_raw = close.iloc[-1].item()
+    prev_raw = close.iloc[-2].item()
+    old_raw = close.iloc[0].item()
+    if prev_raw == 0:
+        return None  # genuinely no valid prior price to compare against - skip rather than crash
+    pct = round((price_raw - prev_raw) / prev_raw * 100, 2)
+    # Use extra decimal places for sub-penny assets (e.g. Shiba Inu) so the price doesn't just show as $0.00
+    decimals = 2 if price_raw >= 0.01 else 8
+    price = round(price_raw, decimals)
+    old = round(old_raw, decimals)
     return {"price": price, "pct": pct, "price_6mo": old}
 
 def fetch_fred(series_id, limit=1, sort_order="desc", observation_start=None):
@@ -722,10 +730,11 @@ def simple_cards(items, dollar=True):
     prefix = "$" if dollar else ""
     for i in items:
         six = sixmo_line(i.get("price_6mo"), i["price"], unit="")
+        price_decimals = 2 if i["price"] >= 0.01 else 8
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
-      <p class="value">{prefix}{i['price']:,.2f}</p>
+      <p class="value">{prefix}{i['price']:,.{price_decimals}f}</p>
       <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}% today</p>
       {six}
     </div>"""
