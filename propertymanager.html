@@ -125,6 +125,12 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
     </div>
   </div>
 
+  <div style="margin-bottom:16px;">
+    <button onclick="showRentalView()" id="tab-rental" style="margin-right:8px;">Rental Properties</button>
+    <button onclick="showRedevView()" id="tab-redev" class="secondary">Redevelopment Analysis</button>
+  </div>
+
+  <div id="rental-view">
   <div id="portfolio-dashboard" style="display:none;margin-bottom:20px;">
     <h3>Portfolio Overview</h3>
     <div class="row" id="portfolio-cards"></div>
@@ -228,6 +234,106 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
       <div id="expense-list" style="margin-top:12px;"></div>
     </div>
   </div>
+  </div>
+
+  <div id="redev-view" style="display:none;">
+    <div class="calc-wide">
+      <h3 style="cursor:pointer;" onclick="toggleAddRedevForm()">+ New Redevelopment Project <span id="add-redev-toggle-icon">&#9656;</span></h3>
+      <div id="add-redev-form" style="display:none;">
+        <label style="max-width:400px;">Project Name</label>
+        <input type="text" id="rp-name" placeholder="e.g. 8100 Harding Ave Assemblage" style="max-width:400px;">
+        <button onclick="addRedevProject()">Create Project</button>
+        <div class="err" id="redev-error"></div>
+      </div>
+    </div>
+
+    <h3>Your Redevelopment Projects</h3>
+    <div id="redev-list"></div>
+
+    <div id="redev-detail" style="display:none;">
+      <div class="calc">
+        <a href="#" id="back-to-redev-list" style="font-size:13px;color:#1f4e79;">&larr; Back to Projects</a>
+        <h3 id="redev-detail-name" style="margin-top:8px;"></h3>
+        <div id="redev-summary" style="font-size:14px;"></div>
+      </div>
+
+      <div class="calc-wide">
+        <h3>Parcels (add multiple to assemble adjacent properties)</h3>
+        <label style="max-width:400px;">Address</label>
+        <input type="text" id="pc-address" placeholder="123 Main St" style="max-width:400px;">
+        <label style="max-width:400px;">Lot Size (sq ft)</label>
+        <input type="number" id="pc-lotsize" style="max-width:400px;">
+        <label style="max-width:400px;">Existing Building Size (sq ft)</label>
+        <input type="number" id="pc-buildingsize" style="max-width:400px;">
+        <label style="max-width:400px;">Existing Use</label>
+        <input type="text" id="pc-use" placeholder="Hotel, apartment building, vacant land, etc." style="max-width:400px;">
+        <label style="max-width:400px;">Purchase Price (or asking price)</label>
+        <input type="number" id="pc-price" style="max-width:400px;">
+        <button onclick="addParcel()">Add Parcel</button>
+        <div class="err" id="parcel-error"></div>
+        <div id="parcel-list" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="calc-wide">
+        <h3>Zoning Parameters</h3>
+        <p class="note">Look these up from the specific city/county's zoning code or GIS portal for this site - there's no national database for this, so these need to be entered manually.</p>
+        <label style="max-width:250px;">FAR (Floor Area Ratio)</label>
+        <input type="number" step="0.01" id="zp-far" placeholder="e.g. 2.0" style="max-width:250px;">
+        <label style="max-width:250px;">Max Height (feet)</label>
+        <input type="number" id="zp-height" style="max-width:250px;">
+        <label style="max-width:250px;">Max Density (units/acre)</label>
+        <input type="number" id="zp-density" style="max-width:250px;">
+        <label style="max-width:250px;">Parking Ratio (spaces/unit)</label>
+        <input type="number" step="0.1" id="zp-parking" style="max-width:250px;">
+        <label style="max-width:250px;">Max Lot Coverage (%)</label>
+        <input type="number" id="zp-coverage" style="max-width:250px;">
+        <label style="max-width:250px;">Zoning District</label>
+        <input type="text" id="zp-district" placeholder="e.g. T6-8, RM-3" style="max-width:250px;">
+        <button onclick="saveZoningParams()">Save Zoning Parameters</button>
+        <span id="zoning-save-status" style="margin-left:10px;font-size:13px;"></span>
+        <div id="buildable-envelope" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="calc-wide">
+        <h3>Unit Mix Plan</h3>
+        <p class="note">Plan out the proposed new building's unit mix and projected rents.</p>
+        <label style="max-width:250px;">Unit Type</label>
+        <input type="text" id="um-type" placeholder="Studio, 1BR, 2BR, Retail, etc." style="max-width:250px;">
+        <label style="max-width:250px;">Number of Units</label>
+        <input type="number" id="um-count" min="1" style="max-width:250px;">
+        <label style="max-width:250px;">Avg. Size (sq ft)</label>
+        <input type="number" id="um-sf" style="max-width:250px;">
+        <label style="max-width:250px;">Avg. Monthly Rent</label>
+        <input type="number" id="um-rent" style="max-width:250px;">
+        <button onclick="addUnitMixItem()">Add to Unit Mix</button>
+        <div class="err" id="unitmix-error"></div>
+        <div id="unitmix-list" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="calc-wide">
+        <h3>Development Cost &amp; Operating Assumptions</h3>
+        <label style="max-width:250px;">Hard Cost ($/sq ft)</label>
+        <input type="number" id="dc-hardcost" placeholder="e.g. 250" style="max-width:250px;">
+        <label style="max-width:250px;">Soft Costs (% of hard cost)</label>
+        <input type="number" id="dc-softcost" placeholder="e.g. 20" style="max-width:250px;">
+        <label style="max-width:250px;">Contingency (% of hard+soft)</label>
+        <input type="number" id="dc-contingency" placeholder="e.g. 10" style="max-width:250px;">
+        <label style="max-width:250px;">Vacancy Assumption (%)</label>
+        <input type="number" id="dc-vacancy" placeholder="e.g. 5" style="max-width:250px;">
+        <label style="max-width:250px;">Operating Expense Ratio (% of EGI)</label>
+        <input type="number" id="dc-opex" placeholder="e.g. 40" style="max-width:250px;">
+        <label style="max-width:250px;">Exit Cap Rate (%)</label>
+        <input type="number" step="0.01" id="dc-exitcap" placeholder="e.g. 5.5" style="max-width:250px;">
+        <button onclick="saveDevCostAssumptions()">Save Assumptions</button>
+        <span id="devcost-save-status" style="margin-left:10px;font-size:13px;"></span>
+      </div>
+
+      <div class="calc-wide">
+        <h3>Redevelopment Pro Forma</h3>
+        <div id="redev-proforma"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -279,6 +385,7 @@ auth.onAuthStateChanged(function(user) {
     document.getElementById("dashboard").style.display = "block";
     document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
     loadProperties(user.uid);
+    loadRedevProjects(user.uid);
   } else {
     document.getElementById("auth-panel").style.display = "block";
     document.getElementById("dashboard").style.display = "none";
@@ -592,6 +699,410 @@ function loadProperties(uid) {
       });
     });
   });
+}
+
+function showRentalView() {
+  document.getElementById("rental-view").style.display = "block";
+  document.getElementById("redev-view").style.display = "none";
+  document.getElementById("tab-rental").classList.remove("secondary");
+  document.getElementById("tab-redev").classList.add("secondary");
+}
+function showRedevView() {
+  document.getElementById("rental-view").style.display = "none";
+  document.getElementById("redev-view").style.display = "block";
+  document.getElementById("tab-rental").classList.add("secondary");
+  document.getElementById("tab-redev").classList.remove("secondary");
+}
+
+function toggleAddRedevForm() {
+  var form = document.getElementById("add-redev-form");
+  var icon = document.getElementById("add-redev-toggle-icon");
+  var isHidden = form.style.display === "none";
+  form.style.display = isHidden ? "block" : "none";
+  icon.innerHTML = isHidden ? "&#9662;" : "&#9656;";
+}
+
+function addRedevProject() {
+  var user = auth.currentUser;
+  if (!user) return;
+  var name = document.getElementById("rp-name").value.trim();
+  showError("redev-error", "");
+  if (!name) { showError("redev-error", "Enter a project name."); return; }
+
+  db.collection("redevProjects").add({
+    ownerId: user.uid,
+    name: name,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById("rp-name").value = "";
+    toggleAddRedevForm();
+  }).catch(function(err) { showError("redev-error", err.message); });
+}
+
+function loadRedevProjects(uid) {
+  db.collection("redevProjects").where("ownerId", "==", uid).onSnapshot(function(snapshot) {
+    var listEl = document.getElementById("redev-list");
+    if (snapshot.empty) {
+      listEl.innerHTML = "<p class='note'>No redevelopment projects yet - add one above.</p>";
+      return;
+    }
+    var html = "";
+    snapshot.forEach(function(doc) {
+      var p = doc.data();
+      html += "<div class='property-card'>" +
+        "<h4>" + p.name + "</h4>" +
+        "<button style='margin-top:8px;padding:6px 12px;font-size:12px;' data-view-id='" + doc.id + "' data-view-name='" + p.name.replace(/'/g, "&#39;") + "'>Open Analysis</button> " +
+        "<button class='secondary' style='margin-top:8px;padding:6px 12px;font-size:12px;' data-id='" + doc.id + "'>Delete</button>" +
+        "</div>";
+    });
+    listEl.innerHTML = html;
+    listEl.querySelectorAll("button[data-view-id]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        openRedevDetail(btn.getAttribute("data-view-id"), btn.getAttribute("data-view-name"));
+      });
+    });
+    listEl.querySelectorAll("button[data-id]").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        if (confirm("Delete this redevelopment project?")) {
+          db.collection("redevProjects").doc(btn.getAttribute("data-id")).delete();
+        }
+      });
+    });
+  });
+}
+
+var currentRedevProjectId = null;
+var parcelsUnsub = null;
+var currentParcels = [];
+
+var currentRedevProjectData = {};
+var currentUnitMix = [];
+var unitMixUnsub = null;
+
+function openRedevDetail(projectId, name) {
+  currentRedevProjectId = projectId;
+  document.getElementById("redev-list").parentElement.querySelector("h3").style.display = "none";
+  document.getElementById("redev-list").style.display = "none";
+  document.getElementById("redev-detail").style.display = "block";
+  document.getElementById("redev-detail-name").textContent = name;
+
+  db.collection("redevProjects").doc(projectId).get().then(function(doc) {
+    var data = doc.data() || {};
+    currentRedevProjectData = data;
+    document.getElementById("zp-far").value = data.far || "";
+    document.getElementById("zp-height").value = data.maxHeight || "";
+    document.getElementById("zp-density").value = data.maxDensity || "";
+    document.getElementById("zp-parking").value = data.parkingRatio || "";
+    document.getElementById("zp-coverage").value = data.lotCoverage || "";
+    document.getElementById("zp-district").value = data.zoningDistrict || "";
+    document.getElementById("dc-hardcost").value = data.hardCostPerSF || "";
+    document.getElementById("dc-softcost").value = data.softCostPct || "";
+    document.getElementById("dc-contingency").value = data.contingencyPct || "";
+    document.getElementById("dc-vacancy").value = data.vacancyPct || "";
+    document.getElementById("dc-opex").value = data.opexPct || "";
+    document.getElementById("dc-exitcap").value = data.exitCapRate || "";
+    renderBuildableEnvelope();
+    renderProForma();
+  });
+
+  if (parcelsUnsub) parcelsUnsub();
+  parcelsUnsub = db.collection("redevProjects").doc(projectId).collection("parcels")
+    .onSnapshot(function(snapshot) {
+      currentParcels = [];
+      snapshot.forEach(function(doc) { currentParcels.push({ id: doc.id, ...doc.data() }); });
+      renderParcels();
+      renderBuildableEnvelope();
+      renderProForma();
+    });
+
+  if (unitMixUnsub) unitMixUnsub();
+  unitMixUnsub = db.collection("redevProjects").doc(projectId).collection("unitMix")
+    .onSnapshot(function(snapshot) {
+      currentUnitMix = [];
+      snapshot.forEach(function(doc) { currentUnitMix.push({ id: doc.id, ...doc.data() }); });
+      renderUnitMix();
+      renderBuildableEnvelope();
+      renderProForma();
+    });
+}
+
+function saveZoningParams() {
+  if (!currentRedevProjectId) return;
+  var updates = {
+    far: parseFloat(document.getElementById("zp-far").value) || 0,
+    maxHeight: parseFloat(document.getElementById("zp-height").value) || 0,
+    maxDensity: parseFloat(document.getElementById("zp-density").value) || 0,
+    parkingRatio: parseFloat(document.getElementById("zp-parking").value) || 0,
+    lotCoverage: parseFloat(document.getElementById("zp-coverage").value) || 0,
+    zoningDistrict: document.getElementById("zp-district").value.trim()
+  };
+  var statusEl = document.getElementById("zoning-save-status");
+  statusEl.textContent = "Saving...";
+  statusEl.style.color = "#888";
+  db.collection("redevProjects").doc(currentRedevProjectId).update(updates).then(function() {
+    currentRedevProjectData = Object.assign({}, currentRedevProjectData, updates);
+    renderBuildableEnvelope();
+    statusEl.textContent = "Saved.";
+    statusEl.style.color = "#1a8a3d";
+    setTimeout(function() { statusEl.textContent = ""; }, 3000);
+  }).catch(function(err) {
+    statusEl.textContent = "Error: " + err.message;
+    statusEl.style.color = "#c0392b";
+  });
+}
+
+function saveDevCostAssumptions() {
+  if (!currentRedevProjectId) return;
+  var updates = {
+    hardCostPerSF: parseFloat(document.getElementById("dc-hardcost").value) || 0,
+    softCostPct: parseFloat(document.getElementById("dc-softcost").value) || 0,
+    contingencyPct: parseFloat(document.getElementById("dc-contingency").value) || 0,
+    vacancyPct: parseFloat(document.getElementById("dc-vacancy").value) || 0,
+    opexPct: parseFloat(document.getElementById("dc-opex").value) || 0,
+    exitCapRate: parseFloat(document.getElementById("dc-exitcap").value) || 0
+  };
+  var statusEl = document.getElementById("devcost-save-status");
+  statusEl.textContent = "Saving...";
+  statusEl.style.color = "#888";
+  db.collection("redevProjects").doc(currentRedevProjectId).update(updates).then(function() {
+    currentRedevProjectData = Object.assign({}, currentRedevProjectData, updates);
+    renderProForma();
+    statusEl.textContent = "Saved.";
+    statusEl.style.color = "#1a8a3d";
+    setTimeout(function() { statusEl.textContent = ""; }, 3000);
+  }).catch(function(err) {
+    statusEl.textContent = "Error: " + err.message;
+    statusEl.style.color = "#c0392b";
+  });
+}
+
+function addUnitMixItem() {
+  if (!currentRedevProjectId) return;
+  var type = document.getElementById("um-type").value.trim();
+  var count = parseInt(document.getElementById("um-count").value, 10) || 0;
+  var sf = parseFloat(document.getElementById("um-sf").value) || 0;
+  var rent = parseFloat(document.getElementById("um-rent").value) || 0;
+
+  showError("unitmix-error", "");
+  if (!type) { showError("unitmix-error", "Enter a unit type."); return; }
+  if (!count) { showError("unitmix-error", "Enter how many units."); return; }
+
+  db.collection("redevProjects").doc(currentRedevProjectId).collection("unitMix").add({
+    type: type, count: count, sf: sf, rent: rent,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById("um-type").value = "";
+    document.getElementById("um-count").value = "";
+    document.getElementById("um-sf").value = "";
+    document.getElementById("um-rent").value = "";
+  }).catch(function(err) { showError("unitmix-error", err.message); });
+}
+
+function renderUnitMix() {
+  var el = document.getElementById("unitmix-list");
+  if (!currentUnitMix.length) { el.innerHTML = "<p class='note'>No unit mix planned yet.</p>"; return; }
+  var totalUnits = currentUnitMix.reduce(function(s, u) { return s + Number(u.count || 0); }, 0);
+  var totalSF = currentUnitMix.reduce(function(s, u) { return s + Number(u.count || 0) * Number(u.sf || 0); }, 0);
+  var totalMonthlyRent = currentUnitMix.reduce(function(s, u) { return s + Number(u.count || 0) * Number(u.rent || 0); }, 0);
+  var html = "<div class='table-wrap'><table><tr><th>Type</th><th style='text-align:right;'>Units</th><th style='text-align:right;'>Avg SF</th><th style='text-align:right;'>Total SF</th><th style='text-align:right;'>Avg Rent</th><th></th></tr>";
+  currentUnitMix.forEach(function(u) {
+    html += "<tr><td>" + u.type + "</td>" +
+      "<td style='text-align:right;'>" + u.count + "</td>" +
+      "<td style='text-align:right;'>" + Number(u.sf || 0).toLocaleString() + "</td>" +
+      "<td style='text-align:right;'>" + (Number(u.count || 0) * Number(u.sf || 0)).toLocaleString() + "</td>" +
+      "<td style='text-align:right;'>$" + Number(u.rent || 0).toLocaleString() + "</td>" +
+      "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-um-id='" + u.id + "'>Delete</button></td></tr>";
+  });
+  html += "<tr style='font-weight:600;'><td>Total</td><td style='text-align:right;'>" + totalUnits +
+    "</td><td></td><td style='text-align:right;'>" + totalSF.toLocaleString() +
+    "</td><td style='text-align:right;'>$" + totalMonthlyRent.toLocaleString() + "/mo</td><td></td></tr>";
+  html += "</table></div>";
+  el.innerHTML = html;
+  el.querySelectorAll("button[data-um-id]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      db.collection("redevProjects").doc(currentRedevProjectId).collection("unitMix").doc(btn.getAttribute("data-um-id")).delete();
+    });
+  });
+}
+
+function renderBuildableEnvelope() {
+  var el = document.getElementById("buildable-envelope");
+  if (!el) return;
+  var totalLotSize = currentParcels.reduce(function(s, p) { return s + Number(p.lotSize || 0); }, 0);
+  if (!totalLotSize) { el.innerHTML = "<span style='font-size:11px;color:#888;'>Add at least one parcel to see the buildable envelope.</span>"; return; }
+
+  var far = currentRedevProjectData.far || 0;
+  var maxDensity = currentRedevProjectData.maxDensity || 0;
+  var lotCoverage = currentRedevProjectData.lotCoverage || 0;
+  var totalAcres = totalLotSize / 43560;
+
+  var html = "<h4 style='font-size:13px;margin:0 0 6px;'>Buildable Envelope</h4><div style='display:flex;flex-wrap:wrap;gap:16px;font-size:13px;'>";
+  var maxBuildableSF = 0, maxUnits = 0;
+  if (far > 0) {
+    maxBuildableSF = far * totalLotSize;
+    html += "<div><strong>Max Buildable SF:</strong> " + Math.round(maxBuildableSF).toLocaleString() + "</div>";
+  }
+  if (maxDensity > 0) {
+    maxUnits = Math.floor(totalAcres * maxDensity);
+    html += "<div><strong>Max Units (by density):</strong> " + maxUnits.toLocaleString() + "</div>";
+  }
+  if (lotCoverage > 0) {
+    var maxFootprint = (lotCoverage / 100) * totalLotSize;
+    html += "<div><strong>Max Building Footprint:</strong> " + Math.round(maxFootprint).toLocaleString() + " sq ft</div>";
+  }
+  html += "</div>";
+  if (!far && !maxDensity) {
+    html += "<span style='font-size:11px;color:#888;'>Enter FAR and/or Max Density above to see buildable limits.</span>";
+  }
+
+  // Compliance check: compare the planned unit mix against these limits, if both exist
+  if (currentUnitMix.length && (maxBuildableSF > 0 || maxUnits > 0)) {
+    var plannedUnits = currentUnitMix.reduce(function(s, u) { return s + Number(u.count || 0); }, 0);
+    var plannedSF = currentUnitMix.reduce(function(s, u) { return s + Number(u.count || 0) * Number(u.sf || 0); }, 0);
+    html += "<h4 style='font-size:13px;margin:12px 0 6px;'>Unit Mix vs. Zoning Limits</h4><div style='display:flex;flex-wrap:wrap;gap:16px;font-size:13px;'>";
+    if (maxUnits > 0) {
+      var unitsOk = plannedUnits <= maxUnits;
+      html += "<div><strong>Units:</strong> " + plannedUnits + " planned / " + maxUnits + " max &nbsp;" +
+        "<span style='color:" + (unitsOk ? "#1a8a3d" : "#c0392b") + ";'>" + (unitsOk ? "(within limit)" : "(EXCEEDS LIMIT)") + "</span></div>";
+    }
+    if (maxBuildableSF > 0) {
+      var sfOk = plannedSF <= maxBuildableSF;
+      html += "<div><strong>SF:</strong> " + plannedSF.toLocaleString() + " planned / " + Math.round(maxBuildableSF).toLocaleString() + " max &nbsp;" +
+        "<span style='color:" + (sfOk ? "#1a8a3d" : "#c0392b") + ";'>" + (sfOk ? "(within limit)" : "(EXCEEDS LIMIT)") + "</span></div>";
+    }
+    html += "</div>";
+  }
+  el.innerHTML = html;
+}
+
+function renderProForma() {
+  var el = document.getElementById("redev-proforma");
+  if (!el) return;
+  if (!currentUnitMix.length) {
+    el.innerHTML = "<span style='font-size:11px;color:#888;'>Add a unit mix plan above to see the redevelopment pro forma.</span>";
+    return;
+  }
+
+  var d = currentRedevProjectData;
+  var totalLandCost = currentParcels.reduce(function(s, p) { return s + Number(p.price || 0); }, 0);
+  var plannedSF = currentUnitMix.reduce(function(s, u) { return s + Number(u.count || 0) * Number(u.sf || 0); }, 0);
+
+  var hardCostPerSF = d.hardCostPerSF || 0;
+  var softCostPct = (d.softCostPct || 0) / 100;
+  var contingencyPct = (d.contingencyPct || 0) / 100;
+  var vacancyPct = (d.vacancyPct || 0) / 100;
+  var opexPct = (d.opexPct || 0) / 100;
+  var exitCapRate = (d.exitCapRate || 0) / 100;
+
+  var hardCosts = plannedSF * hardCostPerSF;
+  var softCosts = hardCosts * softCostPct;
+  var contingency = (hardCosts + softCosts) * contingencyPct;
+  var totalDevCost = totalLandCost + hardCosts + softCosts + contingency;
+
+  var grossPotentialIncome = currentUnitMix.reduce(function(s, u) { return s + Number(u.count || 0) * Number(u.rent || 0) * 12; }, 0);
+  var vacancyLoss = grossPotentialIncome * vacancyPct;
+  var effectiveGrossIncome = grossPotentialIncome - vacancyLoss;
+  var operatingExpenses = effectiveGrossIncome * opexPct;
+  var noi = effectiveGrossIncome - operatingExpenses;
+
+  var yieldOnCost = totalDevCost > 0 ? (noi / totalDevCost) * 100 : 0;
+  var stabilizedValue = exitCapRate > 0 ? noi / exitCapRate : 0;
+  var developmentProfit = stabilizedValue - totalDevCost;
+  var developmentMargin = totalDevCost > 0 ? (developmentProfit / totalDevCost) * 100 : 0;
+  var spread = exitCapRate > 0 ? yieldOnCost - (exitCapRate * 100) : null;
+
+  var fmt = function(n) { return "$" + Math.round(n).toLocaleString(); };
+
+  var html = "<div class='table-wrap'><table>" +
+    "<tr><td>Total Land Cost</td><td style='text-align:right;'>" + fmt(totalLandCost) + "</td></tr>" +
+    "<tr><td>Hard Costs (" + fmt(hardCostPerSF) + "/SF &times; " + plannedSF.toLocaleString() + " SF)</td><td style='text-align:right;'>" + fmt(hardCosts) + "</td></tr>" +
+    "<tr><td>Soft Costs (" + (softCostPct * 100).toFixed(0) + "% of hard)</td><td style='text-align:right;'>" + fmt(softCosts) + "</td></tr>" +
+    "<tr><td>Contingency (" + (contingencyPct * 100).toFixed(0) + "% of hard+soft)</td><td style='text-align:right;'>" + fmt(contingency) + "</td></tr>" +
+    "<tr style='font-weight:600;'><td>Total Development Cost</td><td style='text-align:right;'>" + fmt(totalDevCost) + "</td></tr>" +
+    "<tr><td colspan='2'>&nbsp;</td></tr>" +
+    "<tr><td>Gross Potential Income (annual)</td><td style='text-align:right;'>" + fmt(grossPotentialIncome) + "</td></tr>" +
+    "<tr><td>Less: Vacancy (" + (vacancyPct * 100).toFixed(0) + "%)</td><td style='text-align:right;'>-" + fmt(vacancyLoss) + "</td></tr>" +
+    "<tr><td>Effective Gross Income</td><td style='text-align:right;'>" + fmt(effectiveGrossIncome) + "</td></tr>" +
+    "<tr><td>Operating Expenses (" + (opexPct * 100).toFixed(0) + "% of EGI)</td><td style='text-align:right;'>-" + fmt(operatingExpenses) + "</td></tr>" +
+    "<tr style='font-weight:600;'><td>Stabilized NOI</td><td style='text-align:right;'>" + fmt(noi) + "</td></tr>" +
+    "</table></div>" +
+    "<div style='margin-top:14px;display:flex;flex-wrap:wrap;gap:16px;font-size:13px;'>" +
+    "<div><strong>Yield on Cost:</strong> " + yieldOnCost.toFixed(2) + "%</div>" +
+    (exitCapRate > 0 ? "<div><strong>Exit Cap Rate:</strong> " + (exitCapRate * 100).toFixed(2) + "%</div>" : "") +
+    (spread !== null ? "<div><strong>Spread:</strong> <span style='color:" + (spread >= 1.5 ? "#1a8a3d" : spread >= 0 ? "#a5720b" : "#c0392b") + ";'>" + spread.toFixed(2) + " pts</span></div>" : "") +
+    (exitCapRate > 0 ? "<div><strong>Stabilized Value:</strong> " + fmt(stabilizedValue) + "</div>" : "") +
+    (exitCapRate > 0 ? "<div><strong>Development Profit:</strong> <span style='color:" + (developmentProfit >= 0 ? "#1a8a3d" : "#c0392b") + ";'>" + fmt(developmentProfit) + " (" + developmentMargin.toFixed(1) + "%)</span></div>" : "") +
+    "</div>" +
+    "<span style='font-size:11px;color:#888;display:block;margin-top:10px;'>Yield on Cost = Stabilized NOI &divide; Total Development Cost - the standard way developers compare a ground-up/redevelopment project's return against buying a stabilized asset at the market cap rate (the Exit Cap Rate). A spread of 150+ basis points (1.5 points) over the exit cap rate is a common rule-of-thumb minimum to justify development risk versus just buying an existing stabilized property.</span>";
+
+  el.innerHTML = html;
+}
+
+document.getElementById("back-to-redev-list").addEventListener("click", function(e) {
+  e.preventDefault();
+  if (parcelsUnsub) { parcelsUnsub(); parcelsUnsub = null; }
+  if (unitMixUnsub) { unitMixUnsub(); unitMixUnsub = null; }
+  currentRedevProjectId = null;
+  document.getElementById("redev-detail").style.display = "none";
+  document.getElementById("redev-list").style.display = "block";
+  document.getElementById("redev-list").parentElement.querySelector("h3").style.display = "block";
+});
+
+function addParcel() {
+  if (!currentRedevProjectId) return;
+  var address = document.getElementById("pc-address").value.trim();
+  var lotSize = parseFloat(document.getElementById("pc-lotsize").value) || 0;
+  var buildingSize = parseFloat(document.getElementById("pc-buildingsize").value) || 0;
+  var use = document.getElementById("pc-use").value.trim();
+  var price = parseFloat(document.getElementById("pc-price").value) || 0;
+
+  showError("parcel-error", "");
+  if (!address) { showError("parcel-error", "Enter an address."); return; }
+  if (!lotSize) { showError("parcel-error", "Enter a lot size."); return; }
+
+  db.collection("redevProjects").doc(currentRedevProjectId).collection("parcels").add({
+    address: address, lotSize: lotSize, buildingSize: buildingSize, use: use, price: price,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function() {
+    document.getElementById("pc-address").value = "";
+    document.getElementById("pc-lotsize").value = "";
+    document.getElementById("pc-buildingsize").value = "";
+    document.getElementById("pc-use").value = "";
+    document.getElementById("pc-price").value = "";
+  }).catch(function(err) { showError("parcel-error", err.message); });
+}
+
+function renderParcels() {
+  var el = document.getElementById("parcel-list");
+  if (!currentParcels.length) { el.innerHTML = "<p class='note'>No parcels yet.</p>"; renderRedevSummary(); return; }
+  var html = "<div class='table-wrap'><table><tr><th>Address</th><th style='text-align:right;'>Lot Size (SF)</th><th style='text-align:right;'>Existing Bldg (SF)</th><th>Use</th><th style='text-align:right;'>Price</th><th></th></tr>";
+  currentParcels.forEach(function(p) {
+    html += "<tr><td>" + p.address + "</td>" +
+      "<td style='text-align:right;'>" + Number(p.lotSize).toLocaleString() + "</td>" +
+      "<td style='text-align:right;'>" + Number(p.buildingSize || 0).toLocaleString() + "</td>" +
+      "<td>" + (p.use || "N/A") + "</td>" +
+      "<td style='text-align:right;'>$" + Number(p.price || 0).toLocaleString() + "</td>" +
+      "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-pc-id='" + p.id + "'>Delete</button></td></tr>";
+  });
+  html += "</table></div>";
+  el.innerHTML = html;
+  el.querySelectorAll("button[data-pc-id]").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      db.collection("redevProjects").doc(currentRedevProjectId).collection("parcels").doc(btn.getAttribute("data-pc-id")).delete();
+    });
+  });
+  renderRedevSummary();
+}
+
+function renderRedevSummary() {
+  var el = document.getElementById("redev-summary");
+  var totalLotSize = currentParcels.reduce(function(s, p) { return s + Number(p.lotSize || 0); }, 0);
+  var totalBuildingSize = currentParcels.reduce(function(s, p) { return s + Number(p.buildingSize || 0); }, 0);
+  var totalPrice = currentParcels.reduce(function(s, p) { return s + Number(p.price || 0); }, 0);
+  el.innerHTML = "Parcels: " + currentParcels.length +
+    " &middot; Combined lot size: " + totalLotSize.toLocaleString() + " sq ft (" + (totalLotSize / 43560).toFixed(2) + " acres)" +
+    " &middot; Existing building total: " + totalBuildingSize.toLocaleString() + " sq ft" +
+    " &middot; Total land cost: $" + totalPrice.toLocaleString();
 }
 
 var currentPropertyId = null;
