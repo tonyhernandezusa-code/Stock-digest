@@ -4108,17 +4108,21 @@ function generateIncomeStatementPDF() {
   // This month: split into auto-fixed (annual-flagged, /12) and variable (one-time, dated this month)
   var thisMonthEffective = getEffectiveMonthlyExpenses(currentExpenses, year, monthIdx);
   var thisMonthAutoFixed = thisMonthEffective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
+  var thisMonthFixedGroups = groupExpensesByCategory(thisMonthEffective.fixedFromAnnual);
   var thisMonthGroups = groupExpensesByCategory(thisMonthEffective.variable);
   var thisMonthVariableTotal = thisMonthGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
 
   // Year-to-date: accumulate each month's fixed and variable buckets separately (Jan through selected month).
   var ytdAutoFixed = 0;
+  var ytdFixedFromAnnualEntries = [];
   var ytdVariableEntries = [];
   for (var mm = 0; mm <= monthIdx; mm++) {
     var monthEffective = getEffectiveMonthlyExpenses(currentExpenses, year, mm);
     ytdAutoFixed += monthEffective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
+    ytdFixedFromAnnualEntries = ytdFixedFromAnnualEntries.concat(monthEffective.fixedFromAnnual);
     ytdVariableEntries = ytdVariableEntries.concat(monthEffective.variable);
   }
+  var ytdFixedGroups = groupExpensesByCategory(ytdFixedFromAnnualEntries);
   var ytdGroups = groupExpensesByCategory(ytdVariableEntries);
   var ytdVariableTotal = ytdGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
 
@@ -4132,6 +4136,19 @@ function generateIncomeStatementPDF() {
   }
   function ytdAmountFor(label) {
     var g = ytdGroups.find(function(x) { return x.label.toLowerCase() === label.toLowerCase(); });
+    return g ? g.total : 0;
+  }
+
+  // Same lookup pattern, but for the annual/fixed-cost categories
+  var allFixedCategoryLabels = {};
+  thisMonthFixedGroups.forEach(function(g) { allFixedCategoryLabels[g.label.toLowerCase()] = g.label; });
+  ytdFixedGroups.forEach(function(g) { allFixedCategoryLabels[g.label.toLowerCase()] = g.label; });
+  function monthFixedAmountFor(label) {
+    var g = thisMonthFixedGroups.find(function(x) { return x.label.toLowerCase() === label.toLowerCase(); });
+    return g ? g.total : 0;
+  }
+  function ytdFixedAmountFor(label) {
+    var g = ytdFixedGroups.find(function(x) { return x.label.toLowerCase() === label.toLowerCase(); });
     return g ? g.total : 0;
   }
 
@@ -4154,6 +4171,11 @@ function generateIncomeStatementPDF() {
   function projectedAmountFor(label) {
     return projectRunRate(ytdAmountFor(label));
   }
+  // Fixed-cost categories are already smoothed (divided by 12), so their monthly value IS
+  // the ongoing rate - just annualize directly rather than run-rate from YTD.
+  function projectedFixedAmountFor(label) {
+    return monthFixedAmountFor(label) * 12;
+  }
   var projectedVariableTotal = Object.keys(allCategoryLabels).reduce(function(sum, key) {
     return sum + projectedAmountFor(allCategoryLabels[key]);
   }, 0);
@@ -4168,12 +4190,30 @@ function generateIncomeStatementPDF() {
   rows.push(["TOTAL REVENUE", "$" + totalMonthlyRent.toLocaleString(), "$" + ytdRentalIncome.toLocaleString(), "$" + projectedRentalIncome.toLocaleString()]);
   rows.push(["", "", "", ""]);
   rows.push(["OPERATING EXPENSES", "", "", ""]);
+  if (fixedMonthlyCosts > 0) {
+    rows.push([
+      "  Fixed Costs (manually entered)",
+      "$" + fixedMonthlyCosts.toLocaleString(),
+      "$" + (fixedMonthlyCosts * monthsElapsedInYear).toLocaleString(),
+      "$" + (fixedMonthlyCosts * 12).toLocaleString()
+    ]);
+  }
+  Object.keys(allFixedCategoryLabels).sort().forEach(function(key) {
+    var label = allFixedCategoryLabels[key];
+    rows.push([
+      "  " + label + " (Annual)",
+      "$" + monthFixedAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + ytdFixedAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + projectedFixedAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0})
+    ]);
+  });
   rows.push([
-    "  Fixed Costs (taxes, insurance, etc.)",
+    "  Total Fixed Costs",
     "$" + thisMonthFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0}),
     "$" + ytdFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0}),
     "$" + projectedFixedCosts.toLocaleString(undefined, {maximumFractionDigits: 0})
   ]);
+  var totalFixedRowIndex = rows.length - 1;
   Object.keys(allCategoryLabels).sort().forEach(function(key) {
     var label = allCategoryLabels[key];
     rows.push([
@@ -4197,7 +4237,7 @@ function generateIncomeStatementPDF() {
     "$" + projectedNOI.toLocaleString(undefined, {maximumFractionDigits: 0})
   ]);
 
-  var boldRowIndexes = [0, 4, 6, rows.length - 3, rows.length - 1];
+  var boldRowIndexes = [0, 4, 6, totalFixedRowIndex, rows.length - 3, rows.length - 1];
 
   var doc = new jspdf.jsPDF();
   var today = new Date().toLocaleDateString();
