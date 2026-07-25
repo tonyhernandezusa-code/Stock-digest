@@ -468,6 +468,38 @@ def fetch_stock(ticker):
         "news": fetch_news_tooltip(ticker),
     }
 
+def downsample_series(values, max_points=20):
+    """Evenly sample a list of values down to at most max_points, keeping first and last."""
+    values = list(values)
+    if len(values) <= max_points:
+        return values
+    step = (len(values) - 1) / (max_points - 1)
+    indices = [round(i * step) for i in range(max_points)]
+    return [values[i] for i in indices]
+
+def sparkline_svg(values, width=80, height=24):
+    """Render a small inline SVG sparkline from a list of numeric values.
+    Color reflects the overall trend: green if the series ends higher than it started,
+    red if lower, gray if flat or if there isn't enough data to draw a meaningful line."""
+    values = [v for v in values if v is not None]
+    if len(values) < 2:
+        return ""
+    lo, hi = min(values), max(values)
+    span = hi - lo
+    n = len(values)
+    def x_for(i):
+        return round(i / (n - 1) * (width - 4) + 2, 1)
+    def y_for(v):
+        if span == 0:
+            return round(height / 2, 1)
+        # Invert since SVG y-axis grows downward, but higher values should appear higher on screen
+        return round(height - 2 - ((v - lo) / span) * (height - 4), 1)
+    points = " ".join(f"{x_for(i)},{y_for(v)}" for i, v in enumerate(values))
+    color = "#1a8a3d" if values[-1] > values[0] else "#c0392b" if values[-1] < values[0] else "#999"
+    return (f'<svg class="sparkline" width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
+            f'xmlns="http://www.w3.org/2000/svg"><polyline points="{points}" fill="none" '
+            f'stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>')
+
 def fetch_simple_price(symbol):
     data = yf.download(symbol, period="6mo", interval="1d", progress=False, auto_adjust=True)
     if data.empty or len(data) < 2:
@@ -483,7 +515,8 @@ def fetch_simple_price(symbol):
     decimals = 2 if price_raw >= 0.01 else 8
     price = round(price_raw, decimals)
     old = round(old_raw, decimals)
-    return {"price": price, "pct": pct, "price_6mo": old}
+    history = downsample_series([c.item() for c in close])
+    return {"price": price, "pct": pct, "price_6mo": old, "history": history}
 
 def fetch_fred(series_id, limit=1, sort_order="desc", observation_start=None):
     """Fetch observations for a FRED series."""
@@ -505,18 +538,17 @@ def fetch_fred(series_id, limit=1, sort_order="desc", observation_start=None):
         return None
 
 def fetch_fred_rate(series_id):
-    """Latest value plus the value from ~6 months ago."""
-    obs = fetch_fred(series_id, limit=1)
-    if not obs:
-        return None
-    result = obs[0]
+    """Latest value, the value from ~6 months ago, and the full history in between for sparklines."""
     six_months_ago = (datetime.now() - timedelta(days=183)).strftime("%Y-%m-%d")
-    old_obs = fetch_fred(series_id, limit=1, sort_order="asc", observation_start=six_months_ago)
-    result = {**result, "value_6mo": old_obs[0]["value"] if old_obs else None}
-    return result
+    series = fetch_fred(series_id, limit=200, sort_order="asc", observation_start=six_months_ago)
+    if not series:
+        return None
+    latest = series[-1]
+    history = downsample_series([o["value"] for o in series])
+    return {"value": latest["value"], "date": latest["date"], "value_6mo": series[0]["value"], "history": history}
 
 def fetch_fred_yoy(series_id):
-    """Year-over-year % change now, and what it was 6 months ago."""
+    """Year-over-year % change now, what it was 6 months ago, and a rolling history in between."""
     obs = fetch_fred(series_id, limit=19)
     if not obs or len(obs) < 13:
         return None
@@ -524,11 +556,16 @@ def fetch_fred_yoy(series_id):
     yoy_6mo = None
     if len(obs) >= 19:
         yoy_6mo = (obs[6]["value"] - obs[18]["value"]) / obs[18]["value"] * 100
+    # Rolling YoY for each available month, oldest to newest, for the sparkline
+    history = []
+    max_i = min(len(obs) - 13, 6)
+    for i in range(max_i, -1, -1):
+        history.append((obs[i]["value"] - obs[i + 12]["value"]) / obs[i + 12]["value"] * 100)
     return {"display": f"{yoy_now:+.1f}% YoY", "num": yoy_now, "num_6mo": yoy_6mo,
-            "date": obs[0]["date"]}
+            "date": obs[0]["date"], "history": history}
 
 def fetch_fred_mom(series_id):
-    """Month-over-month % change now, and what it was 6 months ago."""
+    """Month-over-month % change now, what it was 6 months ago, and a rolling history in between."""
     obs = fetch_fred(series_id, limit=8)
     if not obs or len(obs) < 2:
         return None
@@ -536,8 +573,13 @@ def fetch_fred_mom(series_id):
     mom_6mo = None
     if len(obs) >= 8:
         mom_6mo = (obs[6]["value"] - obs[7]["value"]) / obs[7]["value"] * 100
+    # Rolling MoM for each available month, oldest to newest, for the sparkline
+    history = []
+    max_i = min(len(obs) - 2, 6)
+    for i in range(max_i, -1, -1):
+        history.append((obs[i]["value"] - obs[i + 1]["value"]) / obs[i + 1]["value"] * 100)
     return {"display": f"{mom_now:+.1f}% MoM", "num": mom_now, "num_6mo": mom_6mo,
-            "date": obs[0]["date"]}
+            "date": obs[0]["date"], "history": history}
 
 def fetch_payrolls():
     """Monthly change in nonfarm payrolls now vs 6 months ago (PAYEMS in thousands)."""
@@ -548,8 +590,12 @@ def fetch_payrolls():
     chg_6mo = None
     if len(obs) >= 8:
         chg_6mo = obs[6]["value"] - obs[7]["value"]
+    history = []
+    max_i = min(len(obs) - 2, 6)
+    for i in range(max_i, -1, -1):
+        history.append(obs[i]["value"] - obs[i + 1]["value"])
     return {"display": f"{chg_now:+,.0f}K jobs", "num": chg_now, "num_6mo": chg_6mo,
-            "date": obs[0]["date"]}
+            "date": obs[0]["date"], "history": history}
 
 def fetch_state_hpi(abbr):
     """FHFA state house price index (quarterly). Returns latest value + 1yr change."""
@@ -742,11 +788,13 @@ def simple_cards(items, dollar=True):
     for i in items:
         six = sixmo_line(i.get("price_6mo"), i["price"], unit="")
         price_decimals = 2 if i["price"] >= 0.01 else 8
+        spark = sparkline_svg(i.get("history", []))
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{prefix}{i['price']:,.{price_decimals}f}</p>
       <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}% today</p>
+      {spark}
       {six}
     </div>"""
     return out
@@ -755,11 +803,13 @@ def rate_cards(items):
     out = ""
     for i in items:
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
+        spark = sparkline_svg(i.get("history", []))
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{i['value']:.2f}%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {spark}
       {six}
     </div>"""
     return out
@@ -784,11 +834,13 @@ def econ_cards(items):
         six = ""
         if i.get("num") is not None and i.get("num_6mo") is not None:
             six = sixmo_line(i["num_6mo"], i["num"], unit="", pt_label=True)
+        spark = sparkline_svg(i.get("history", []))
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{i['display']}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {spark}
       {six}
     </div>"""
     return out
@@ -798,11 +850,13 @@ def bond_cards(items):
     for i in items:
         val = f"{i['value']:.2f}%"
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
+        spark = sparkline_svg(i.get("history", []))
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
       <p class="value">{val}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {spark}
       {six}
     </div>"""
     return out
@@ -833,11 +887,13 @@ def currency_cards(items):
         else:
             val = f"1 USD = {i['value']:.4f} {i['code']}"
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="")
+        spark = sparkline_svg(i.get("history", []))
         out += f"""
     <div class="card" title="{i['name']} ({i['code']}) vs US Dollar, Federal Reserve H.10 daily rate">
       <p class="label">{i['name']} ({i['code']})</p>
       <p class="value" style="font-size:16px;">{val}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {spark}
       {six}
     </div>"""
     return out
