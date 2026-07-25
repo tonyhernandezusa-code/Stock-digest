@@ -3410,6 +3410,7 @@ __NAV__
         <label>Loan Start Date</label>
         <input type="date" id="d-loanstart" style="max-width:160px;">
         <button onclick="saveFinancingDetails()">Save Financing Details</button>
+        <span id="financing-save-status" style="margin-left:10px;font-size:13px;"></span>
       </div>
       <div style="margin-top:14px;">
         <button onclick="generateRentRollPDF()">Download Rent Roll PDF</button>
@@ -4234,9 +4235,18 @@ function saveFinancingDetails() {
     balloonTermYears: parseFloat(document.getElementById("d-balloon").value) || 0,
     loanStartDate: document.getElementById("d-loanstart").value || ""
   };
+  var statusEl = document.getElementById("financing-save-status");
+  statusEl.textContent = "Saving...";
+  statusEl.style.color = "#888";
   db.collection("properties").doc(currentPropertyId).update(updates).then(function() {
     currentPropertyData = Object.assign({}, currentPropertyData, updates);
     renderKeyRatios();
+    statusEl.textContent = "Saved.";
+    statusEl.style.color = "#1a8a3d";
+    setTimeout(function() { statusEl.textContent = ""; }, 3000);
+  }).catch(function(err) {
+    statusEl.textContent = "Error saving: " + err.message;
+    statusEl.style.color = "#c0392b";
   });
 }
 
