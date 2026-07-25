@@ -139,6 +139,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
       <input type="number" id="e-amount">
       <label>Date</label>
       <input type="date" id="e-date">
+      <label style="margin-top:10px;"><input type="checkbox" id="e-annual" style="width:auto;display:inline-block;"> Annual cost (spread evenly across all 12 months, e.g. property tax, insurance)</label>
       <button onclick="addExpense()">Add Expense</button>
       <div class="err" id="expense-error"></div>
       <div id="expense-list" style="margin-top:12px;"></div>
@@ -550,31 +551,56 @@ function addExpense() {
   var category = document.getElementById("e-category").value.trim();
   var amount = parseFloat(document.getElementById("e-amount").value) || 0;
   var date = document.getElementById("e-date").value;
+  var isAnnual = document.getElementById("e-annual").checked;
   showError("expense-error", "");
   if (!category) { showError("expense-error", "Enter a category."); return; }
   if (!date) { showError("expense-error", "Select a date."); return; }
 
   db.collection("properties").doc(currentPropertyId).collection("entries").add({
-    type: "expense", category: category, amount: amount, date: date,
+    type: "expense", category: category, amount: amount, date: date, isAnnual: isAnnual,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
     document.getElementById("e-category").value = "";
     document.getElementById("e-amount").value = "";
     document.getElementById("e-date").value = "";
+    document.getElementById("e-annual").checked = false;
   }).catch(function(err) { showError("expense-error", err.message); });
+}
+
+function updateExpenseField(expenseId, field, value) {
+  var update = {};
+  update[field] = value;
+  db.collection("properties").doc(currentPropertyId).collection("entries").doc(expenseId).update(update);
 }
 
 function renderExpenses() {
   var el = document.getElementById("expense-list");
   if (!currentExpenses.length) { el.innerHTML = "<p class='note'>No expenses logged yet.</p>"; return; }
   var sorted = currentExpenses.slice().sort(function(a, b) { return (b.date || "").localeCompare(a.date || ""); });
-  var html = "<div class='table-wrap'><table><tr><th>Date</th><th>Category</th><th style='text-align:right;'>Amount</th><th></th></tr>";
+  var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
+  var html = "<div class='table-wrap'><table><tr><th>Date</th><th>Category</th><th style='text-align:right;'>Amount</th><th>Annual</th><th></th></tr>";
   sorted.forEach(function(e) {
-    html += "<tr><td>" + e.date + "</td><td>" + e.category + "</td><td style='text-align:right;'>$" + Number(e.amount).toLocaleString() + "</td>" +
+    html += "<tr>" +
+      "<td><input type='date' value='" + esc(e.date) + "' data-exp-field-id='" + e.id + "' data-exp-field='date' style='width:130px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='text' value='" + esc(e.category) + "' data-exp-field-id='" + e.id + "' data-exp-field='category' style='width:160px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='number' value='" + Number(e.amount || 0) + "' data-exp-field-id='" + e.id + "' data-exp-field='amount' style='width:90px;padding:4px;font-size:12px;text-align:right;'></td>" +
+      "<td style='text-align:center;'><input type='checkbox' data-exp-annual-id='" + e.id + "' " + (e.isAnnual ? "checked" : "") + " style='width:auto;'></td>" +
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-exp-id='" + e.id + "'>Delete</button></td></tr>";
   });
   html += "</table></div>";
   el.innerHTML = html;
+  el.querySelectorAll("input[data-exp-field]").forEach(function(input) {
+    input.addEventListener("blur", function() {
+      var field = input.getAttribute("data-exp-field");
+      var value = field === "amount" ? (parseFloat(input.value) || 0) : input.value.trim();
+      updateExpenseField(input.getAttribute("data-exp-field-id"), field, value);
+    });
+  });
+  el.querySelectorAll("input[data-exp-annual-id]").forEach(function(input) {
+    input.addEventListener("change", function() {
+      updateExpenseField(input.getAttribute("data-exp-annual-id"), "isAnnual", input.checked);
+    });
+  });
   el.querySelectorAll("button[data-exp-id]").forEach(function(btn) {
     btn.addEventListener("click", function() {
       db.collection("properties").doc(currentPropertyId).collection("entries").doc(btn.getAttribute("data-exp-id")).delete();
@@ -588,9 +614,10 @@ function renderSummary() {
   var vacantCount = currentUnits.length - occupiedUnits.length;
 
   var now = new Date();
-  var thisMonth = now.toISOString().slice(0, 7); // YYYY-MM
-  var thisMonthExpenses = currentExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === thisMonth; });
-  var totalThisMonthExpenses = thisMonthExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+  var thisYear = now.getFullYear();
+  var thisMonthIdx = now.getMonth();
+  var effectiveThisMonth = getEffectiveMonthlyExpenses(currentExpenses, thisYear, thisMonthIdx);
+  var totalThisMonthExpenses = effectiveThisMonth.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var totalAllExpenses = currentExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
 
   var cashFlow = totalMonthlyRent - totalThisMonthExpenses;
@@ -599,9 +626,9 @@ function renderSummary() {
   document.getElementById("detail-summary").innerHTML =
     "Units: " + currentUnits.length + " total &middot; " + occupiedUnits.length + " occupied &middot; " + vacantCount + " vacant<br>" +
     "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong><br>" +
-    "Expenses this month: $" + totalThisMonthExpenses.toLocaleString() + " &middot; All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
-    "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString() + "</span>" +
-    "<br><span style='font-size:11px;color:#888;'>Cash flow is rent from occupied units minus this calendar month's logged expenses - a simple estimate, not a full P&amp;L.</span>";
+    "Expenses this month: $" + totalThisMonthExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}) + " &middot; All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
+    "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</span>" +
+    "<br><span style='font-size:11px;color:#888;'>Cash flow is rent from occupied units minus this month's expenses. Expenses flagged "Annual" (property tax, insurance, etc.) are divided by 12 and spread evenly across all 12 months rather than counted entirely in the month they were logged. A simple estimate, not a full P&amp;L.</span>";
 }
 
 function statusLabel(status) {
@@ -677,9 +704,8 @@ function generateYTDReportPDF() {
   var ytdIncome = 0, ytdFixed = 0, ytdVariable = 0;
 
   for (var m = 0; m <= currentMonthIdx; m++) {
-    var monthKey = year + "-" + String(m + 1).padStart(2, "0");
-    var monthExpenses = currentExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === monthKey; });
-    var variableTotal = monthExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
+    var effectiveExpenses = getEffectiveMonthlyExpenses(currentExpenses, year, m);
+    var variableTotal = effectiveExpenses.reduce(function(sum, e) { return sum + e.amount; }, 0);
     var totalExpenses = fixedMonthlyCosts + variableTotal;
     var netCashFlow = totalMonthlyRent - totalExpenses;
 
@@ -691,9 +717,9 @@ function generateYTDReportPDF() {
       MONTH_NAMES[m],
       "$" + totalMonthlyRent.toLocaleString(),
       "$" + fixedMonthlyCosts.toLocaleString(),
-      "$" + variableTotal.toLocaleString(),
-      "$" + totalExpenses.toLocaleString(),
-      "$" + netCashFlow.toLocaleString()
+      "$" + variableTotal.toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + totalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + netCashFlow.toLocaleString(undefined, {maximumFractionDigits: 0})
     ]);
   }
 
@@ -701,7 +727,9 @@ function generateYTDReportPDF() {
   var ytdNetCashFlow = ytdIncome - ytdTotalExpenses;
   rows.push([
     "YTD Total", "$" + ytdIncome.toLocaleString(), "$" + ytdFixed.toLocaleString(),
-    "$" + ytdVariable.toLocaleString(), "$" + ytdTotalExpenses.toLocaleString(), "$" + ytdNetCashFlow.toLocaleString()
+    "$" + ytdVariable.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + ytdTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + ytdNetCashFlow.toLocaleString(undefined, {maximumFractionDigits: 0})
   ]);
 
   var doc = new jspdf.jsPDF();
@@ -745,14 +773,35 @@ function generateYTDReportPDF() {
   doc.setTextColor(140);
   doc.text(
     [
-      "Rental income and fixed costs are held constant across all months at their current values - this does not reflect",
-      "historical changes in occupancy, rent, or fixed costs during the year. Variable expenses reflect actual logged entries per month."
+      "Rental income and the manually-entered fixed cost figure are held constant across all months. Expenses flagged as",
+      "Annual (property tax, insurance, etc.) are divided by 12 and spread evenly across every month of the year, rather",
+      "than counted entirely in the month they were logged. Other expenses reflect actual logged entries per month."
     ],
     14, afterTableY + 15
   );
 
   var fileSafeAddress = address.replace(/[^a-z0-9]/gi, "_").slice(0, 40);
   doc.save("YTDSummary_" + fileSafeAddress + "_" + year + ".pdf");
+}
+
+// Given all logged expenses, returns the "effective" expenses for one specific month:
+// non-annual expenses dated exactly in that month count in full; expenses flagged "annual"
+// (property tax, insurance, etc.) are divided by 12 and counted in EVERY month of that year,
+// rather than as one lump sum in whichever month they happened to be logged.
+function getEffectiveMonthlyExpenses(allExpenses, year, monthIdx) {
+  var monthKey = year + "-" + String(monthIdx + 1).padStart(2, "0");
+  var result = [];
+  allExpenses.forEach(function(e) {
+    var d = e.date || "";
+    if (e.isAnnual) {
+      if (d.slice(0, 4) === String(year)) {
+        result.push({ category: e.category, amount: Number(e.amount || 0) / 12 });
+      }
+    } else if (d.slice(0, 7) === monthKey) {
+      result.push({ category: e.category, amount: Number(e.amount || 0) });
+    }
+  });
+  return result;
 }
 
 function groupExpensesByCategory(expenses) {
@@ -780,17 +829,18 @@ function generateIncomeStatementPDF() {
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var monthsElapsedInYear = monthIdx + 1; // Jan=1 through selected month, inclusive
 
-  // This month's expenses, grouped by category
-  var thisMonthExpenses = currentExpenses.filter(function(e) { return (e.date || "").slice(0, 7) === selectedMonth; });
-  var thisMonthGroups = groupExpensesByCategory(thisMonthExpenses);
+  // This month's effective expenses (annual-flagged ones already divided by 12), grouped by category
+  var thisMonthEffective = getEffectiveMonthlyExpenses(currentExpenses, year, monthIdx);
+  var thisMonthGroups = groupExpensesByCategory(thisMonthEffective);
   var thisMonthVariableTotal = thisMonthGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
 
-  // Year-to-date (Jan through selected month) expenses, grouped by category
-  var ytdExpenses = currentExpenses.filter(function(e) {
-    var d = e.date || "";
-    return d.slice(0, 4) === String(year) && parseInt(d.slice(5, 7), 10) - 1 <= monthIdx;
-  });
-  var ytdGroups = groupExpensesByCategory(ytdExpenses);
+  // Year-to-date: accumulate each month's effective expenses (Jan through selected month) by category.
+  // This correctly spreads an annual expense across every month regardless of which month it was actually logged in.
+  var ytdEffective = [];
+  for (var mm = 0; mm <= monthIdx; mm++) {
+    ytdEffective = ytdEffective.concat(getEffectiveMonthlyExpenses(currentExpenses, year, mm));
+  }
+  var ytdGroups = groupExpensesByCategory(ytdEffective);
   var ytdVariableTotal = ytdGroups.reduce(function(sum, g) { return sum + g.total; }, 0);
 
   // Union of category labels appearing in either period, so both columns line up on the same rows
@@ -822,11 +872,23 @@ function generateIncomeStatementPDF() {
   rows.push(["  Fixed Costs (taxes, insurance, etc.)", "$" + fixedMonthlyCosts.toLocaleString(), "$" + ytdFixedCosts.toLocaleString()]);
   Object.keys(allCategoryLabels).sort().forEach(function(key) {
     var label = allCategoryLabels[key];
-    rows.push(["  " + label, "$" + monthAmountFor(label).toLocaleString(), "$" + ytdAmountFor(label).toLocaleString()]);
+    rows.push([
+      "  " + label,
+      "$" + monthAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0}),
+      "$" + ytdAmountFor(label).toLocaleString(undefined, {maximumFractionDigits: 0})
+    ]);
   });
-  rows.push(["TOTAL OPERATING EXPENSES", "$" + thisMonthTotalExpenses.toLocaleString(), "$" + ytdTotalExpenses.toLocaleString()]);
+  rows.push([
+    "TOTAL OPERATING EXPENSES",
+    "$" + thisMonthTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + ytdTotalExpenses.toLocaleString(undefined, {maximumFractionDigits: 0})
+  ]);
   rows.push(["", "", ""]);
-  rows.push(["NET OPERATING INCOME", "$" + thisMonthNOI.toLocaleString(), "$" + ytdNOI.toLocaleString()]);
+  rows.push([
+    "NET OPERATING INCOME",
+    "$" + thisMonthNOI.toLocaleString(undefined, {maximumFractionDigits: 0}),
+    "$" + ytdNOI.toLocaleString(undefined, {maximumFractionDigits: 0})
+  ]);
 
   var boldRowIndexes = [0, 2, 4, rows.length - 3, rows.length - 1];
 
@@ -857,8 +919,9 @@ function generateIncomeStatementPDF() {
   doc.setTextColor(140);
   doc.text(
     [
-      "Rental Income and Fixed Costs use current values applied across all months in the period - this does not reflect",
-      "historical changes in occupancy, rent, or fixed costs. Operating expense categories reflect actual logged entries."
+      "Rental Income and the manually-entered Fixed Costs figure use current values applied across all months. Expenses",
+      "flagged as Annual (property tax, insurance, etc.) are divided by 12 and spread evenly across every month of the",
+      "year, rather than counted entirely in the month logged. Other expense categories reflect actual logged entries."
     ],
     14, afterTableY
   );
