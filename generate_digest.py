@@ -504,7 +504,10 @@ def fetch_simple_price(symbol):
     data = yf.download(symbol, period="6mo", interval="1d", progress=False, auto_adjust=True)
     if data.empty or len(data) < 2:
         return None
-    close = data['Close']
+    # .squeeze() guarantees a 1-D Series even if yfinance returns Close as a 1-column DataFrame
+    # for this particular symbol (which happens for some tickers) - without it, iterating over
+    # an accidental DataFrame yields column names (strings), not values.
+    close = data['Close'].squeeze()
     price_raw = close.iloc[-1].item()
     prev_raw = close.iloc[-2].item()
     old_raw = close.iloc[0].item()
@@ -515,7 +518,7 @@ def fetch_simple_price(symbol):
     decimals = 2 if price_raw >= 0.01 else 8
     price = round(price_raw, decimals)
     old = round(old_raw, decimals)
-    history = downsample_series([c.item() for c in close])
+    history = downsample_series(close.tolist())
     return {"price": price, "pct": pct, "price_6mo": old, "history": history}
 
 def fetch_fred(series_id, limit=1, sort_order="desc", observation_start=None):
