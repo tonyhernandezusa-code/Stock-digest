@@ -314,21 +314,32 @@ NAV_HTML = """
 """
 
 PAGE_CSS = """
-body { font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }
-h1 { font-size:20px; margin:0 0 4px; }
-h2 { font-size:15px; margin:24px 0 10px; color:#333; }
-.timestamp { color:#666; font-size:13px; margin:0 0 20px; }
+:root {
+  --bg: #f7f7f5;
+  --text: #111;
+  --text-secondary: #666;
+  --text-muted: #888;
+  --text-faint: #999;
+  --card-bg: #fff;
+  --card-border: #e5e3dc;
+  --table-header-bg: #f0efe9;
+  --table-row-border: #eee;
+}
+body { font-family: -apple-system, sans-serif; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+h1 { font-size:20px; margin:0 0 4px; color:var(--text); }
+h2 { font-size:15px; margin:24px 0 10px; color:var(--text-secondary); }
+.timestamp { color:var(--text-secondary); font-size:13px; margin:0 0 20px; }
 .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
 .row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
-.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; cursor:help; }
-.label { font-size:12px; color:#666; margin:0 0 4px; }
-.value { font-size:20px; font-weight:600; margin:0; }
-.sixmo { font-size:11px; color:#888; margin:4px 0 0; }
+.card { background:var(--card-bg); border-radius:10px; padding:14px; border:1px solid var(--card-border); flex:1; min-width:150px; cursor:help; }
+.label { font-size:12px; color:var(--text-secondary); margin:0 0 4px; }
+.value { font-size:20px; font-weight:600; margin:0; color:var(--text); }
+.sixmo { font-size:11px; color:var(--text-muted); margin:4px 0 0; }
 .table-wrap { overflow-x:auto; }
-table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
-th { text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }
-td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:nowrap; }
-.note { font-size:11px; color:#999; margin:6px 0 0; }
+table { width:100%; border-collapse:collapse; background:var(--card-bg); border-radius:10px; overflow:hidden; }
+th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-size:12px; color:var(--text-secondary); font-weight:600; white-space:nowrap; }
+td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
+.note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
 """
 
 def compute_rsi(series, period=14):
@@ -891,9 +902,45 @@ stocks_html = f"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Stock Digest</title>
-<style>{PAGE_CSS}</style>
+<style>{PAGE_CSS}
+body.dark-mode {{
+  --bg: #0d0d0d;
+  --text: #e8e8e8;
+  --text-secondary: #b0b0b0;
+  --text-muted: #909090;
+  --text-faint: #787878;
+  --card-bg: #1a1a1a;
+  --card-border: #333;
+  --table-header-bg: #222;
+  --table-row-border: #2a2a2a;
+}}
+#theme-toggle {{
+  position: fixed; top: 16px; right: 16px; z-index: 1000;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+  border-radius: 20px; cursor: pointer;
+}}
+.sparkline {{ display: block; margin-top: 6px; }}
+</style>
 </head>
 <body>
+<button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
+<script>
+(function() {{
+  var saved = localStorage.getItem('stocksPageTheme');
+  if (saved === 'dark') {{
+    document.addEventListener('DOMContentLoaded', function() {{
+      document.body.classList.add('dark-mode');
+      document.getElementById('theme-toggle').innerHTML = '&#9728; Light Mode';
+    }});
+  }}
+}})();
+function toggleTheme() {{
+  var isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('stocksPageTheme', isDark ? 'dark' : 'light');
+  document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}}
+</script>
 {NAV_HTML}
 <h1>Daily Stock Digest</h1>
 <p class="timestamp">Updated {timestamp}</p>
