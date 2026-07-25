@@ -335,11 +335,36 @@ async function searchProperty() {
       avmHtml +
       compsHtml +
       schoolsHtml +
+      "<div id='neighborhood-data'></div>" +
 
       "<br><span style='font-size:11px;color:#888;'>Data from ATTOM public records. Satellite image via Google Maps, based on the property's coordinates - not an MLS listing photo. Field availability varies by property and county recorder data quality.</span>");
+
+    loadNeighborhoodData(address);
   } catch (err) {
     showResult("ps_result", "<strong style='color:#c0392b;'>Could not reach the search service.</strong> Confirm WORKER_URL is set to your deployed Cloudflare Worker, and that the Worker is running.");
   }
+}
+
+// Separate, non-blocking lookup - free Census Bureau data (rental vacancy rate, median gross
+// rent for the surrounding Census Tract). Runs after the main property display, and failing
+// here doesn't affect the ATTOM property data above, which already rendered successfully.
+function loadNeighborhoodData(address) {
+  var el = document.getElementById("neighborhood-data");
+  if (!el) return;
+  el.innerHTML = "<h4 style='font-size:13px;margin:14px 0 6px;'>Neighborhood Data</h4><span style='font-size:12px;color:#888;'>Loading...</span>";
+  fetch(WORKER_URL + "/neighborhood-data?address=" + encodeURIComponent(address))
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+      if (data.error) { el.innerHTML = ""; return; }
+      var vacancy = data.rentalVacancyRatePercent;
+      var rent = data.medianGrossRent;
+      if (vacancy == null && rent == null) { el.innerHTML = ""; return; }
+      el.innerHTML = "<h4 style='font-size:13px;margin:14px 0 6px;'>Neighborhood Data</h4>" +
+        (vacancy != null ? "Rental vacancy rate: " + vacancy + "%<br>" : "") +
+        (rent != null && rent > 0 ? "Median gross rent: $" + Number(rent).toLocaleString() + "/mo<br>" : "") +
+        "<span style='font-size:11px;color:#888;'>Source: U.S. Census Bureau American Community Survey (5-year estimates), for the Census Tract containing this address - a reasonable proxy for the immediate neighborhood, not the exact block.</span>";
+    })
+    .catch(function() { el.innerHTML = ""; });
 }
 
 async function searchForeclosures() {
