@@ -5,24 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daily Stock Digest</title>
 <style>
-body { font-family: -apple-system, sans-serif; background:#f7f7f5; color:#111; margin:0; padding:24px; }
-h1 { font-size:20px; margin:0 0 4px; }
-h2 { font-size:15px; margin:24px 0 10px; color:#333; }
-.timestamp { color:#666; font-size:13px; margin:0 0 20px; }
+:root {
+  --bg: #f7f7f5;
+  --text: #111;
+  --text-secondary: #666;
+  --text-muted: #888;
+  --text-faint: #999;
+  --card-bg: #fff;
+  --card-border: #e5e3dc;
+  --table-header-bg: #f0efe9;
+  --table-row-border: #eee;
+}
+body { font-family: -apple-system, sans-serif; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+h1 { font-size:20px; margin:0 0 4px; color:var(--text); }
+h2 { font-size:15px; margin:24px 0 10px; color:var(--text-secondary); }
+.timestamp { color:var(--text-secondary); font-size:13px; margin:0 0 20px; }
 .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
 .row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
-.card { background:#fff; border-radius:10px; padding:14px; border:1px solid #e5e3dc; flex:1; min-width:150px; cursor:help; }
-.label { font-size:12px; color:#666; margin:0 0 4px; }
-.value { font-size:20px; font-weight:600; margin:0; }
-.sixmo { font-size:11px; color:#888; margin:4px 0 0; }
+.card { background:var(--card-bg); border-radius:10px; padding:14px; border:1px solid var(--card-border); flex:1; min-width:150px; cursor:help; }
+.label { font-size:12px; color:var(--text-secondary); margin:0 0 4px; }
+.value { font-size:20px; font-weight:600; margin:0; color:var(--text); }
+.sixmo { font-size:11px; color:var(--text-muted); margin:4px 0 0; }
 .table-wrap { overflow-x:auto; }
-table { width:100%; border-collapse:collapse; background:#fff; border-radius:10px; overflow:hidden; }
-th { text-align:left; padding:8px 10px; background:#f0efe9; font-size:12px; color:#666; font-weight:600; white-space:nowrap; }
-td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:nowrap; }
-.note { font-size:11px; color:#999; margin:6px 0 0; }
+table { width:100%; border-collapse:collapse; background:var(--card-bg); border-radius:10px; overflow:hidden; }
+th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-size:12px; color:var(--text-secondary); font-weight:600; white-space:nowrap; }
+td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
+.note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
+
+body.dark-mode {
+  --bg: #0d0d0d;
+  --text: #e8e8e8;
+  --text-secondary: #b0b0b0;
+  --text-muted: #909090;
+  --text-faint: #787878;
+  --card-bg: #1a1a1a;
+  --card-border: #333;
+  --table-header-bg: #222;
+  --table-row-border: #2a2a2a;
+}
+#theme-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 1000;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+  border-radius: 20px; cursor: pointer;
+}
+.sparkline { display: block; margin-top: 6px; }
 </style>
 </head>
 <body>
+<button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
+<script>
+(function() {
+  var saved = localStorage.getItem('stocksPageTheme');
+  if (saved === 'dark') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('dark-mode');
+      document.getElementById('theme-toggle').innerHTML = '&#9728; Light Mode';
+    });
+  }
+})();
+function toggleTheme() {
+  var isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('stocksPageTheme', isDark ? 'dark' : 'light');
+  document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}
+</script>
 
 <div style="margin-bottom:16px;">
   <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
@@ -35,7 +82,7 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 </div>
 
 <h1>Daily Stock Digest</h1>
-<p class="timestamp">Updated 2026-07-25 15:48 UTC</p>
+<p class="timestamp">Updated 2026-07-25 16:16 UTC</p>
 
 <div class="summary">
   <div class="card" title="Number of stocks being tracked in your watchlist table below."><p class="label">Watchlist</p><p class="value">69</p></div>
@@ -537,69 +584,69 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
 <div class="row">
     <div class="card" title="">
       <p class="label">Bitcoin</p>
-      <p class="value">$64,150.00</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.08% today</p>
-      <p class="sixmo">6 mo ago: 86,572.22 &middot; <span style="color:#c0392b;">-22,422.22 (-25.9%)</span></p>
+      <p class="value">$64,134.00</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.06% today</p>
+      <p class="sixmo">6 mo ago: 86,572.22 &middot; <span style="color:#c0392b;">-22,438.22 (-25.9%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Ethereum</p>
-      <p class="value">$1,867.56</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.40% today</p>
-      <p class="sixmo">6 mo ago: 2,815.90 &middot; <span style="color:#c0392b;">-948.34 (-33.7%)</span></p>
+      <p class="value">$1,866.26</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.33% today</p>
+      <p class="sixmo">6 mo ago: 2,815.90 &middot; <span style="color:#c0392b;">-949.64 (-33.7%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Tether</p>
       <p class="value">$1.00</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#666;">+0.00% today</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#666;">-0.00% today</p>
       <p class="sixmo">6 mo ago: 1.00 &middot; <span style="color:#888;">+0.00 (+0.0%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">BNB</p>
-      <p class="value">$566.49</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.38% today</p>
-      <p class="sixmo">6 mo ago: 864.73 &middot; <span style="color:#c0392b;">-298.24 (-34.5%)</span></p>
+      <p class="value">$566.84</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.44% today</p>
+      <p class="sixmo">6 mo ago: 864.73 &middot; <span style="color:#c0392b;">-297.89 (-34.4%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Solana</p>
-      <p class="value">$74.14</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.35% today</p>
-      <p class="sixmo">6 mo ago: 118.77 &middot; <span style="color:#c0392b;">-44.63 (-37.6%)</span></p>
+      <p class="value">$74.20</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.43% today</p>
+      <p class="sixmo">6 mo ago: 118.77 &middot; <span style="color:#c0392b;">-44.57 (-37.5%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">XRP</p>
       <p class="value">$1.10</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.69% today</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.66% today</p>
       <p class="sixmo">6 mo ago: 1.83 &middot; <span style="color:#c0392b;">-0.73 (-39.9%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">USD Coin</p>
       <p class="value">$1.00</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.01% today</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#666;">+0.00% today</p>
       <p class="sixmo">6 mo ago: 1.00 &middot; <span style="color:#888;">+0.00 (+0.0%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Cardano</p>
       <p class="value">$0.16</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.53% today</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.66% today</p>
       <p class="sixmo">6 mo ago: 0.34 &middot; <span style="color:#c0392b;">-0.18</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Dogecoin</p>
       <p class="value">$0.07</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+2.30% today</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+3.05% today</p>
       <p class="sixmo">6 mo ago: 0.12 &middot; <span style="color:#c0392b;">-0.05</span></p>
     </div>
     <div class="card" title="">
       <p class="label">TRON</p>
       <p class="value">$0.33</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.24% today</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.23% today</p>
       <p class="sixmo">6 mo ago: 0.30 &middot; <span style="color:#1a8a3d;">+0.03</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Avalanche</p>
-      <p class="value">$6.58</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+4.50% today</p>
-      <p class="sixmo">6 mo ago: 11.48 &middot; <span style="color:#c0392b;">-4.90 (-42.7%)</span></p>
+      <p class="value">$6.62</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+5.13% today</p>
+      <p class="sixmo">6 mo ago: 11.48 &middot; <span style="color:#c0392b;">-4.86 (-42.3%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Chainlink</p>
@@ -615,26 +662,26 @@ td { padding:8px 10px; border-top:1px solid #eee; font-size:13px; white-space:no
     </div>
     <div class="card" title="">
       <p class="label">Litecoin</p>
-      <p class="value">$46.10</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.49% today</p>
-      <p class="sixmo">6 mo ago: 67.17 &middot; <span style="color:#c0392b;">-21.07 (-31.4%)</span></p>
+      <p class="value">$46.04</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.62% today</p>
+      <p class="sixmo">6 mo ago: 67.17 &middot; <span style="color:#c0392b;">-21.13 (-31.5%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Shiba Inu</p>
-      <p class="value">$0.00000470</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+17.50% today</p>
-      <p class="sixmo">6 mo ago: 0.00000800 &middot; <span style="color:#c0392b;">-0.00000330</span></p>
+      <p class="value">$0.00000490</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+22.50% today</p>
+      <p class="sixmo">6 mo ago: 0.00000800 &middot; <span style="color:#c0392b;">-0.00000310</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Bitcoin Cash</p>
-      <p class="value">$209.97</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.29% today</p>
-      <p class="sixmo">6 mo ago: 571.17 &middot; <span style="color:#c0392b;">-361.20 (-63.2%)</span></p>
+      <p class="value">$209.80</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.37% today</p>
+      <p class="sixmo">6 mo ago: 571.17 &middot; <span style="color:#c0392b;">-361.37 (-63.3%)</span></p>
     </div>
     <div class="card" title="">
       <p class="label">Stellar</p>
       <p class="value">$0.18</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.37% today</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.33% today</p>
       <p class="sixmo">6 mo ago: 0.20 &middot; <span style="color:#c0392b;">-0.02</span></p>
     </div></div>
 <p class="note">Prices via Yahoo Finance, quoted in USD. Crypto trades 24/7, unlike stocks and most commodities/indices - these prices can change even when traditional markets are closed. Extremely volatile compared to traditional assets - treat accordingly.</p>
@@ -926,7 +973,7 @@ Google and Tesla lost half a trillion dollars this week as their suppliers cashe
 
 Why Tesla, Google, and other Mag 7 stocks are losing billions in valuation (Yahoo Finance Video - 2026-07-24)
 
-Elon Musk’s Self-Proclaimed ‘Starter Wife’ Says When He Became Rich, His Judgment Overruled Hers — ‘I Am Your Wife, Not Your Employee’ (Benzinga - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">AAPL</a></td>
+Inside DGRW: How a 32% Payout Ratio Keeps Distributions Safe While Markets Shift (24/7 Wall St. - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">AAPL</a></td>
       <td style="text-align:right;">$nan</td>
       <td style="text-align:right;color:#666;">+nan%</td>
       <td style="text-align:right;color:#666;">+nan%</td>
@@ -945,7 +992,7 @@ Alphabet flops, Intel shocks, and Tesla tanks: AlphaSpace weekly recap (Yahoo Fi
 
 Tech stocks live: Huang, Nadella, and other CEOs defend open-source AI as US threatens crackdown (Yahoo Finance - 2026-07-20)
 
-Big Tech’s Trillion-Dollar Bet Is Starting to Crack, Investors Are Looking Elsewhere for Profits (24/7 Wall St. - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">GOOGL</a></td>
+Why Tesla, Google, and other Mag 7 stocks are losing billions in valuation (Yahoo Finance Video - 2026-07-24)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">GOOGL</a></td>
       <td style="text-align:right;">$nan</td>
       <td style="text-align:right;color:#666;">+nan%</td>
       <td style="text-align:right;color:#666;">+nan%</td>
@@ -1021,7 +1068,7 @@ Alphabet flops, Intel shocks, and Tesla tanks: AlphaSpace weekly recap (Yahoo Fi
 
 The AI ecosystem should be &#x27;intertwined&#x27;: AMD CEO Lisa Su on Anthropic partnership (Yahoo Finance Video - 2026-07-24)
 
-OpenAI president Greg Brockman: &#x27;We will remain in this compute shortage no matter what&#x27; (Yahoo Finance - 2026-07-24)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">META</a></td>
+Big Tech’s Trillion-Dollar Bet Is Starting to Crack, Investors Are Looking Elsewhere for Profits (24/7 Wall St. - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">META</a></td>
       <td style="text-align:right;">$nan</td>
       <td style="text-align:right;color:#666;">+nan%</td>
       <td style="text-align:right;color:#666;">+nan%</td>
@@ -1059,7 +1106,7 @@ Alphabet flops, Intel shocks, and Tesla tanks: AlphaSpace weekly recap (Yahoo Fi
 
 Tech stocks live: Huang, Nadella, and other CEOs defend open-source AI as US threatens crackdown (Yahoo Finance - 2026-07-20)
 
-OpenAI president Greg Brockman: &#x27;We will remain in this compute shortage no matter what&#x27; (Yahoo Finance - 2026-07-24)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">MSFT</a></td>
+Inside DGRW: How a 32% Payout Ratio Keeps Distributions Safe While Markets Shift (24/7 Wall St. - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">MSFT</a></td>
       <td style="text-align:right;">$nan</td>
       <td style="text-align:right;color:#666;">+nan%</td>
       <td style="text-align:right;color:#666;">+nan%</td>
@@ -1097,7 +1144,7 @@ Google and Tesla lost half a trillion dollars this week as their suppliers cashe
 
 AMD CEO Lisa Su isn&#x27;t worried about an AI house of cards (Yahoo Finance - 2026-07-24)
 
-OpenAI president Greg Brockman: &#x27;We will remain in this compute shortage no matter what&#x27; (Yahoo Finance - 2026-07-24)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">NVDA</a></td>
+70% of Teradyne’s Revenue Is Tied to AI. Should You Buy Before July 29 Q2 Earnings? (24/7 Wall St. - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">NVDA</a></td>
       <td style="text-align:right;">$nan</td>
       <td style="text-align:right;color:#666;">+nan%</td>
       <td style="text-align:right;color:#666;">+nan%</td>
@@ -1399,9 +1446,9 @@ Does PayPal Have a Buyer? (Motley Fool - 2026-07-25)" style="color:#1f4e79;text-
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/AMZN" target="_blank" title="RECENT NEWS:
 Alphabet flops, Intel shocks, and Tesla tanks: AlphaSpace weekly recap (Yahoo Finance - 2026-07-25)
 
-OpenAI president Greg Brockman: &#x27;We will remain in this compute shortage no matter what&#x27; (Yahoo Finance - 2026-07-24)
+Billionaire Investor Seth Klarman’s Top 5 Stocks: Would He Buy More Today? (24/7 Wall St. - 2026-07-25)
 
-Billionaire Investor Seth Klarman’s Top 5 Stocks: Would He Buy More Today? (24/7 Wall St. - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">AMZN</a></td>
+Mark Cuban sees a problem with the AI spending spree (TheStreet - 2026-07-25)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">AMZN</a></td>
       <td style="text-align:right;">$nan</td>
       <td style="text-align:right;color:#666;">+nan%</td>
       <td style="text-align:right;color:#666;">+nan%</td>
@@ -1454,11 +1501,11 @@ Marvell Technology (MRVL) Stock Declines While Market Improves: Some Information
     </tr>
     <tr>
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/SCHD" target="_blank" title="RECENT NEWS:
+Inside DGRW: How a 32% Payout Ratio Keeps Distributions Safe While Markets Shift (24/7 Wall St. - 2026-07-25)
+
 You’re 62 With $400K Earning 0.6% at the Bank. These 3 ETFs Put It to Work Before You Retire (24/7 Wall St. - 2026-07-24)
 
-When One Spouse Dies, One Social Security Check Disappears. These 3 ETFs Protect the Survivor (24/7 Wall St. - 2026-07-24)
-
-What Is SCHD&#x27;s New High Really Made Of? (Trefis - 2026-07-24)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">SCHD</a></td>
+When One Spouse Dies, One Social Security Check Disappears. These 3 ETFs Protect the Survivor (24/7 Wall St. - 2026-07-24)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">SCHD</a></td>
       <td style="text-align:right;">$nan</td>
       <td style="text-align:right;color:#666;">+nan%</td>
       <td style="text-align:right;color:#666;">+nan%</td>
