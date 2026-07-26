@@ -191,6 +191,13 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
         <input type="date" id="d-loanstart" style="max-width:160px;">
         <label>Interest-Only Period (years, optional) - no principal reduction during this time, then converts to a fully-amortizing payment</label>
         <input type="number" step="0.5" id="d-interestonly" placeholder="e.g. 5" style="max-width:160px;">
+        <label><input type="checkbox" id="d-isarm" onchange="toggleARMFields()" style="width:auto;display:inline-block;"> This is an ARM (Adjustable Rate Mortgage)</label>
+        <div id="arm-fields" style="display:none;">
+          <label>Fixed-Rate Period (years) - the rate above holds until this point</label>
+          <input type="number" step="0.5" id="d-armfixed" placeholder="e.g. 5" style="max-width:160px;">
+          <label>Assumed Rate Increase Per Year After (percentage points) - for stress-testing, e.g. 0.5 means the rate goes up 0.5% every year once the fixed period ends</label>
+          <input type="number" step="0.1" id="d-armincrease" placeholder="e.g. 0.5" style="max-width:160px;">
+        </div>
         <label>Annual Rent Growth Rate (%) - for the 5/10-Year Pro Forma</label>
         <input type="number" step="0.1" id="d-rentgrowth" placeholder="e.g. 3" style="max-width:160px;">
         <label>Annual Expense Growth Rate (%) - for the 5/10-Year Pro Forma</label>
@@ -492,6 +499,61 @@ function calculateRemainingBalanceWithIO(loanAmount, annualRatePct, amortTermYea
   if (monthsElapsed <= ioMonths) return loanAmount;
   var remainingYears = amortTermYears - (interestOnlyYears || 0);
   return calculateRemainingBalance(loanAmount, annualRatePct, remainingYears, monthsElapsed - ioMonths);
+}
+
+// Full month-by-month amortization simulator - the only correct way to combine an
+// interest-only period, an ARM's rate adjustments, and balance tracking together, since ARM
+// rate changes require recalculating the payment against the current balance and remaining
+// term (there's no single closed-form formula once the rate itself changes mid-loan).
+// Returns, for each of the requested number of years: the annual debt service paid and the
+// balance remaining at the end of that year.
+function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armRateIncreasePerYear, numYears) {
+  var balance = loanAmount;
+  var ioMonths = Math.round((interestOnlyYears || 0) * 12);
+  var armFixedMonths = isARM ? Math.round((armFixedYears || 0) * 12) : Infinity;
+  var totalTermMonths = amortTermYears * 12;
+  var currentRate = initialRatePct;
+  var monthlyPayment = null;
+  var yearResults = [];
+  var yearDebtServiceSum = 0;
+
+  for (var month = 0; month < numYears * 12; month++) {
+    var newRate = initialRatePct;
+    if (isARM && month >= armFixedMonths) {
+      var yearsPastFixed = Math.floor((month - armFixedMonths) / 12);
+      newRate = initialRatePct + (yearsPastFixed + 1) * (armRateIncreasePerYear || 0);
+    }
+    var rateChanged = newRate !== currentRate;
+    currentRate = newRate;
+    var monthlyRate = currentRate / 100 / 12;
+
+    var thisMonthPayment;
+    if (month < ioMonths) {
+      thisMonthPayment = balance * monthlyRate; // interest-only: recalculates naturally if rate changes
+    } else {
+      var remainingMonths = totalTermMonths - month;
+      if (remainingMonths <= 0) {
+        thisMonthPayment = 0;
+      } else if (monthlyPayment === null || rateChanged || month === ioMonths) {
+        // Recalculate only when entering amortization for the first time, or the rate changes -
+        // otherwise the payment stays the same between adjustment points, like a real ARM.
+        thisMonthPayment = calculateMonthlyPI(balance, currentRate, remainingMonths / 12);
+      } else {
+        thisMonthPayment = monthlyPayment;
+      }
+      var interestPortion = balance * monthlyRate;
+      var principalPortion = thisMonthPayment - interestPortion;
+      balance = Math.max(0, balance - principalPortion);
+    }
+    monthlyPayment = thisMonthPayment;
+    yearDebtServiceSum += thisMonthPayment;
+
+    if ((month + 1) % 12 === 0) {
+      yearResults.push({ debtService: yearDebtServiceSum, endingBalance: balance, rate: currentRate });
+      yearDebtServiceSum = 0;
+    }
+  }
+  return yearResults;
 }
 
 // Financed capital improvements (e.g. a roof paid off over 5 years) show up as a recurring
@@ -1204,6 +1266,10 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-balloon").value = data.balloonTermYears || "";
     document.getElementById("d-loanstart").value = data.loanStartDate || "";
     document.getElementById("d-interestonly").value = data.interestOnlyYears || "";
+    document.getElementById("d-isarm").checked = !!data.isARM;
+    document.getElementById("d-armfixed").value = data.armFixedYears || "";
+    document.getElementById("d-armincrease").value = data.armRateIncreasePerYear || "";
+    toggleARMFields();
     document.getElementById("d-rentgrowth").value = data.rentGrowthRate || "";
     document.getElementById("d-expensegrowth").value = data.expenseGrowthRate || "";
     restoreManagementFeeUI();
@@ -1760,6 +1826,10 @@ function getMonthlyManagementFee() {
   return { amount: 0, excludedUnitId: null }; // self-managed
 }
 
+function toggleARMFields() {
+  document.getElementById("arm-fields").style.display = document.getElementById("d-isarm").checked ? "block" : "none";
+}
+
 function toggleFinancingForm() {
   var form = document.getElementById("financing-form");
   var icon = document.getElementById("financing-toggle-icon");
@@ -1779,6 +1849,9 @@ function saveFinancingDetails() {
     balloonTermYears: parseFloat(document.getElementById("d-balloon").value) || 0,
     loanStartDate: document.getElementById("d-loanstart").value || "",
     interestOnlyYears: parseFloat(document.getElementById("d-interestonly").value) || 0,
+    isARM: document.getElementById("d-isarm").checked,
+    armFixedYears: parseFloat(document.getElementById("d-armfixed").value) || 0,
+    armRateIncreasePerYear: parseFloat(document.getElementById("d-armincrease").value) || 0,
     rentGrowthRate: parseFloat(document.getElementById("d-rentgrowth").value) || 0,
     expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0
   };
@@ -1989,6 +2062,10 @@ function generate5And10YearProFormaPDF() {
   var rentGrowth = (currentPropertyData.rentGrowthRate || 0) / 100;
   var expenseGrowth = (currentPropertyData.expenseGrowthRate || 0) / 100;
 
+  var isARM = currentPropertyData.isARM || false;
+  var armFixedYears = currentPropertyData.armFixedYears || 0;
+  var armRateIncreasePerYear = currentPropertyData.armRateIncreasePerYear || 0;
+
   var balloonTermYears = currentPropertyData.balloonTermYears || 0;
   var loanStartDate = currentPropertyData.loanStartDate || "";
   var balloonDueYear = null;
@@ -1997,38 +2074,52 @@ function generate5And10YearProFormaPDF() {
     balloonDueYear = loanStartYear + balloonTermYears;
   }
 
+  // Align the simulator (which counts years from loan origination) with the pro forma's
+  // calendar-year projection (Year 1 = this year) - run the simulator from loan start through
+  // the end of the 10-year projection, then take just the years the projection actually covers.
+  var currentCalendarYear = new Date().getFullYear();
+  var monthsElapsedAtProjectionStart = getMonthsElapsedSinceLoanStart(loanStartDateForProForma, currentCalendarYear, 0);
+  var startYearOffset = Math.round(monthsElapsedAtProjectionStart / 12);
+  var simulatedYears = loanAmount > 0
+    ? simulateLoanAmortization(loanAmount, interestRate, loanTermYears, interestOnlyYears, isARM, armFixedYears, armRateIncreasePerYear, startYearOffset + 10)
+    : [];
+
   var rows = [];
   var cumulativeCashFlow = 0;
   var ioTransitionNoted = false;
+  var lastRate = interestRate;
   for (var year = 1; year <= 10; year++) {
     var yearIncome = year1Income * Math.pow(1 + rentGrowth, year - 1);
     var yearExpenses = year1Expenses * Math.pow(1 + expenseGrowth, year - 1);
     var yearNOI = yearIncome - yearExpenses;
-    var calendarYear = new Date().getFullYear() + year - 1;
+    var calendarYear = currentCalendarYear + year - 1;
 
-    // Debt service for THIS specific year - uses the mid-year point (month 6) as a representative
-    // sample, since a full month-by-month breakdown within a single annual pro forma row would
-    // be excessive; the IO-to-amortizing transition is still correctly reflected year to year.
-    var monthsElapsedThisYear = getMonthsElapsedSinceLoanStart(loanStartDateForProForma, calendarYear, 6);
-    var monthlyDebtServiceThisYear = calculateMonthlyDebtService(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsedThisYear);
-    var annualDebtService = monthlyDebtServiceThisYear * 12;
+    var simIndex = startYearOffset + year - 1;
+    var simYear = simulatedYears[simIndex];
+    var annualDebtService = simYear ? simYear.debtService : 0;
+    var endingBalance = simYear ? simYear.endingBalance : 0;
     var ioMonths = Math.round(interestOnlyYears * 12);
+    var monthsElapsedThisYear = getMonthsElapsedSinceLoanStart(loanStartDateForProForma, calendarYear, 6);
     var justTransitioned = interestOnlyYears > 0 && !ioTransitionNoted && monthsElapsedThisYear >= ioMonths;
     if (justTransitioned) ioTransitionNoted = true;
+    var rateChangedThisYear = simYear && simYear.rate !== lastRate;
+    if (simYear) lastRate = simYear.rate;
 
     var yearCashFlow = yearNOI - annualDebtService;
     cumulativeCashFlow += yearCashFlow;
     var balloonNote = (balloonDueYear && calendarYear === balloonDueYear) ? " (balloon due)" : "";
     var ioNote = justTransitioned ? " (IO ends)" : "";
+    var armNote = rateChangedThisYear ? " (rate: " + lastRate.toFixed(2) + "%)" : "";
 
     rows.push([
-      "Year " + year + balloonNote + ioNote,
+      "Year " + year + balloonNote + ioNote + armNote,
       "$" + Math.round(yearIncome).toLocaleString(),
       "$" + Math.round(yearExpenses).toLocaleString(),
       "$" + Math.round(yearNOI).toLocaleString(),
       annualDebtService > 0 ? "-$" + Math.round(annualDebtService).toLocaleString() : "$0",
       "$" + Math.round(yearCashFlow).toLocaleString(),
-      "$" + Math.round(cumulativeCashFlow).toLocaleString()
+      "$" + Math.round(cumulativeCashFlow).toLocaleString(),
+      loanAmount > 0 ? "$" + Math.round(endingBalance).toLocaleString() : "N/A"
     ]);
   }
 
@@ -2040,13 +2131,13 @@ function generate5And10YearProFormaPDF() {
   doc.setFontSize(11);
   doc.setTextColor(80);
   doc.text(address, 14, 26);
-  doc.text("Generated: " + today + "  |  Rent Growth: " + (rentGrowth * 100).toFixed(1) + "%/yr  |  Expense Growth: " + (expenseGrowth * 100).toFixed(1) + "%/yr", 14, 32);
+  doc.text("Generated: " + today + "  |  Rent Growth: " + (rentGrowth * 100).toFixed(1) + "%/yr  |  Expense Growth: " + (expenseGrowth * 100).toFixed(1) + "%/yr" + (isARM ? "  |  ARM" : ""), 14, 32);
 
   doc.autoTable({
     startY: 40,
-    head: [["Year", "Gross Income", "Op. Expenses", "NOI", "Debt Service", "Cash Flow", "Cumulative"]],
+    head: [["Year", "Gross Income", "Op. Expenses", "NOI", "Debt Service", "Cash Flow", "Cumulative", "Loan Balance"]],
     body: rows,
-    styles: { fontSize: 8 },
+    styles: { fontSize: 7.5 },
     headStyles: { fillColor: [31, 78, 121] },
     didParseCell: function(data) {
       if (data.row.index === 4 || data.row.index === 9) { data.cell.styles.fontStyle = "bold"; } // Year 5 and Year 10
@@ -2058,12 +2149,18 @@ function generate5And10YearProFormaPDF() {
   doc.setTextColor(140);
   var noteLines = [
     "Year 1 is annualized from current actual rent, other income, and operating expenses. Years 2-10 apply the",
-    "growth rates above, compounding annually. Debt Service reflects your loan's actual terms, including an",
-    "interest-only period if one is set (marked IO ends in the year it converts to a fully-amortizing payment,",
-    "which is typically higher than the interest-only payment) - it does not account for a rate change at refinance.",
+    "growth rates above, compounding annually. Loan Balance shows the remaining principal at the end of each year -",
+    "it will stay flat during an interest-only period, then decline once amortization begins. Debt Service reflects",
+    "your loan's actual terms, including an interest-only period if one is set (marked IO ends in the year it",
+    "converts to a fully-amortizing payment, which is typically higher than the interest-only payment).",
     "This is a projection based on assumptions you provide, not a guarantee - actual results depend on real market",
     "conditions, tenant turnover, unexpected expenses, and other factors this model cannot predict."
   ];
+  if (isARM) {
+    noteLines.push("This loan is modeled as an ARM: the rate holds during the fixed period, then increases by the assumed");
+    noteLines.push("rate above every year after - marked with the new rate in the year each adjustment takes effect. This is a");
+    noteLines.push("stress-test assumption, not a prediction of actual future rates.");
+  }
   if (balloonDueYear) {
     noteLines.push("Note: your loan's balloon payment is due in " + balloonDueYear + " (marked above) - the full remaining balance");
     noteLines.push("comes due then, requiring a refinance or payoff, which this projection does not model.");
