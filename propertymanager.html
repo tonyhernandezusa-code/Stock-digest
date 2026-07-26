@@ -220,7 +220,8 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
       <input type="number" id="e-amount">
       <label>Date</label>
       <input type="date" id="e-date">
-      <label style="margin-top:10px;"><input type="checkbox" id="e-annual" style="width:auto;display:inline-block;"> Annual cost (spread evenly across all 12 months, e.g. property tax, insurance)</label>
+      <label style="margin-top:10px;"><input type="checkbox" id="e-annual" style="width:auto;display:inline-block;"> Annual cost (this amount is the TOTAL for the year - spread evenly across all 12 months, e.g. property tax, insurance)</label>
+      <label><input type="checkbox" id="e-recurring" style="width:auto;display:inline-block;"> Recurring monthly (this amount repeats EVERY month starting from the date above, e.g. management fee)</label>
       <label><input type="checkbox" id="e-capex" onchange="toggleCapExFinancing()" style="width:auto;display:inline-block;"> Capital improvement (roof, HVAC replacement, etc. - kept separate from operating expenses)</label>
       <div id="capex-financing-fields" style="display:none;margin-top:10px;padding:10px;background:#f7f6f2;border-radius:6px;">
         <label><input type="checkbox" id="e-financed" style="width:auto;display:inline-block;"> This improvement is financed (not paid in cash)</label>
@@ -1430,6 +1431,7 @@ function addExpense() {
   var amount = parseFloat(document.getElementById("e-amount").value) || 0;
   var date = document.getElementById("e-date").value;
   var isAnnual = document.getElementById("e-annual").checked;
+  var isRecurringMonthly = document.getElementById("e-recurring").checked;
   var isCapEx = document.getElementById("e-capex").checked;
   var isFinanced = isCapEx && document.getElementById("e-financed").checked;
   var financedAmount = isFinanced ? (parseFloat(document.getElementById("e-financed-amount").value) || amount) : 0;
@@ -1438,9 +1440,11 @@ function addExpense() {
   showError("expense-error", "");
   if (!category) { showError("expense-error", "Enter a category."); return; }
   if (!date) { showError("expense-error", "Select a date."); return; }
+  if (isAnnual && isRecurringMonthly) { showError("expense-error", "Choose either Annual or Recurring Monthly, not both."); return; }
 
   db.collection("properties").doc(currentPropertyId).collection("entries").add({
-    type: "expense", category: category, amount: amount, date: date, isAnnual: isAnnual, isCapEx: isCapEx,
+    type: "expense", category: category, amount: amount, date: date, isAnnual: isAnnual,
+    isRecurringMonthly: isRecurringMonthly, isCapEx: isCapEx,
     isFinanced: isFinanced, financedAmount: financedAmount, financedRate: financedRate, financedTermYears: financedTermYears,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function() {
@@ -1448,6 +1452,7 @@ function addExpense() {
     document.getElementById("e-amount").value = "";
     document.getElementById("e-date").value = "";
     document.getElementById("e-annual").checked = false;
+    document.getElementById("e-recurring").checked = false;
     document.getElementById("e-capex").checked = false;
     document.getElementById("e-financed").checked = false;
     document.getElementById("e-financed-amount").value = "";
@@ -1532,13 +1537,14 @@ function renderExpenses() {
   if (!currentExpenses.length) { el.innerHTML = "<p class='note'>No expenses logged yet.</p>"; return; }
   var sorted = currentExpenses.slice().sort(function(a, b) { return (b.date || "").localeCompare(a.date || ""); });
   var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
-  var html = "<div class='table-wrap'><table><tr><th>Date</th><th>Category</th><th style='text-align:right;'>Amount</th><th>Annual</th><th></th></tr>";
+  var html = "<div class='table-wrap'><table><tr><th>Date</th><th>Category</th><th style='text-align:right;'>Amount</th><th>Annual</th><th>Recurring Monthly</th><th></th></tr>";
   sorted.forEach(function(e) {
     html += "<tr>" +
       "<td><input type='date' value='" + esc(e.date) + "' data-exp-field-id='" + e.id + "' data-exp-field='date' style='width:130px;padding:4px;font-size:12px;'></td>" +
       "<td><input type='text' value='" + esc(e.category) + "' data-exp-field-id='" + e.id + "' data-exp-field='category' style='width:160px;padding:4px;font-size:12px;'></td>" +
       "<td><input type='number' value='" + Number(e.amount || 0) + "' data-exp-field-id='" + e.id + "' data-exp-field='amount' style='width:90px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td style='text-align:center;'><input type='checkbox' data-exp-annual-id='" + e.id + "' " + (e.isAnnual ? "checked" : "") + " style='width:auto;'></td>" +
+      "<td style='text-align:center;'><input type='checkbox' data-exp-recurring-id='" + e.id + "' " + (e.isRecurringMonthly ? "checked" : "") + " style='width:auto;'></td>" +
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-exp-id='" + e.id + "'>Delete</button></td></tr>";
   });
   html += "</table></div>";
@@ -1553,6 +1559,13 @@ function renderExpenses() {
   el.querySelectorAll("input[data-exp-annual-id]").forEach(function(input) {
     input.addEventListener("change", function() {
       updateExpenseField(input.getAttribute("data-exp-annual-id"), "isAnnual", input.checked);
+      if (input.checked) updateExpenseField(input.getAttribute("data-exp-annual-id"), "isRecurringMonthly", false);
+    });
+  });
+  el.querySelectorAll("input[data-exp-recurring-id]").forEach(function(input) {
+    input.addEventListener("change", function() {
+      updateExpenseField(input.getAttribute("data-exp-recurring-id"), "isRecurringMonthly", input.checked);
+      if (input.checked) updateExpenseField(input.getAttribute("data-exp-recurring-id"), "isAnnual", false);
     });
   });
   el.querySelectorAll("button[data-exp-id]").forEach(function(btn) {
@@ -1904,6 +1917,7 @@ function generateYTDReportPDF() {
 // one-time Variable expenses (which only count in full in the specific month they were dated).
 function getEffectiveMonthlyExpenses(allExpenses, year, monthIdx) {
   var monthKey = year + "-" + String(monthIdx + 1).padStart(2, "0");
+  var targetLinearMonth = year * 12 + monthIdx;
   var fixedFromAnnual = [];
   var variable = [];
   allExpenses.forEach(function(e) {
@@ -1911,6 +1925,15 @@ function getEffectiveMonthlyExpenses(allExpenses, year, monthIdx) {
     if (e.isAnnual) {
       if (d.slice(0, 4) === String(year)) {
         fixedFromAnnual.push({ category: e.category, amount: Number(e.amount || 0) / 12 });
+      }
+    } else if (e.isRecurringMonthly) {
+      // Same amount applies to every month from the start date forward, indefinitely -
+      // e.g. a $1,000/month management fee, not divided or run-rate-projected.
+      var startYear = parseInt(d.slice(0, 4), 10);
+      var startMonthIdx = parseInt(d.slice(5, 7), 10) - 1;
+      var startLinearMonth = startYear * 12 + startMonthIdx;
+      if (!isNaN(startLinearMonth) && targetLinearMonth >= startLinearMonth) {
+        fixedFromAnnual.push({ category: e.category, amount: Number(e.amount || 0) });
       }
     } else if (d.slice(0, 7) === monthKey) {
       variable.push({ category: e.category, amount: Number(e.amount || 0) });
