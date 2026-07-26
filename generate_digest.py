@@ -5530,8 +5530,28 @@ function generate5And10YearProFormaPDF() {
   doc.text(address, 14, 26);
   doc.text("Generated: " + today + "  |  Rent Growth: " + (rentGrowth * 100).toFixed(1) + "%/yr  |  Expense Growth: " + (expenseGrowth * 100).toFixed(1) + "%/yr" + (isARM ? "  |  ARM" : ""), 14, 32);
 
+  var tableStartY = 40;
+  var isTeaserRate = isARM && armResetRate > 0 && armResetRate > interestRate;
+  if (isTeaserRate) {
+    doc.setFillColor(254, 243, 199);
+    doc.setDrawColor(245, 158, 11);
+    doc.rect(14, 37, 182, 14, "FD");
+    doc.setFontSize(9);
+    doc.setTextColor(120, 53, 15);
+    doc.text(
+      "TEASER RATE: This loan starts at " + interestRate.toFixed(2) + "% for the first " + armFixedYears +
+      " year" + (armFixedYears === 1 ? "" : "s") + " - a temporary, below-market rate.",
+      18, 43
+    );
+    doc.text(
+      "It resets to " + armResetRate.toFixed(2) + "% after that (see Year " + (armFixedYears + 1) + " below), which is what this loan actually costs long-term.",
+      18, 48
+    );
+    tableStartY = 56;
+  }
+
   doc.autoTable({
-    startY: 40,
+    startY: tableStartY,
     head: [["Year", "Gross Income", "Op. Expenses", "NOI", "Debt Service", "Cash Flow", "Cumulative", "Loan Balance"]],
     body: rows,
     styles: { fontSize: 7.5 },
