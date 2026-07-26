@@ -4732,7 +4732,7 @@ function renderUnits() {
   var el = document.getElementById("unit-list");
   if (!currentUnits.length) { el.innerHTML = "<p class='note'>No units yet.</p>"; return; }
   var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
-  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Apartment #</th><th style='text-align:right;'>Rent</th><th style='text-align:right;'>SF</th><th style='text-align:right;'>Rent/SF</th><th>Status</th><th>Lease</th><th></th></tr>";
+  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Apartment #</th><th>Tenant Name</th><th>Telephone</th><th>Email</th><th style='text-align:right;'>Rent</th><th style='text-align:right;'>SF</th><th style='text-align:right;'>Rent/SF</th><th>Status</th><th>Lease</th><th></th></tr>";
   sorted.forEach(function(u, i) {
     var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
     var status = getUnitStatus(u);
@@ -4740,6 +4740,9 @@ function renderUnits() {
     html += "<tr draggable='true' data-unit-row='" + u.id + "'><td style='cursor:grab;text-align:center;color:#999;font-size:16px;'>&#8942;&#8942;</td>" +
       "<td>" + (u.unitType || "N/A") + "</td>" +
       "<td><input type='text' value='" + esc(u.unitNumber !== undefined ? u.unitNumber : u.label) + "' placeholder='e.g. 204' data-field-id='" + u.id + "' data-field='unitNumber' style='width:90px;padding:4px;font-size:12px;'></td>" +
+      "<td>" + (esc(u.tenantName) || "-") + "</td>" +
+      "<td>" + (esc(u.tenantPhone) || "-") + "</td>" +
+      "<td>" + (esc(u.tenantEmail) || "-") + "</td>" +
       "<td><input type='number' value='" + Number(u.rent || 0) + "' data-field-id='" + u.id + "' data-field='rent' style='width:80px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td><input type='number' value='" + Number(u.sf || 0) + "' data-field-id='" + u.id + "' data-field='sf' style='width:70px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td style='text-align:right;'>" + (rentPerSF !== "N/A" ? "$" + rentPerSF : "N/A") + "</td>" +
@@ -4753,7 +4756,7 @@ function renderUnits() {
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-unit-id='" + u.id + "'>Delete</button></td></tr>";
 
     if (openDetailPanels[u.id]) {
-      html += "<tr><td colspan='9'><div style='background:#f7f6f2;padding:12px;border-radius:6px;'>" +
+      html += "<tr><td colspan='12'><div style='background:#f7f6f2;padding:12px;border-radius:6px;'>" +
         "<div style='display:flex;flex-wrap:wrap;gap:14px;'>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Lease Beginning Date</label><input type='date' id='mi-" + u.id + "' value='" + esc(u.moveInDate) + "' style='padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Term (months)</label><input type='number' id='term-" + u.id + "' value='" + (u.leaseTermMonths || "") + "' style='width:70px;padding:6px;font-size:12px;'></div>" +
