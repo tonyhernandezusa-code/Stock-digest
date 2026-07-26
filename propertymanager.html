@@ -190,11 +190,11 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
         <label>Loan Start Date</label>
         <input type="date" id="d-loanstart" style="max-width:160px;">
         <label>Interest-Only Period (years, optional) - no principal reduction during this time, then converts to a fully-amortizing payment</label>
-        <input type="number" step="0.5" id="d-interestonly" placeholder="e.g. 5" style="max-width:160px;">
+        <input type="number" step="0.5" min="0" id="d-interestonly" placeholder="e.g. 5" style="max-width:160px;">
         <label><input type="checkbox" id="d-isarm" onchange="toggleARMFields()" style="width:auto;display:inline-block;"> This is an ARM (Adjustable Rate Mortgage)</label>
         <div id="arm-fields" style="display:none;">
           <label>Fixed-Rate Period (years) - the rate above holds until this point</label>
-          <input type="number" step="0.5" id="d-armfixed" placeholder="e.g. 5" style="max-width:160px;">
+          <input type="number" step="0.5" min="0" id="d-armfixed" placeholder="e.g. 5" style="max-width:160px;">
           <label>Assumed Rate Increase Per Year After (percentage points) - for stress-testing, e.g. 0.5 means the rate goes up 0.5% every year once the fixed period ends</label>
           <input type="number" step="0.1" id="d-armincrease" placeholder="e.g. 0.5" style="max-width:160px;">
         </div>
@@ -1848,9 +1848,9 @@ function saveFinancingDetails() {
     loanTermYears: parseFloat(document.getElementById("d-term").value) || 0,
     balloonTermYears: parseFloat(document.getElementById("d-balloon").value) || 0,
     loanStartDate: document.getElementById("d-loanstart").value || "",
-    interestOnlyYears: parseFloat(document.getElementById("d-interestonly").value) || 0,
+    interestOnlyYears: Math.max(0, parseFloat(document.getElementById("d-interestonly").value) || 0),
     isARM: document.getElementById("d-isarm").checked,
-    armFixedYears: parseFloat(document.getElementById("d-armfixed").value) || 0,
+    armFixedYears: Math.max(0, parseFloat(document.getElementById("d-armfixed").value) || 0),
     armRateIncreasePerYear: parseFloat(document.getElementById("d-armincrease").value) || 0,
     rentGrowthRate: parseFloat(document.getElementById("d-rentgrowth").value) || 0,
     expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0
