@@ -1655,6 +1655,8 @@ function saveManagementFee() {
   statusEl.style.color = "#888";
   db.collection("properties").doc(currentPropertyId).update(updates).then(function() {
     currentPropertyData = Object.assign({}, currentPropertyData, updates);
+    return syncManagementFeeExpenseEntry();
+  }).then(function() {
     renderSummary();
     renderKeyRatios();
     statusEl.textContent = "Saved.";
@@ -1663,6 +1665,36 @@ function saveManagementFee() {
   }).catch(function(err) {
     statusEl.textContent = "Error: " + err.message;
     statusEl.style.color = "#c0392b";
+  });
+}
+
+// Keeps a real, visible expense entry in sync with the management fee settings, so it shows
+// up in the Expenses list like any other expense (editable, deletable, included in reports),
+// rather than only existing as a background calculation. Finds the existing entry (marked
+// isManagementFeeEntry) if one exists, and creates, updates, or removes it as needed.
+function syncManagementFeeExpenseEntry() {
+  var mgmtFee = getMonthlyManagementFee();
+  var existing = currentExpenses.find(function(e) { return e.isManagementFeeEntry; });
+
+  if (!mgmtFee.amount) {
+    // Self-managed, or fee dropped to $0 - remove any existing synced entry
+    if (existing) {
+      return db.collection("properties").doc(currentPropertyId).collection("entries").doc(existing.id).delete();
+    }
+    return Promise.resolve();
+  }
+
+  if (existing) {
+    return db.collection("properties").doc(currentPropertyId).collection("entries").doc(existing.id).update({
+      amount: mgmtFee.amount
+    });
+  }
+
+  return db.collection("properties").doc(currentPropertyId).collection("entries").add({
+    type: "expense", category: "Management Fee", amount: mgmtFee.amount,
+    date: new Date().toISOString().slice(0, 10), isAnnual: false, isRecurringMonthly: true,
+    isCapEx: false, isManagementFeeEntry: true,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 }
 
@@ -1740,7 +1772,7 @@ function renderKeyRatios() {
   var effective = getEffectiveMonthlyExpenses(operatingExpenses, now.getFullYear(), now.getMonth());
   var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var totalVariableThisMonth = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
-  var totalMonthlyOpEx = manualFixedCosts + autoFixedFromAnnual + totalVariableThisMonth + mgmtFee.amount;
+  var totalMonthlyOpEx = manualFixedCosts + autoFixedFromAnnual + totalVariableThisMonth;
 
   var effectiveIncome = getEffectiveMonthlyExpenses(currentIncomeEntries, now.getFullYear(), now.getMonth());
   var totalOtherIncomeThisMonth = effectiveIncome.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0) +
@@ -1829,7 +1861,7 @@ function renderSummary() {
 
   var effective = getEffectiveMonthlyExpenses(operatingExpenses, thisYear, thisMonthIdx);
   var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
-  var totalFixedThisMonth = manualFixedCosts + autoFixedFromAnnual + mgmtFee.amount;
+  var totalFixedThisMonth = manualFixedCosts + autoFixedFromAnnual;
   var totalVariableThisMonth = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var totalThisMonthExpenses = totalFixedThisMonth + totalVariableThisMonth;
   var totalAllExpenses = operatingExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
@@ -1861,7 +1893,8 @@ function renderSummary() {
     "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong>" +
     (totalOtherIncomeThisMonth ? " &middot; Other income this month: $" + totalOtherIncomeThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) : "") + "<br>" +
     (mgmtFee.amount ? "Management fee this month: $" + mgmtFee.amount.toLocaleString(undefined, {maximumFractionDigits: 0}) +
-      (mgmtFee.excludedUnitId ? " (free apartment - that unit's rent is excluded from income above)" : "") + "<br>" : "") +
+      " (included in Fixed Costs below and itemized in your Expenses list)" +
+      (mgmtFee.excludedUnitId ? " - free apartment, that unit's rent is excluded from income above" : "") + "<br>" : "") +
     "Fixed costs this month: $" + totalFixedThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) +
     " &middot; Variable expenses this month: $" + totalVariableThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) + "<br>" +
     (totalAllCapEx ? "Capital improvements this month: $" + totalCapExThisMonth.toLocaleString() + " &middot; All-time: $" + totalAllCapEx.toLocaleString() + "<br>" : "") +
