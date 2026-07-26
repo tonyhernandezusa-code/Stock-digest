@@ -189,11 +189,16 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
         <input type="number" id="d-balloon" style="max-width:160px;">
         <label>Loan Start Date</label>
         <input type="date" id="d-loanstart" style="max-width:160px;">
+        <label>Annual Rent Growth Rate (%) - for the 5/10-Year Pro Forma</label>
+        <input type="number" step="0.1" id="d-rentgrowth" placeholder="e.g. 3" style="max-width:160px;">
+        <label>Annual Expense Growth Rate (%) - for the 5/10-Year Pro Forma</label>
+        <input type="number" step="0.1" id="d-expensegrowth" placeholder="e.g. 3" style="max-width:160px;">
         <button onclick="saveFinancingDetails()">Save Financing Details</button>
         <span id="financing-save-status" style="margin-left:10px;font-size:13px;"></span>
       </div>
       <div style="margin-top:14px;">
         <button onclick="generateRentRollPDF()">Download Rent Roll PDF</button>
+        <button onclick="generate5And10YearProFormaPDF()">Download 5/10-Year Pro Forma PDF</button>
         <button onclick="generateYTDReportPDF()">Download YTD Summary PDF</button>
       </div>
       <div style="margin-top:14px;">
@@ -1160,6 +1165,8 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-term").value = data.loanTermYears || "";
     document.getElementById("d-balloon").value = data.balloonTermYears || "";
     document.getElementById("d-loanstart").value = data.loanStartDate || "";
+    document.getElementById("d-rentgrowth").value = data.rentGrowthRate || "";
+    document.getElementById("d-expensegrowth").value = data.expenseGrowthRate || "";
     restoreManagementFeeUI();
     renderKeyRatios();
   });
@@ -1337,16 +1344,13 @@ function saveLeaseDetails(unitId) {
   updateUnitField(unitId, "securityDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("sd-" + unitId).value) || 0));
   updateUnitField(unitId, "firstMonthDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("fm-" + unitId).value) || 0));
   updateUnitField(unitId, "lastMonthDeposit", noDeposit ? 0 : (parseFloat(document.getElementById("lm-" + unitId).value) || 0));
-  updateUnitField(unitId, "tenantName", document.getElementById("tn-" + unitId).value.trim());
-  updateUnitField(unitId, "tenantPhone", document.getElementById("tp-" + unitId).value.trim());
-  updateUnitField(unitId, "tenantEmail", document.getElementById("te-" + unitId).value.trim());
 }
 
 function renderUnits() {
   var el = document.getElementById("unit-list");
   if (!currentUnits.length) { el.innerHTML = "<p class='note'>No units yet.</p>"; return; }
   var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
-  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Apartment #</th><th>Tenant Name</th><th>Telephone</th><th>Email</th><th style='text-align:right;'>Rent</th><th style='text-align:right;'>SF</th><th style='text-align:right;'>Rent/SF</th><th>Status</th><th>Lease</th><th></th></tr>";
+  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Apartment #</th><th style='text-align:right;'>Rent</th><th style='text-align:right;'>SF</th><th style='text-align:right;'>Rent/SF</th><th>Status</th><th>Tenant Name</th><th>Phone</th><th>Email</th><th>Lease</th><th></th></tr>";
   sorted.forEach(function(u, i) {
     var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
     var status = getUnitStatus(u);
@@ -1354,9 +1358,6 @@ function renderUnits() {
     html += "<tr draggable='true' data-unit-row='" + u.id + "'><td style='cursor:grab;text-align:center;color:#999;font-size:16px;'>&#8942;&#8942;</td>" +
       "<td>" + (u.unitType || "N/A") + "</td>" +
       "<td><input type='text' value='" + esc(u.unitNumber !== undefined ? u.unitNumber : u.label) + "' placeholder='e.g. 204' data-field-id='" + u.id + "' data-field='unitNumber' style='width:90px;padding:4px;font-size:12px;'></td>" +
-      "<td><input type='text' value='" + esc(u.tenantName) + "' placeholder='Tenant name' data-field-id='" + u.id + "' data-field='tenantName' style='width:120px;padding:4px;font-size:12px;'></td>" +
-      "<td><input type='tel' value='" + esc(u.tenantPhone) + "' placeholder='Phone' data-field-id='" + u.id + "' data-field='tenantPhone' style='width:110px;padding:4px;font-size:12px;'></td>" +
-      "<td><input type='email' value='" + esc(u.tenantEmail) + "' placeholder='Email' data-field-id='" + u.id + "' data-field='tenantEmail' style='width:150px;padding:4px;font-size:12px;'></td>" +
       "<td><input type='number' value='" + Number(u.rent || 0) + "' data-field-id='" + u.id + "' data-field='rent' style='width:80px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td><input type='number' value='" + Number(u.sf || 0) + "' data-field-id='" + u.id + "' data-field='sf' style='width:70px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td style='text-align:right;'>" + (rentPerSF !== "N/A" ? "$" + rentPerSF : "N/A") + "</td>" +
@@ -1366,6 +1367,9 @@ function renderUnits() {
         "<option value='eviction'" + (status === "eviction" ? " selected" : "") + ">Eviction</option>" +
         "<option value='vacant'" + (status === "vacant" ? " selected" : "") + ">Vacant</option>" +
       "</select></td>" +
+      "<td><input type='text' value='" + esc(u.tenantName) + "' placeholder='Tenant name' data-field-id='" + u.id + "' data-field='tenantName' style='width:120px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='tel' value='" + esc(u.tenantPhone) + "' placeholder='Phone' data-field-id='" + u.id + "' data-field='tenantPhone' style='width:110px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='email' value='" + esc(u.tenantEmail) + "' placeholder='Email' data-field-id='" + u.id + "' data-field='tenantEmail' style='width:150px;padding:4px;font-size:12px;'></td>" +
       "<td><button style='margin:0;padding:4px 8px;font-size:11px;' data-toggle-detail='" + u.id + "'>" + (openDetailPanels[u.id] ? "Hide" : "Details") + "</button></td>" +
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-unit-id='" + u.id + "'>Delete</button></td></tr>";
 
@@ -1386,11 +1390,6 @@ function renderUnits() {
         "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;'>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Late Fee Amount</label><input type='number' id='lf-" + u.id + "' value='" + Number(u.lateFeeAmount || 0) + "' style='width:90px;padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Grace Period (days)</label><input type='number' id='gp-" + u.id + "' value='" + (u.gracePeriodDays !== undefined && u.gracePeriodDays !== null ? u.gracePeriodDays : "") + "' style='width:80px;padding:6px;font-size:12px;'></div>" +
-        "</div>" +
-        "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:14px;'>" +
-        "<div><label style='font-size:11px;color:#666;display:block;'>Tenant Name</label><input type='text' id='tn-" + u.id + "' value='" + esc(u.tenantName) + "' style='padding:6px;font-size:12px;'></div>" +
-        "<div><label style='font-size:11px;color:#666;display:block;'>Telephone</label><input type='tel' id='tp-" + u.id + "' value='" + esc(u.tenantPhone) + "' style='padding:6px;font-size:12px;'></div>" +
-        "<div><label style='font-size:11px;color:#666;display:block;'>Email</label><input type='email' id='te-" + u.id + "' value='" + esc(u.tenantEmail) + "' style='padding:6px;font-size:12px;'></div>" +
         "</div>" +
         "<button data-save-detail='" + u.id + "' style='margin-top:12px;'>Save Lease Details</button>" +
         "</div></td></tr>";
@@ -1739,7 +1738,9 @@ function saveFinancingDetails() {
     interestRate: parseFloat(document.getElementById("d-rate").value) || 0,
     loanTermYears: parseFloat(document.getElementById("d-term").value) || 0,
     balloonTermYears: parseFloat(document.getElementById("d-balloon").value) || 0,
-    loanStartDate: document.getElementById("d-loanstart").value || ""
+    loanStartDate: document.getElementById("d-loanstart").value || "",
+    rentGrowthRate: parseFloat(document.getElementById("d-rentgrowth").value) || 0,
+    expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0
   };
   var statusEl = document.getElementById("financing-save-status");
   statusEl.textContent = "Saving...";
@@ -1910,6 +1911,112 @@ function renderSummary() {
 function statusLabel(status) {
   var labels = { rental: "Rental", leased: "Leased", eviction: "Eviction", vacant: "Vacant" };
   return labels[status] || status;
+}
+
+function generate5And10YearProFormaPDF() {
+  if (!currentPropertyId) return;
+  var address = document.getElementById("detail-address").textContent;
+
+  // Year 1 baseline, annualized from current actual data - same exclusions/inclusions as
+  // Key Ratios (manager's free apartment excluded from income, management fee counted as expense,
+  // CapEx excluded since it's not a recurring operating cost).
+  var mgmtFee = getMonthlyManagementFee();
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant" && u.id !== mgmtFee.excludedUnitId; });
+  var totalMonthlyRent = occupiedUnits.reduce(function(s, u) { return s + Number(u.rent || 0); }, 0);
+
+  var now = new Date();
+  var manualFixedCosts = parseFloat((document.getElementById("fixed-monthly-costs") || {}).value) || 0;
+  var operatingExpenses = currentExpenses.filter(function(e) { return !e.isCapEx; });
+  var effective = getEffectiveMonthlyExpenses(operatingExpenses, now.getFullYear(), now.getMonth());
+  var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(s, e) { return s + e.amount; }, 0);
+  var totalVariableThisMonth = effective.variable.reduce(function(s, e) { return s + e.amount; }, 0);
+  var totalMonthlyOpEx = manualFixedCosts + autoFixedFromAnnual + totalVariableThisMonth;
+
+  var effectiveIncome = getEffectiveMonthlyExpenses(currentIncomeEntries, now.getFullYear(), now.getMonth());
+  var totalOtherIncomeThisMonth = effectiveIncome.fixedFromAnnual.reduce(function(s, e) { return s + e.amount; }, 0) +
+    effectiveIncome.variable.reduce(function(s, e) { return s + e.amount; }, 0);
+
+  var year1Income = (totalMonthlyRent + totalOtherIncomeThisMonth) * 12;
+  var year1Expenses = totalMonthlyOpEx * 12;
+
+  var loanAmount = currentPropertyData.loanAmount || 0;
+  var interestRate = currentPropertyData.interestRate || 0;
+  var loanTermYears = currentPropertyData.loanTermYears || 0;
+  var monthlyDebtService = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+  var annualDebtService = monthlyDebtService * 12;
+
+  var rentGrowth = (currentPropertyData.rentGrowthRate || 0) / 100;
+  var expenseGrowth = (currentPropertyData.expenseGrowthRate || 0) / 100;
+
+  var balloonTermYears = currentPropertyData.balloonTermYears || 0;
+  var loanStartDate = currentPropertyData.loanStartDate || "";
+  var balloonDueYear = null;
+  if (loanAmount > 0 && balloonTermYears > 0 && loanStartDate) {
+    var loanStartYear = parseInt(loanStartDate.slice(0, 4), 10);
+    balloonDueYear = loanStartYear + balloonTermYears;
+  }
+
+  var rows = [];
+  var cumulativeCashFlow = 0;
+  for (var year = 1; year <= 10; year++) {
+    var yearIncome = year1Income * Math.pow(1 + rentGrowth, year - 1);
+    var yearExpenses = year1Expenses * Math.pow(1 + expenseGrowth, year - 1);
+    var yearNOI = yearIncome - yearExpenses;
+    var yearCashFlow = yearNOI - annualDebtService;
+    cumulativeCashFlow += yearCashFlow;
+    var calendarYear = new Date().getFullYear() + year - 1;
+    var balloonNote = (balloonDueYear && calendarYear === balloonDueYear) ? " (balloon due)" : "";
+
+    rows.push([
+      "Year " + year + balloonNote,
+      "$" + Math.round(yearIncome).toLocaleString(),
+      "$" + Math.round(yearExpenses).toLocaleString(),
+      "$" + Math.round(yearNOI).toLocaleString(),
+      annualDebtService > 0 ? "-$" + Math.round(annualDebtService).toLocaleString() : "$0",
+      "$" + Math.round(yearCashFlow).toLocaleString(),
+      "$" + Math.round(cumulativeCashFlow).toLocaleString()
+    ]);
+  }
+
+  var doc = new jspdf.jsPDF();
+  var today = new Date().toLocaleDateString();
+
+  doc.setFontSize(16);
+  doc.text("5 & 10-Year Pro Forma", 14, 18);
+  doc.setFontSize(11);
+  doc.setTextColor(80);
+  doc.text(address, 14, 26);
+  doc.text("Generated: " + today + "  |  Rent Growth: " + (rentGrowth * 100).toFixed(1) + "%/yr  |  Expense Growth: " + (expenseGrowth * 100).toFixed(1) + "%/yr", 14, 32);
+
+  doc.autoTable({
+    startY: 40,
+    head: [["Year", "Gross Income", "Op. Expenses", "NOI", "Debt Service", "Cash Flow", "Cumulative"]],
+    body: rows,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [31, 78, 121] },
+    didParseCell: function(data) {
+      if (data.row.index === 4 || data.row.index === 9) { data.cell.styles.fontStyle = "bold"; } // Year 5 and Year 10
+    }
+  });
+
+  var afterTableY = doc.lastAutoTable.finalY + 10;
+  doc.setFontSize(8);
+  doc.setTextColor(140);
+  var noteLines = [
+    "Year 1 is annualized from current actual rent, other income, and operating expenses. Years 2-10 apply the",
+    "growth rates above, compounding annually. Debt Service is held flat (based on your current loan details) and",
+    "does not account for a rate change at refinance.",
+    "This is a projection based on assumptions you provide, not a guarantee - actual results depend on real market",
+    "conditions, tenant turnover, unexpected expenses, and other factors this model cannot predict."
+  ];
+  if (balloonDueYear) {
+    noteLines.push("Note: your loan's balloon payment is due in " + balloonDueYear + " (marked above) - the full remaining balance");
+    noteLines.push("comes due then, requiring a refinance or payoff, which this projection does not model.");
+  }
+  doc.text(noteLines, 14, afterTableY);
+
+  var fileSafeAddress = address.replace(/[^a-z0-9]/gi, "_").slice(0, 40);
+  doc.save("ProForma_5_10Year_" + fileSafeAddress + ".pdf");
 }
 
 function generateRentRollPDF() {
