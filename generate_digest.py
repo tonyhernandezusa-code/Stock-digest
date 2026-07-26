@@ -5495,7 +5495,7 @@ function generate5And10YearProFormaPDF() {
     cumulativeCashFlow += yearCashFlow;
     var balloonNote = (balloonDueYear && calendarYear === balloonDueYear) ? " (balloon due)" : "";
     var ioNote = justTransitioned ? " (IO ends)" : "";
-    var armNote = rateChangedThisYear ? " (rate: " + lastRate.toFixed(2) + "%)" : "";
+    var armNote = simYear ? " (rate: " + lastRate.toFixed(2) + "%)" : "";
 
     rows.push([
       "Year " + year + balloonNote + ioNote + armNote,
