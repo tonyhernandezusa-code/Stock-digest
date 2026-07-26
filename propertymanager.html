@@ -147,6 +147,32 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
       <div id="key-ratios" style="font-size:14px;margin-top:10px;"></div>
       <label style="margin-top:14px;">Fixed Monthly Costs (taxes, insurance, etc. - allocated evenly per month)</label>
       <input type="number" id="fixed-monthly-costs" style="max-width:160px;">
+
+      <h4 style="margin:16px 0 6px;font-size:13px;cursor:pointer;" onclick="toggleManagementForm()">Management Fee <span id="management-toggle-icon">&#9656;</span></h4>
+      <div id="management-form" style="display:none;">
+        <label>Management Fee Structure</label>
+        <select id="mgmt-type" onchange="onManagementTypeChange()" style="max-width:250px;">
+          <option value="none">Self-Managed (No Fee)</option>
+          <option value="flat">Flat Monthly Fee</option>
+          <option value="freeApartment">Free Apartment (value = that unit's rent)</option>
+          <option value="percentage">Percentage of Collected Rent</option>
+        </select>
+        <div id="mgmt-flat-fields" style="display:none;">
+          <label style="max-width:200px;">Monthly Fee ($)</label>
+          <input type="number" id="mgmt-flat-amount" style="max-width:200px;">
+        </div>
+        <div id="mgmt-freeapt-fields" style="display:none;">
+          <label style="max-width:250px;">Which unit is the manager's free apartment?</label>
+          <select id="mgmt-unit" style="max-width:250px;"></select>
+        </div>
+        <div id="mgmt-pct-fields" style="display:none;">
+          <label style="max-width:200px;">Percentage of Collected Rent (%)</label>
+          <input type="number" step="0.1" id="mgmt-pct-amount" style="max-width:200px;">
+        </div>
+        <button onclick="saveManagementFee()">Save Management Fee</button>
+        <span id="management-save-status" style="margin-left:10px;font-size:13px;"></span>
+      </div>
+
       <h4 style="margin:16px 0 6px;font-size:13px;cursor:pointer;" onclick="toggleFinancingForm()">Financing Details <span id="financing-toggle-icon">&#9656;</span></h4>
       <div id="financing-form" style="display:none;">
         <label>Purchase Price</label>
@@ -1134,6 +1160,7 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-term").value = data.loanTermYears || "";
     document.getElementById("d-balloon").value = data.balloonTermYears || "";
     document.getElementById("d-loanstart").value = data.loanStartDate || "";
+    restoreManagementFeeUI();
     renderKeyRatios();
   });
   document.getElementById("fixed-monthly-costs").onblur = function() {
@@ -1154,6 +1181,7 @@ function openPropertyDetail(propertyId, address) {
       renderUnits();
       renderSummary();
       renderKeyRatios();
+      restoreManagementFeeUI();
     });
 
   expensesUnsub = db.collection("properties").doc(propertyId).collection("entries")
@@ -1575,6 +1603,90 @@ function renderExpenses() {
   });
 }
 
+function restoreManagementFeeUI() {
+  var d = currentPropertyData;
+  document.getElementById("mgmt-type").value = d.managementFeeType || "none";
+  document.getElementById("mgmt-flat-amount").value = d.managementFeeFlat || "";
+  document.getElementById("mgmt-pct-amount").value = d.managementFeePct || "";
+  onManagementTypeChange(); // shows the right sub-fields and populates the unit dropdown from currentUnits
+  if (d.managementFeeUnitId) {
+    var sel = document.getElementById("mgmt-unit");
+    if (sel.querySelector("option[value='" + d.managementFeeUnitId + "']")) {
+      sel.value = d.managementFeeUnitId;
+    }
+  }
+}
+
+function toggleManagementForm() {
+  var form = document.getElementById("management-form");
+  var icon = document.getElementById("management-toggle-icon");
+  var isHidden = form.style.display === "none";
+  form.style.display = isHidden ? "block" : "none";
+  icon.innerHTML = isHidden ? "&#9662;" : "&#9656;";
+}
+
+function onManagementTypeChange() {
+  var type = document.getElementById("mgmt-type").value;
+  document.getElementById("mgmt-flat-fields").style.display = type === "flat" ? "block" : "none";
+  document.getElementById("mgmt-freeapt-fields").style.display = type === "freeApartment" ? "block" : "none";
+  document.getElementById("mgmt-pct-fields").style.display = type === "percentage" ? "block" : "none";
+
+  if (type === "freeApartment") {
+    var sel = document.getElementById("mgmt-unit");
+    var currentValue = sel.value;
+    sel.innerHTML = currentUnits.map(function(u) {
+      var label = (u.unitNumber || u.label || u.unitType || "Unit") + " ($" + Number(u.rent || 0).toLocaleString() + "/mo)";
+      return "<option value='" + u.id + "'>" + label + "</option>";
+    }).join("");
+    if (currentValue) sel.value = currentValue;
+  }
+}
+
+function saveManagementFee() {
+  if (!currentPropertyId) return;
+  var updates = {
+    managementFeeType: document.getElementById("mgmt-type").value,
+    managementFeeFlat: parseFloat(document.getElementById("mgmt-flat-amount").value) || 0,
+    managementFeePct: parseFloat(document.getElementById("mgmt-pct-amount").value) || 0,
+    managementFeeUnitId: document.getElementById("mgmt-unit").value || ""
+  };
+  var statusEl = document.getElementById("management-save-status");
+  statusEl.textContent = "Saving...";
+  statusEl.style.color = "#888";
+  db.collection("properties").doc(currentPropertyId).update(updates).then(function() {
+    currentPropertyData = Object.assign({}, currentPropertyData, updates);
+    renderSummary();
+    renderKeyRatios();
+    statusEl.textContent = "Saved.";
+    statusEl.style.color = "#1a8a3d";
+    setTimeout(function() { statusEl.textContent = ""; }, 3000);
+  }).catch(function(err) {
+    statusEl.textContent = "Error: " + err.message;
+    statusEl.style.color = "#c0392b";
+  });
+}
+
+// Computes the actual monthly $ value of the management fee, and (for the Free Apartment
+// case) which unit's rent should be excluded from income since it's not actually collected.
+function getMonthlyManagementFee() {
+  var type = currentPropertyData.managementFeeType || "none";
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var totalMonthlyRent = occupiedUnits.reduce(function(s, u) { return s + Number(u.rent || 0); }, 0);
+
+  if (type === "flat") {
+    return { amount: currentPropertyData.managementFeeFlat || 0, excludedUnitId: null };
+  }
+  if (type === "freeApartment") {
+    var unit = currentUnits.find(function(u) { return u.id === currentPropertyData.managementFeeUnitId; });
+    return { amount: unit ? Number(unit.rent || 0) : 0, excludedUnitId: currentPropertyData.managementFeeUnitId || null };
+  }
+  if (type === "percentage") {
+    var pct = (currentPropertyData.managementFeePct || 0) / 100;
+    return { amount: totalMonthlyRent * pct, excludedUnitId: null };
+  }
+  return { amount: 0, excludedUnitId: null }; // self-managed
+}
+
 function toggleFinancingForm() {
   var form = document.getElementById("financing-form");
   var icon = document.getElementById("financing-toggle-icon");
@@ -1617,7 +1729,8 @@ function renderKeyRatios() {
     return;
   }
 
-  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var mgmtFee = getMonthlyManagementFee();
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant" && u.id !== mgmtFee.excludedUnitId; });
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var grossScheduledIncome = currentUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
 
@@ -1627,7 +1740,7 @@ function renderKeyRatios() {
   var effective = getEffectiveMonthlyExpenses(operatingExpenses, now.getFullYear(), now.getMonth());
   var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var totalVariableThisMonth = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
-  var totalMonthlyOpEx = manualFixedCosts + autoFixedFromAnnual + totalVariableThisMonth;
+  var totalMonthlyOpEx = manualFixedCosts + autoFixedFromAnnual + totalVariableThisMonth + mgmtFee.amount;
 
   var effectiveIncome = getEffectiveMonthlyExpenses(currentIncomeEntries, now.getFullYear(), now.getMonth());
   var totalOtherIncomeThisMonth = effectiveIncome.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0) +
@@ -1696,9 +1809,10 @@ function renderKeyRatios() {
 }
 
 function renderSummary() {
-  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant"; });
+  var mgmtFee = getMonthlyManagementFee();
+  var occupiedUnits = currentUnits.filter(function(u) { return getUnitStatus(u) !== "vacant" && u.id !== mgmtFee.excludedUnitId; });
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
-  var vacantCount = currentUnits.length - occupiedUnits.length;
+  var vacantCount = currentUnits.length - occupiedUnits.length - (mgmtFee.excludedUnitId ? 1 : 0);
 
   var now = new Date();
   var thisYear = now.getFullYear();
@@ -1715,7 +1829,7 @@ function renderSummary() {
 
   var effective = getEffectiveMonthlyExpenses(operatingExpenses, thisYear, thisMonthIdx);
   var autoFixedFromAnnual = effective.fixedFromAnnual.reduce(function(sum, e) { return sum + e.amount; }, 0);
-  var totalFixedThisMonth = manualFixedCosts + autoFixedFromAnnual;
+  var totalFixedThisMonth = manualFixedCosts + autoFixedFromAnnual + mgmtFee.amount;
   var totalVariableThisMonth = effective.variable.reduce(function(sum, e) { return sum + e.amount; }, 0);
   var totalThisMonthExpenses = totalFixedThisMonth + totalVariableThisMonth;
   var totalAllExpenses = operatingExpenses.reduce(function(sum, e) { return sum + Number(e.amount || 0); }, 0);
@@ -1746,12 +1860,14 @@ function renderSummary() {
     (avgRentPerSF !== null ? " &middot; Avg rent/SF (occupied): $" + avgRentPerSF.toFixed(2) : "") + "<br>" +
     "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong>" +
     (totalOtherIncomeThisMonth ? " &middot; Other income this month: $" + totalOtherIncomeThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) : "") + "<br>" +
+    (mgmtFee.amount ? "Management fee this month: $" + mgmtFee.amount.toLocaleString(undefined, {maximumFractionDigits: 0}) +
+      (mgmtFee.excludedUnitId ? " (free apartment - that unit's rent is excluded from income above)" : "") + "<br>" : "") +
     "Fixed costs this month: $" + totalFixedThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) +
     " &middot; Variable expenses this month: $" + totalVariableThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) + "<br>" +
     (totalAllCapEx ? "Capital improvements this month: $" + totalCapExThisMonth.toLocaleString() + " &middot; All-time: $" + totalAllCapEx.toLocaleString() + "<br>" : "") +
     "All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
     "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</span>" +
-    "<br><span style='font-size:11px;color:#888;'>Fixed costs = the Fixed Monthly Costs figure below plus any expenses flagged Annual, divided by 12. Variable expenses are other logged entries dated this month. Capital improvements (flagged CapEx) are tracked separately and don't reduce cash flow here. A simple estimate, not a full P&amp;L.</span>" +
+    "<br><span style='font-size:11px;color:#888;'>Fixed costs = the Fixed Monthly Costs figure below plus any expenses flagged Annual, divided by 12 (this includes the management fee, if set). Variable expenses are other logged entries dated this month. Capital improvements (flagged CapEx) are tracked separately and don't reduce cash flow here. A simple estimate, not a full P&amp;L.</span>" +
     zeroRentWarning;
 }
 
