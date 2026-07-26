@@ -3908,6 +3908,7 @@ function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, in
   var monthlyPayment = null;
   var yearResults = [];
   var yearDebtServiceSum = 0;
+  var ioEndedThisYear = false;
 
   for (var month = 0; month < numYears * 12; month++) {
     var newRate;
@@ -3932,6 +3933,7 @@ function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, in
         // Recalculate only when entering amortization for the first time, or the rate changes -
         // otherwise the payment stays the same between adjustment points, like a real ARM.
         thisMonthPayment = calculateMonthlyPI(balance, currentRate, remainingMonths / 12);
+        if (month === ioMonths && ioMonths > 0) ioEndedThisYear = true;
       } else {
         thisMonthPayment = monthlyPayment;
       }
@@ -3943,8 +3945,9 @@ function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, in
     yearDebtServiceSum += thisMonthPayment;
 
     if ((month + 1) % 12 === 0) {
-      yearResults.push({ debtService: yearDebtServiceSum, endingBalance: balance, rate: currentRate });
+      yearResults.push({ debtService: yearDebtServiceSum, endingBalance: balance, rate: currentRate, ioEndedThisYear: ioEndedThisYear });
       yearDebtServiceSum = 0;
+      ioEndedThisYear = false;
     }
   }
   return yearResults;
@@ -5483,7 +5486,6 @@ function generate5And10YearProFormaPDF() {
 
   var rows = [];
   var cumulativeCashFlow = 0;
-  var ioTransitionNoted = false;
   var lastRate = interestRate;
   for (var year = 1; year <= 10; year++) {
     var yearIncome = year1Income * Math.pow(1 + rentGrowth, year - 1);
@@ -5495,10 +5497,7 @@ function generate5And10YearProFormaPDF() {
     var simYear = simulatedYears[simIndex];
     var annualDebtService = simYear ? simYear.debtService : 0;
     var endingBalance = simYear ? simYear.endingBalance : 0;
-    var ioMonths = Math.round(interestOnlyYears * 12);
-    var monthsElapsedThisYear = getMonthsElapsedSinceLoanStart(loanStartDateForProForma, calendarYear, 6);
-    var justTransitioned = interestOnlyYears > 0 && !ioTransitionNoted && monthsElapsedThisYear >= ioMonths;
-    if (justTransitioned) ioTransitionNoted = true;
+    var justTransitioned = simYear ? simYear.ioEndedThisYear : false;
     var rateChangedThisYear = simYear && simYear.rate !== lastRate;
     if (simYear) lastRate = simYear.rate;
 
