@@ -3576,6 +3576,8 @@ __NAV__
       <input type="number" id="u-count" value="1" min="1" style="max-width:400px;">
       <label style="max-width:400px;">Rent per Unit</label>
       <input type="number" id="u-rent" style="max-width:400px;">
+      <label style="max-width:400px;">Living Area (sq ft per unit)</label>
+      <input type="number" id="u-sf" style="max-width:400px;">
       <button onclick="addUnitBatch()">Add Units</button>
       <div class="err" id="unit-error"></div>
       <div id="unit-list" style="margin-top:12px;"></div>
@@ -4574,6 +4576,7 @@ function addUnitBatch() {
   var unitType = document.getElementById("u-type").value.trim();
   var count = parseInt(document.getElementById("u-count").value, 10) || 0;
   var rent = parseFloat(document.getElementById("u-rent").value) || 0;
+  var sf = parseFloat(document.getElementById("u-sf").value) || 0;
   showError("unit-error", "");
   if (!unitType) { showError("unit-error", "Enter a unit type, e.g. '1 Bed / 1 Bath'."); return; }
   if (count < 1) { showError("unit-error", "Enter how many units of this type to add."); return; }
@@ -4589,6 +4592,7 @@ function addUnitBatch() {
       unitType: unitType,
       unitNumber: "",
       rent: rent,
+      sf: sf,
       status: "vacant",
       sortOrder: maxSort + i,
       leaseTermMonths: null,
@@ -4699,14 +4703,17 @@ function renderUnits() {
   var el = document.getElementById("unit-list");
   if (!currentUnits.length) { el.innerHTML = "<p class='note'>No units yet.</p>"; return; }
   var sorted = currentUnits.slice().sort(function(a, b) { return (a.sortOrder || 0) - (b.sortOrder || 0); });
-  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Apartment #</th><th style='text-align:right;'>Rent</th><th>Status</th><th>Lease</th><th></th></tr>";
+  var html = "<div class='table-wrap'><table><tr><th></th><th>Type</th><th>Apartment #</th><th style='text-align:right;'>Rent</th><th style='text-align:right;'>SF</th><th style='text-align:right;'>Rent/SF</th><th>Status</th><th>Lease</th><th></th></tr>";
   sorted.forEach(function(u, i) {
     var esc = function(s) { return (s || "").toString().replace(/'/g, "&#39;"); };
     var status = getUnitStatus(u);
+    var rentPerSF = (Number(u.sf) > 0) ? (Number(u.rent || 0) / Number(u.sf)).toFixed(2) : "N/A";
     html += "<tr draggable='true' data-unit-row='" + u.id + "'><td style='cursor:grab;text-align:center;color:#999;font-size:16px;'>&#8942;&#8942;</td>" +
       "<td>" + (u.unitType || "N/A") + "</td>" +
       "<td><input type='text' value='" + esc(u.unitNumber !== undefined ? u.unitNumber : u.label) + "' placeholder='e.g. 204' data-field-id='" + u.id + "' data-field='unitNumber' style='width:90px;padding:4px;font-size:12px;'></td>" +
       "<td><input type='number' value='" + Number(u.rent || 0) + "' data-field-id='" + u.id + "' data-field='rent' style='width:80px;padding:4px;font-size:12px;text-align:right;'></td>" +
+      "<td><input type='number' value='" + Number(u.sf || 0) + "' data-field-id='" + u.id + "' data-field='sf' style='width:70px;padding:4px;font-size:12px;text-align:right;'></td>" +
+      "<td style='text-align:right;'>" + (rentPerSF !== "N/A" ? "$" + rentPerSF : "N/A") + "</td>" +
       "<td><select data-status-id='" + u.id + "' style='padding:4px;font-size:12px;'>" +
         "<option value='rental'" + (status === "rental" ? " selected" : "") + ">Rental</option>" +
         "<option value='leased'" + (status === "leased" ? " selected" : "") + ">Leased</option>" +
@@ -4717,7 +4724,7 @@ function renderUnits() {
       "<td><button class='secondary' style='margin:0;padding:4px 10px;font-size:11px;' data-unit-id='" + u.id + "'>Delete</button></td></tr>";
 
     if (openDetailPanels[u.id]) {
-      html += "<tr><td colspan='7'><div style='background:#f7f6f2;padding:12px;border-radius:6px;'>" +
+      html += "<tr><td colspan='9'><div style='background:#f7f6f2;padding:12px;border-radius:6px;'>" +
         "<div style='display:flex;flex-wrap:wrap;gap:14px;'>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Lease Beginning Date</label><input type='date' id='mi-" + u.id + "' value='" + esc(u.moveInDate) + "' style='padding:6px;font-size:12px;'></div>" +
         "<div><label style='font-size:11px;color:#666;display:block;'>Term (months)</label><input type='number' id='term-" + u.id + "' value='" + (u.leaseTermMonths || "") + "' style='width:70px;padding:6px;font-size:12px;'></div>" +
@@ -4749,7 +4756,8 @@ function renderUnits() {
   el.querySelectorAll("input[data-field]").forEach(function(input) {
     input.addEventListener("blur", function() {
       var field = input.getAttribute("data-field");
-      var value = field === "rent" ? (parseFloat(input.value) || 0) : input.value.trim();
+      var numericFields = ["rent", "sf"];
+      var value = numericFields.indexOf(field) !== -1 ? (parseFloat(input.value) || 0) : input.value.trim();
       updateUnitField(input.getAttribute("data-field-id"), field, value);
     });
   });
@@ -5093,8 +5101,22 @@ function renderSummary() {
   var cashFlow = totalMonthlyIncome - totalThisMonthExpenses;
   var cashFlowColor = cashFlow >= 0 ? "#1a8a3d" : "#c0392b";
 
+  var vacantUnits = currentUnits.filter(function(u) { return getUnitStatus(u) === "vacant"; });
+  var vacantWithZeroRent = vacantUnits.filter(function(u) { return !Number(u.rent); });
+  var zeroRentWarning = vacantWithZeroRent.length
+    ? "<div style='margin-top:8px;padding:8px;background:#fef3c7;border-radius:6px;font-size:12px;color:#78350f;'>" +
+      vacantWithZeroRent.length + " vacant unit(s) have a Rent field of $0 - this understates Vacancy Loss on your reports. " +
+      "Enter the market rent that unit would charge if occupied, not $0.</div>"
+    : "";
+
+  var occupiedWithSF = occupiedUnits.filter(function(u) { return Number(u.sf) > 0; });
+  var totalOccupiedSF = occupiedWithSF.reduce(function(s, u) { return s + Number(u.sf); }, 0);
+  var totalOccupiedRentForSF = occupiedWithSF.reduce(function(s, u) { return s + Number(u.rent || 0); }, 0);
+  var avgRentPerSF = totalOccupiedSF > 0 ? (totalOccupiedRentForSF / totalOccupiedSF) : null;
+
   document.getElementById("detail-summary").innerHTML =
-    "Units: " + currentUnits.length + " total &middot; " + occupiedUnits.length + " occupied &middot; " + vacantCount + " vacant<br>" +
+    "Units: " + currentUnits.length + " total &middot; " + occupiedUnits.length + " occupied &middot; " + vacantCount + " vacant" +
+    (avgRentPerSF !== null ? " &middot; Avg rent/SF (occupied): $" + avgRentPerSF.toFixed(2) : "") + "<br>" +
     "Total monthly rent (occupied units): <strong>$" + totalMonthlyRent.toLocaleString() + "</strong>" +
     (totalOtherIncomeThisMonth ? " &middot; Other income this month: $" + totalOtherIncomeThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) : "") + "<br>" +
     "Fixed costs this month: $" + totalFixedThisMonth.toLocaleString(undefined, {maximumFractionDigits: 0}) +
@@ -5102,7 +5124,8 @@ function renderSummary() {
     (totalAllCapEx ? "Capital improvements this month: $" + totalCapExThisMonth.toLocaleString() + " &middot; All-time: $" + totalAllCapEx.toLocaleString() + "<br>" : "") +
     "All-time logged expenses: $" + totalAllExpenses.toLocaleString() + "<br>" +
     "<span style='color:" + cashFlowColor + ";font-weight:600;'>Estimated monthly cash flow: $" + cashFlow.toLocaleString(undefined, {maximumFractionDigits: 0}) + "</span>" +
-    "<br><span style='font-size:11px;color:#888;'>Fixed costs = the Fixed Monthly Costs figure below plus any expenses flagged Annual, divided by 12. Variable expenses are other logged entries dated this month. Capital improvements (flagged CapEx) are tracked separately and don't reduce cash flow here. A simple estimate, not a full P&amp;L.</span>";
+    "<br><span style='font-size:11px;color:#888;'>Fixed costs = the Fixed Monthly Costs figure below plus any expenses flagged Annual, divided by 12. Variable expenses are other logged entries dated this month. Capital improvements (flagged CapEx) are tracked separately and don't reduce cash flow here. A simple estimate, not a full P&amp;L.</span>" +
+    zeroRentWarning;
 }
 
 function statusLabel(status) {
@@ -5308,6 +5331,7 @@ function generateIncomeStatementPDF() {
   var totalMonthlyRent = occupiedUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var grossScheduledIncome = currentUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
   var vacancyLoss = vacantUnits.reduce(function(sum, u) { return sum + Number(u.rent || 0); }, 0);
+  var vacantUnitsWithZeroRent = vacantUnits.filter(function(u) { return !Number(u.rent); });
   var monthsElapsedInYear = monthIdx + 1; // Jan=1 through selected month, inclusive
 
   // CapEx (capital improvements) is excluded from operating expenses - tracked in its own section below.
@@ -5574,8 +5598,20 @@ function generateIncomeStatementPDF() {
   doc.text(address, 14, 26);
   doc.text("Statement Month: " + MONTH_NAMES[monthIdx] + " " + year + "  |  Generated: " + today, 14, 32);
 
+  var tableStartY = 40;
+  if (vacantUnitsWithZeroRent.length) {
+    doc.setFontSize(9);
+    doc.setTextColor(192, 57, 43);
+    doc.text(
+      "Warning: " + vacantUnitsWithZeroRent.length + " vacant unit(s) have a Rent field of $0, which understates Vacancy Loss below.",
+      14, 38
+    );
+    doc.text("Go to that unit in the Units table and enter its market rent (the rent it would charge if occupied), not $0.", 14, 43);
+    tableStartY = 50;
+  }
+
   doc.autoTable({
-    startY: 40,
+    startY: tableStartY,
     head: [["Line Item", MONTH_NAMES[monthIdx] + " " + year, "Year-to-Date", "Projected Annual"]],
     body: rows,
     styles: { fontSize: 9 },
