@@ -3575,6 +3575,8 @@ __NAV__
         <input type="number" id="d-balloon" style="max-width:160px;">
         <label>Loan Start Date</label>
         <input type="date" id="d-loanstart" style="max-width:160px;">
+        <label>Interest-Only Period (years, optional) - no principal reduction during this time, then converts to a fully-amortizing payment</label>
+        <input type="number" step="0.5" id="d-interestonly" placeholder="e.g. 5" style="max-width:160px;">
         <label>Annual Rent Growth Rate (%) - for the 5/10-Year Pro Forma</label>
         <input type="number" step="0.1" id="d-rentgrowth" placeholder="e.g. 3" style="max-width:160px;">
         <label>Annual Expense Growth Rate (%) - for the 5/10-Year Pro Forma</label>
@@ -3821,6 +3823,18 @@ function toggleAddPropertyForm() {
 }
 
 // Standard amortization formula for monthly Principal & Interest payment.
+// Reusable across Key Ratios, the Balloon calculation, Income Statement, and the 5/10-Year
+// Pro Forma - all need to know how many monthly payments have been made as of a given point.
+function getMonthsElapsedSinceLoanStart(loanStartDate, asOfYear, asOfMonthIdx) {
+  if (!loanStartDate) return 0;
+  var startYear = parseInt(loanStartDate.slice(0, 4), 10);
+  var startMonthIdx = parseInt(loanStartDate.slice(5, 7), 10) - 1;
+  if (isNaN(startYear) || isNaN(startMonthIdx)) return 0;
+  var startLinearMonth = startYear * 12 + startMonthIdx;
+  var asOfLinearMonth = asOfYear * 12 + asOfMonthIdx;
+  return Math.max(0, asOfLinearMonth - startLinearMonth);
+}
+
 function calculateMonthlyPI(loanAmount, annualRatePct, termYears) {
   if (!loanAmount || loanAmount <= 0 || !termYears || termYears <= 0) return 0;
   var n = termYears * 12;
@@ -3840,6 +3854,30 @@ function calculateRemainingBalance(loanAmount, annualRatePct, amortTermYears, pa
   if (!annualRatePct || annualRatePct === 0) return loanAmount * (1 - p / n);
   var r = (annualRatePct / 100) / 12;
   return loanAmount * (Math.pow(1 + r, n) - Math.pow(1 + r, p)) / (Math.pow(1 + r, n) - 1);
+}
+
+// Monthly payment accounting for an interest-only period: during IO, the payment is just
+// interest on the full principal (no reduction); once IO ends, the payment recalculates to
+// fully amortize the ORIGINAL principal (since it never went down) over whatever years remain
+// in the total amortization term - this correctly produces the real-world "payment shock"
+// interest-only loans are known for.
+function calculateMonthlyDebtService(loanAmount, annualRatePct, amortTermYears, interestOnlyYears, monthsElapsed) {
+  var ioMonths = Math.round((interestOnlyYears || 0) * 12);
+  if (monthsElapsed < ioMonths) {
+    return loanAmount * ((annualRatePct || 0) / 100) / 12;
+  }
+  var remainingYears = amortTermYears - (interestOnlyYears || 0);
+  return calculateMonthlyPI(loanAmount, annualRatePct, remainingYears);
+}
+
+// Remaining balance accounting for an interest-only period - the balance stays at the full
+// original amount throughout IO (since no principal is being paid down), then decreases
+// normally once amortization begins.
+function calculateRemainingBalanceWithIO(loanAmount, annualRatePct, amortTermYears, interestOnlyYears, monthsElapsed) {
+  var ioMonths = Math.round((interestOnlyYears || 0) * 12);
+  if (monthsElapsed <= ioMonths) return loanAmount;
+  var remainingYears = amortTermYears - (interestOnlyYears || 0);
+  return calculateRemainingBalance(loanAmount, annualRatePct, remainingYears, monthsElapsed - ioMonths);
 }
 
 // Financed capital improvements (e.g. a roof paid off over 5 years) show up as a recurring
@@ -4551,6 +4589,7 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-term").value = data.loanTermYears || "";
     document.getElementById("d-balloon").value = data.balloonTermYears || "";
     document.getElementById("d-loanstart").value = data.loanStartDate || "";
+    document.getElementById("d-interestonly").value = data.interestOnlyYears || "";
     document.getElementById("d-rentgrowth").value = data.rentGrowthRate || "";
     document.getElementById("d-expensegrowth").value = data.expenseGrowthRate || "";
     restoreManagementFeeUI();
@@ -5125,6 +5164,7 @@ function saveFinancingDetails() {
     loanTermYears: parseFloat(document.getElementById("d-term").value) || 0,
     balloonTermYears: parseFloat(document.getElementById("d-balloon").value) || 0,
     loanStartDate: document.getElementById("d-loanstart").value || "",
+    interestOnlyYears: parseFloat(document.getElementById("d-interestonly").value) || 0,
     rentGrowthRate: parseFloat(document.getElementById("d-rentgrowth").value) || 0,
     expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0
   };
@@ -5175,8 +5215,10 @@ function renderKeyRatios() {
   var loanAmount = currentPropertyData.loanAmount || 0;
   var interestRate = currentPropertyData.interestRate || 0;
   var loanTermYears = currentPropertyData.loanTermYears || 0;
+  var interestOnlyYears = currentPropertyData.interestOnlyYears || 0;
   var downPayment = currentPropertyData.downPayment || 0;
-  var monthlyMortgagePayment = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+  var monthsElapsed = getMonthsElapsedSinceLoanStart(currentPropertyData.loanStartDate, now.getFullYear(), now.getMonth());
+  var monthlyMortgagePayment = calculateMonthlyDebtService(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsed);
 
   var capExExpenses = currentExpenses.filter(function(e) { return e.isCapEx; });
   var activeCapExFinancing = getCapExFinancingForMonth(capExExpenses, now.getFullYear(), now.getMonth());
@@ -5210,9 +5252,8 @@ function renderKeyRatios() {
     var startYear = parseInt(loanStartDate.slice(0, 4), 10);
     var startMonthIdx = parseInt(loanStartDate.slice(5, 7), 10) - 1;
     var startLinearMonth = startYear * 12 + startMonthIdx;
-    var nowLinearMonth = now.getFullYear() * 12 + now.getMonth();
-    var paymentsMade = Math.max(0, nowLinearMonth - startLinearMonth);
-    var remainingBalance = calculateRemainingBalance(loanAmount, interestRate, loanTermYears, paymentsMade);
+    var paymentsMade = monthsElapsed;
+    var remainingBalance = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, paymentsMade);
     var balloonDueLinearMonth = startLinearMonth + Math.round(balloonTermYears * 12);
     var balloonDueYear = Math.floor(balloonDueLinearMonth / 12);
     var balloonDueMonth = (balloonDueLinearMonth % 12) + 1;
@@ -5328,8 +5369,8 @@ function generate5And10YearProFormaPDF() {
   var loanAmount = currentPropertyData.loanAmount || 0;
   var interestRate = currentPropertyData.interestRate || 0;
   var loanTermYears = currentPropertyData.loanTermYears || 0;
-  var monthlyDebtService = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
-  var annualDebtService = monthlyDebtService * 12;
+  var interestOnlyYears = currentPropertyData.interestOnlyYears || 0;
+  var loanStartDateForProForma = currentPropertyData.loanStartDate || "";
 
   var rentGrowth = (currentPropertyData.rentGrowthRate || 0) / 100;
   var expenseGrowth = (currentPropertyData.expenseGrowthRate || 0) / 100;
@@ -5344,17 +5385,30 @@ function generate5And10YearProFormaPDF() {
 
   var rows = [];
   var cumulativeCashFlow = 0;
+  var ioTransitionNoted = false;
   for (var year = 1; year <= 10; year++) {
     var yearIncome = year1Income * Math.pow(1 + rentGrowth, year - 1);
     var yearExpenses = year1Expenses * Math.pow(1 + expenseGrowth, year - 1);
     var yearNOI = yearIncome - yearExpenses;
+    var calendarYear = new Date().getFullYear() + year - 1;
+
+    // Debt service for THIS specific year - uses the mid-year point (month 6) as a representative
+    // sample, since a full month-by-month breakdown within a single annual pro forma row would
+    // be excessive; the IO-to-amortizing transition is still correctly reflected year to year.
+    var monthsElapsedThisYear = getMonthsElapsedSinceLoanStart(loanStartDateForProForma, calendarYear, 6);
+    var monthlyDebtServiceThisYear = calculateMonthlyDebtService(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsedThisYear);
+    var annualDebtService = monthlyDebtServiceThisYear * 12;
+    var ioMonths = Math.round(interestOnlyYears * 12);
+    var justTransitioned = interestOnlyYears > 0 && !ioTransitionNoted && monthsElapsedThisYear >= ioMonths;
+    if (justTransitioned) ioTransitionNoted = true;
+
     var yearCashFlow = yearNOI - annualDebtService;
     cumulativeCashFlow += yearCashFlow;
-    var calendarYear = new Date().getFullYear() + year - 1;
     var balloonNote = (balloonDueYear && calendarYear === balloonDueYear) ? " (balloon due)" : "";
+    var ioNote = justTransitioned ? " (IO ends)" : "";
 
     rows.push([
-      "Year " + year + balloonNote,
+      "Year " + year + balloonNote + ioNote,
       "$" + Math.round(yearIncome).toLocaleString(),
       "$" + Math.round(yearExpenses).toLocaleString(),
       "$" + Math.round(yearNOI).toLocaleString(),
@@ -5390,8 +5444,9 @@ function generate5And10YearProFormaPDF() {
   doc.setTextColor(140);
   var noteLines = [
     "Year 1 is annualized from current actual rent, other income, and operating expenses. Years 2-10 apply the",
-    "growth rates above, compounding annually. Debt Service is held flat (based on your current loan details) and",
-    "does not account for a rate change at refinance.",
+    "growth rates above, compounding annually. Debt Service reflects your loan's actual terms, including an",
+    "interest-only period if one is set (marked IO ends in the year it converts to a fully-amortizing payment,",
+    "which is typically higher than the interest-only payment) - it does not account for a rate change at refinance.",
     "This is a projection based on assumptions you provide, not a guarantee - actual results depend on real market",
     "conditions, tenant turnover, unexpected expenses, and other factors this model cannot predict."
   ];
@@ -5715,25 +5770,30 @@ function generateIncomeStatementPDF() {
 
   // Debt service: primary mortgage (if financing details are on file) plus any actively-financed
   // capital improvements (e.g. a roof loan) - summed month-by-month for YTD since a CapEx loan
-  // may have started partway through the year and shouldn't be counted before it existed.
+  // (or an interest-only period ending) may change mid-year and shouldn't be applied retroactively.
   var loanAmount = currentPropertyData.loanAmount || 0;
   var interestRate = currentPropertyData.interestRate || 0;
   var loanTermYears = currentPropertyData.loanTermYears || 0;
-  var monthlyMortgagePayment = calculateMonthlyPI(loanAmount, interestRate, loanTermYears);
+  var interestOnlyYears = currentPropertyData.interestOnlyYears || 0;
+  var loanStartDateForDebtService = currentPropertyData.loanStartDate || "";
+  var monthsElapsedForSelectedMonth = getMonthsElapsedSinceLoanStart(loanStartDateForDebtService, year, monthIdx);
+  var monthlyMortgagePayment = calculateMonthlyDebtService(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsedForSelectedMonth);
 
   var thisMonthCapExFinancingItems = getCapExFinancingForMonth(capExExpenses, year, monthIdx);
   var thisMonthCapExFinancing = thisMonthCapExFinancingItems.reduce(function(sum, item) { return sum + item.amount; }, 0);
   var ytdCapExFinancing = 0;
   var ytdCapExFinancingByCategory = {};
+  var ytdMortgagePayments = 0;
   for (var cf = 0; cf <= monthIdx; cf++) {
     getCapExFinancingForMonth(capExExpenses, year, cf).forEach(function(item) {
       ytdCapExFinancing += item.amount;
       ytdCapExFinancingByCategory[item.category] = (ytdCapExFinancingByCategory[item.category] || 0) + item.amount;
     });
+    var monthsElapsedForThatMonth = getMonthsElapsedSinceLoanStart(loanStartDateForDebtService, year, cf);
+    ytdMortgagePayments += calculateMonthlyDebtService(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsedForThatMonth);
   }
 
   var monthlyDebtService = monthlyMortgagePayment + thisMonthCapExFinancing;
-  var ytdMortgagePayments = monthlyMortgagePayment * monthsElapsedInYear;
   var ytdDebtService = ytdMortgagePayments + ytdCapExFinancing;
   var thisMonthCashFlowAfterDebt = thisMonthNOI - monthlyDebtService;
   var ytdCashFlowAfterDebt = ytdNOI - ytdDebtService;
