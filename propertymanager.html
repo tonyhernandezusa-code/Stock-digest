@@ -1871,7 +1871,7 @@ function renderKeyRatios() {
     var balloonDueLinearMonth = startLinearMonth + Math.round(balloonTermYears * 12);
     var balloonDueYear = Math.floor(balloonDueLinearMonth / 12);
     var balloonDueMonth = (balloonDueLinearMonth % 12) + 1;
-    var monthsUntilBalloon = balloonDueLinearMonth - nowLinearMonth;
+    var monthsUntilBalloon = balloonDueLinearMonth - (startLinearMonth + monthsElapsed);
     html += "</div><div style='margin-top:10px;padding:10px;background:#fef3c7;border-radius:6px;font-size:13px;'>" +
       "<strong>Balloon Payment Due:</strong> $" + remainingBalance.toLocaleString(undefined, {maximumFractionDigits: 0}) +
       " (remaining principal) due " + balloonDueMonth + "/" + balloonDueYear +
