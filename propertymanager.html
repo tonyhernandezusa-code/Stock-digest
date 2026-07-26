@@ -193,9 +193,11 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
         <input type="number" step="0.5" min="0" id="d-interestonly" placeholder="e.g. 5" style="max-width:160px;">
         <label><input type="checkbox" id="d-isarm" onchange="toggleARMFields()" style="width:auto;display:inline-block;"> This is an ARM (Adjustable Rate Mortgage)</label>
         <div id="arm-fields" style="display:none;">
-          <label>Fixed-Rate Period (years) - the rate above holds until this point</label>
-          <input type="number" step="0.5" min="0" id="d-armfixed" placeholder="e.g. 5" style="max-width:160px;">
-          <label>Assumed Rate Increase Per Year After (percentage points) - for stress-testing, e.g. 0.5 means the rate goes up 0.5% every year once the fixed period ends</label>
+          <label>Fixed-Rate Period (years) - the "Interest Rate" above (the teaser rate) holds until this point</label>
+          <input type="number" step="0.5" min="0" id="d-armfixed" placeholder="e.g. 3" style="max-width:160px;">
+          <label>Rate After Fixed Period (%) - the fully-indexed rate it resets to once the fixed period ends</label>
+          <input type="number" step="0.01" min="0" id="d-armresetrate" placeholder="e.g. 8" style="max-width:160px;">
+          <label>Assumed Further Increase Per Year After That (percentage points) - for stress-testing continued rate risk, e.g. 0.5 means it climbs another 0.5% every year after the reset above</label>
           <input type="number" step="0.1" id="d-armincrease" placeholder="e.g. 0.5" style="max-width:160px;">
         </div>
         <label>Annual Rent Growth Rate (%) - for the 5/10-Year Pro Forma</label>
@@ -505,9 +507,13 @@ function calculateRemainingBalanceWithIO(loanAmount, annualRatePct, amortTermYea
 // interest-only period, an ARM's rate adjustments, and balance tracking together, since ARM
 // rate changes require recalculating the payment against the current balance and remaining
 // term (there's no single closed-form formula once the rate itself changes mid-loan).
+// Rate structure: initialRatePct (the teaser rate) holds through armFixedYears, then jumps
+// once to armResetRate (the fully-indexed rate), then optionally continues climbing by
+// armRateIncreasePerYear each subsequent year from that new base - modeling continued rate
+// risk after the reset, rather than assuming the rate freezes forever at the first reset.
 // Returns, for each of the requested number of years: the annual debt service paid and the
 // balance remaining at the end of that year.
-function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armRateIncreasePerYear, numYears) {
+function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, numYears) {
   var balance = loanAmount;
   var ioMonths = Math.round((interestOnlyYears || 0) * 12);
   var armFixedMonths = isARM ? Math.round((armFixedYears || 0) * 12) : Infinity;
@@ -518,10 +524,12 @@ function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, in
   var yearDebtServiceSum = 0;
 
   for (var month = 0; month < numYears * 12; month++) {
-    var newRate = initialRatePct;
-    if (isARM && month >= armFixedMonths) {
-      var yearsPastFixed = Math.floor((month - armFixedMonths) / 12);
-      newRate = initialRatePct + (yearsPastFixed + 1) * (armRateIncreasePerYear || 0);
+    var newRate;
+    if (!isARM || month < armFixedMonths) {
+      newRate = initialRatePct; // still within the teaser/fixed-rate period
+    } else {
+      var yearsPastReset = Math.floor((month - armFixedMonths) / 12); // 0 in the reset year itself
+      newRate = (armResetRate || 0) + yearsPastReset * (armRateIncreasePerYear || 0);
     }
     var rateChanged = newRate !== currentRate;
     currentRate = newRate;
@@ -1268,6 +1276,7 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-interestonly").value = data.interestOnlyYears || "";
     document.getElementById("d-isarm").checked = !!data.isARM;
     document.getElementById("d-armfixed").value = data.armFixedYears || "";
+    document.getElementById("d-armresetrate").value = data.armResetRate || "";
     document.getElementById("d-armincrease").value = data.armRateIncreasePerYear || "";
     toggleARMFields();
     document.getElementById("d-rentgrowth").value = data.rentGrowthRate || "";
@@ -1851,6 +1860,7 @@ function saveFinancingDetails() {
     interestOnlyYears: Math.max(0, parseFloat(document.getElementById("d-interestonly").value) || 0),
     isARM: document.getElementById("d-isarm").checked,
     armFixedYears: Math.max(0, parseFloat(document.getElementById("d-armfixed").value) || 0),
+    armResetRate: parseFloat(document.getElementById("d-armresetrate").value) || 0,
     armRateIncreasePerYear: parseFloat(document.getElementById("d-armincrease").value) || 0,
     rentGrowthRate: parseFloat(document.getElementById("d-rentgrowth").value) || 0,
     expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0
@@ -2064,6 +2074,7 @@ function generate5And10YearProFormaPDF() {
 
   var isARM = currentPropertyData.isARM || false;
   var armFixedYears = currentPropertyData.armFixedYears || 0;
+  var armResetRate = currentPropertyData.armResetRate || 0;
   var armRateIncreasePerYear = currentPropertyData.armRateIncreasePerYear || 0;
 
   var balloonTermYears = currentPropertyData.balloonTermYears || 0;
@@ -2081,7 +2092,7 @@ function generate5And10YearProFormaPDF() {
   var monthsElapsedAtProjectionStart = getMonthsElapsedSinceLoanStart(loanStartDateForProForma, currentCalendarYear, 0);
   var startYearOffset = Math.round(monthsElapsedAtProjectionStart / 12);
   var simulatedYears = loanAmount > 0
-    ? simulateLoanAmortization(loanAmount, interestRate, loanTermYears, interestOnlyYears, isARM, armFixedYears, armRateIncreasePerYear, startYearOffset + 10)
+    ? simulateLoanAmortization(loanAmount, interestRate, loanTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, startYearOffset + 10)
     : [];
 
   var rows = [];
