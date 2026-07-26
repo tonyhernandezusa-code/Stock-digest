@@ -1354,9 +1354,9 @@ function renderUnits() {
     html += "<tr draggable='true' data-unit-row='" + u.id + "'><td style='cursor:grab;text-align:center;color:#999;font-size:16px;'>&#8942;&#8942;</td>" +
       "<td>" + (u.unitType || "N/A") + "</td>" +
       "<td><input type='text' value='" + esc(u.unitNumber !== undefined ? u.unitNumber : u.label) + "' placeholder='e.g. 204' data-field-id='" + u.id + "' data-field='unitNumber' style='width:90px;padding:4px;font-size:12px;'></td>" +
-      "<td>" + (esc(u.tenantName) || "-") + "</td>" +
-      "<td>" + (esc(u.tenantPhone) || "-") + "</td>" +
-      "<td>" + (esc(u.tenantEmail) || "-") + "</td>" +
+      "<td><input type='text' value='" + esc(u.tenantName) + "' placeholder='Tenant name' data-field-id='" + u.id + "' data-field='tenantName' style='width:120px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='tel' value='" + esc(u.tenantPhone) + "' placeholder='Phone' data-field-id='" + u.id + "' data-field='tenantPhone' style='width:110px;padding:4px;font-size:12px;'></td>" +
+      "<td><input type='email' value='" + esc(u.tenantEmail) + "' placeholder='Email' data-field-id='" + u.id + "' data-field='tenantEmail' style='width:150px;padding:4px;font-size:12px;'></td>" +
       "<td><input type='number' value='" + Number(u.rent || 0) + "' data-field-id='" + u.id + "' data-field='rent' style='width:80px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td><input type='number' value='" + Number(u.sf || 0) + "' data-field-id='" + u.id + "' data-field='sf' style='width:70px;padding:4px;font-size:12px;text-align:right;'></td>" +
       "<td style='text-align:right;'>" + (rentPerSF !== "N/A" ? "$" + rentPerSF : "N/A") + "</td>" +
