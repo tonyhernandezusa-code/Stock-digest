@@ -480,7 +480,8 @@ def downsample_series(values, max_points=20):
 def sparkline_svg(values, width=80, height=24):
     """Render a small inline SVG sparkline from a list of numeric values.
     Color reflects the overall trend: green if the series ends higher than it started,
-    red if lower, gray if flat or if there isn't enough data to draw a meaningful line."""
+    red if lower, gray if flat or if there isn't enough data to draw a meaningful line.
+    Clickable - toggles between line and bar view via toggleSparklineType() in the page JS."""
     values = [v for v in values if v is not None]
     if len(values) < 2:
         return ""
@@ -496,8 +497,11 @@ def sparkline_svg(values, width=80, height=24):
         return round(height - 2 - ((v - lo) / span) * (height - 4), 1)
     points = " ".join(f"{x_for(i)},{y_for(v)}" for i, v in enumerate(values))
     color = "#1a8a3d" if values[-1] > values[0] else "#c0392b" if values[-1] < values[0] else "#999"
+    values_attr = ",".join(str(v) for v in values)
     return (f'<svg class="sparkline" width="{width}" height="{height}" viewBox="0 0 {width} {height}" '
-            f'xmlns="http://www.w3.org/2000/svg"><polyline points="{points}" fill="none" '
+            f'xmlns="http://www.w3.org/2000/svg" data-values="{values_attr}" data-mode="line" '
+            f'onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view">'
+            f'<polyline points="{points}" fill="none" '
             f'stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>')
 
 def fetch_simple_price(symbol):
@@ -998,6 +1002,40 @@ function toggleTheme() {{
   var isDark = document.body.classList.toggle('dark-mode');
   localStorage.setItem('stocksPageTheme', isDark ? 'dark' : 'light');
   document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}}
+
+function toggleSparklineType(svg) {{
+  var values = svg.getAttribute('data-values').split(',').map(Number);
+  var mode = svg.getAttribute('data-mode') === 'bar' ? 'line' : 'bar';
+  svg.setAttribute('data-mode', mode);
+  var width = parseFloat(svg.getAttribute('width'));
+  var height = parseFloat(svg.getAttribute('height'));
+  var n = values.length;
+  var lo = Math.min.apply(null, values);
+  var hi = Math.max.apply(null, values);
+  var span = hi - lo;
+  var color = values[n - 1] > values[0] ? '#1a8a3d' : values[n - 1] < values[0] ? '#c0392b' : '#999';
+  var content;
+  if (mode === 'line') {{
+    var points = values.map(function(v, i) {{
+      var x = (n === 1) ? width / 2 : (i / (n - 1)) * (width - 4) + 2;
+      var y = span === 0 ? height / 2 : height - 2 - ((v - lo) / span) * (height - 4);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }}).join(' ');
+    content = '<polyline points="' + points + '" fill="none" stroke="' + color +
+      '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  }} else {{
+    var slotWidth = (width - 4) / n;
+    var barWidth = slotWidth * 0.7;
+    content = values.map(function(v, i) {{
+      var barHeight = span === 0 ? 2 : ((v - lo) / span) * (height - 6) + 1;
+      var x = 2 + i * slotWidth + (slotWidth - barWidth) / 2;
+      var y = height - 2 - barHeight;
+      return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barWidth.toFixed(1) +
+        '" height="' + barHeight.toFixed(1) + '" fill="' + color + '"/>';
+    }}).join('');
+  }}
+  svg.innerHTML = content;
 }}
 </script>
 {NAV_HTML}
