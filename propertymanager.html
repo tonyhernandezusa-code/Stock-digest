@@ -199,6 +199,7 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
           <input type="number" step="0.01" min="0" id="d-armresetrate" placeholder="e.g. 8" style="max-width:160px;">
           <label>Assumed Further Increase Per Year After That (percentage points) - for stress-testing continued rate risk, e.g. 0.5 means it climbs another 0.5% every year after the reset above</label>
           <input type="number" step="0.1" id="d-armincrease" placeholder="e.g. 0.5" style="max-width:160px;">
+          <label><input type="checkbox" id="d-negam" style="width:auto;display:inline-block;"> Interest actually accrues at the Rate After Fixed Period during the teaser period (negative amortization) - check this only if the teaser payment doesn't cover the real interest owed, so the shortfall adds to your balance</label>
         </div>
         <label>Annual Rent Growth Rate (%) - for the 5/10-Year Pro Forma</label>
         <input type="number" step="0.1" id="d-rentgrowth" placeholder="e.g. 3" style="max-width:160px;">
@@ -504,16 +505,18 @@ function calculateRemainingBalanceWithIO(loanAmount, annualRatePct, amortTermYea
 }
 
 // Full month-by-month amortization simulator - the only correct way to combine an
-// interest-only period, an ARM's rate adjustments, and balance tracking together, since ARM
-// rate changes require recalculating the payment against the current balance and remaining
-// term (there's no single closed-form formula once the rate itself changes mid-loan).
+// interest-only period, an ARM's rate adjustments, negative amortization, and balance tracking
+// together, since ARM rate changes require recalculating the payment against the current
+// balance and remaining term (there's no single closed-form formula once the rate changes).
 // Rate structure: initialRatePct (the teaser rate) holds through armFixedYears, then jumps
 // once to armResetRate (the fully-indexed rate), then optionally continues climbing by
-// armRateIncreasePerYear each subsequent year from that new base - modeling continued rate
-// risk after the reset, rather than assuming the rate freezes forever at the first reset.
+// armRateIncreasePerYear each subsequent year from that new base.
+// If isNegativeAmortization is true, interest actually ACCRUES at armResetRate throughout the
+// teaser period (not the teaser rate) - so the payment (based on the lower teaser rate) doesn't
+// cover the real interest owed, and the shortfall is added to the balance each month.
 // Returns, for each of the requested number of years: the annual debt service paid and the
 // balance remaining at the end of that year.
-function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, numYears) {
+function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, isNegativeAmortization, numYears) {
   var balance = loanAmount;
   var ioMonths = Math.round((interestOnlyYears || 0) * 12);
   var armFixedMonths = isARM ? Math.round((armFixedYears || 0) * 12) : Infinity;
@@ -523,11 +526,13 @@ function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, in
   var yearResults = [];
   var yearDebtServiceSum = 0;
   var ioEndedThisYear = false;
+  var negAmActive = isARM && isNegativeAmortization && (armResetRate || 0) > 0;
 
   for (var month = 0; month < numYears * 12; month++) {
+    var inTeaserPeriod = isARM && month < armFixedMonths;
     var newRate;
     if (!isARM || month < armFixedMonths) {
-      newRate = initialRatePct; // still within the teaser/fixed-rate period
+      newRate = initialRatePct; // still within the teaser/fixed-rate period (payment rate)
     } else {
       var yearsPastReset = Math.floor((month - armFixedMonths) / 12); // 0 in the reset year itself
       newRate = (armResetRate || 0) + yearsPastReset * (armRateIncreasePerYear || 0);
@@ -536,9 +541,14 @@ function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, in
     currentRate = newRate;
     var monthlyRate = currentRate / 100 / 12;
 
+    // The rate interest actually ACCRUES at - only differs from the payment rate during the
+    // negative-amortization teaser period, when it's the higher fully-indexed reset rate.
+    var accrualRate = (negAmActive && inTeaserPeriod) ? armResetRate : currentRate;
+    var accrualMonthlyRate = accrualRate / 100 / 12;
+
     var thisMonthPayment;
     if (month < ioMonths) {
-      thisMonthPayment = balance * monthlyRate; // interest-only: recalculates naturally if rate changes
+      thisMonthPayment = balance * monthlyRate; // interest-only, calculated at the PAYMENT rate
     } else {
       var remainingMonths = totalTermMonths - month;
       if (remainingMonths <= 0) {
@@ -551,10 +561,16 @@ function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, in
       } else {
         thisMonthPayment = monthlyPayment;
       }
-      var interestPortion = balance * monthlyRate;
-      var principalPortion = thisMonthPayment - interestPortion;
-      balance = Math.max(0, balance - principalPortion);
     }
+
+    // Unified balance update: interest actually accrued (at accrualRate) vs. what was paid.
+    // In the normal case these match, so principalPortion is 0 during IO, same as before.
+    // During negative amortization, accrued interest exceeds the payment, so principalPortion
+    // is negative - meaning the balance GROWS instead of shrinking.
+    var interestAccrued = balance * accrualMonthlyRate;
+    var principalPortion = thisMonthPayment - interestAccrued;
+    balance = Math.max(0, balance - principalPortion);
+
     monthlyPayment = thisMonthPayment;
     yearDebtServiceSum += thisMonthPayment;
 
@@ -1281,6 +1297,7 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-armfixed").value = data.armFixedYears || "";
     document.getElementById("d-armresetrate").value = data.armResetRate || "";
     document.getElementById("d-armincrease").value = data.armRateIncreasePerYear || "";
+    document.getElementById("d-negam").checked = !!data.isNegativeAmortization;
     toggleARMFields();
     document.getElementById("d-rentgrowth").value = data.rentGrowthRate || "";
     document.getElementById("d-expensegrowth").value = data.expenseGrowthRate || "";
@@ -1865,6 +1882,7 @@ function saveFinancingDetails() {
     armFixedYears: Math.max(0, parseFloat(document.getElementById("d-armfixed").value) || 0),
     armResetRate: parseFloat(document.getElementById("d-armresetrate").value) || 0,
     armRateIncreasePerYear: parseFloat(document.getElementById("d-armincrease").value) || 0,
+    isNegativeAmortization: document.getElementById("d-negam").checked,
     rentGrowthRate: parseFloat(document.getElementById("d-rentgrowth").value) || 0,
     expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0
   };
@@ -2079,6 +2097,7 @@ function generate5And10YearProFormaPDF() {
   var armFixedYears = currentPropertyData.armFixedYears || 0;
   var armResetRate = currentPropertyData.armResetRate || 0;
   var armRateIncreasePerYear = currentPropertyData.armRateIncreasePerYear || 0;
+  var isNegativeAmortization = currentPropertyData.isNegativeAmortization || false;
 
   var balloonTermYears = currentPropertyData.balloonTermYears || 0;
   var loanStartDate = currentPropertyData.loanStartDate || "";
@@ -2095,7 +2114,7 @@ function generate5And10YearProFormaPDF() {
   var monthsElapsedAtProjectionStart = getMonthsElapsedSinceLoanStart(loanStartDateForProForma, currentCalendarYear, 0);
   var startYearOffset = Math.round(monthsElapsedAtProjectionStart / 12);
   var simulatedYears = loanAmount > 0
-    ? simulateLoanAmortization(loanAmount, interestRate, loanTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, startYearOffset + 10)
+    ? simulateLoanAmortization(loanAmount, interestRate, loanTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, isNegativeAmortization, startYearOffset + 10)
     : [];
 
   var rows = [];
@@ -2146,9 +2165,10 @@ function generate5And10YearProFormaPDF() {
   var tableStartY = 40;
   var isTeaserRate = isARM && armResetRate > 0 && armResetRate > interestRate;
   if (isTeaserRate) {
+    var boxHeight = isNegativeAmortization ? 26 : 14;
     doc.setFillColor(254, 243, 199);
     doc.setDrawColor(245, 158, 11);
-    doc.rect(14, 37, 182, 14, "FD");
+    doc.rect(14, 37, 182, boxHeight, "FD");
     doc.setFontSize(9);
     doc.setTextColor(120, 53, 15);
     doc.text(
@@ -2160,7 +2180,17 @@ function generate5And10YearProFormaPDF() {
       "It resets to " + armResetRate.toFixed(2) + "% after that (see Year " + (armFixedYears + 1) + " below), which is what this loan actually costs long-term.",
       18, 48
     );
-    tableStartY = 56;
+    if (isNegativeAmortization) {
+      doc.setFont(undefined, "bold");
+      doc.text(
+        "NEGATIVE AMORTIZATION: interest is actually accruing at " + armResetRate.toFixed(2) + "% during this period, not " +
+        interestRate.toFixed(2) + "%. The unpaid difference (" + (armResetRate - interestRate).toFixed(2) + "% per year) is added to",
+        18, 53
+      );
+      doc.text("your balance each month - see the Loan Balance column below actually increase during Years 1-" + armFixedYears + ".", 18, 58);
+      doc.setFont(undefined, "normal");
+    }
+    tableStartY = 37 + boxHeight + 6;
   }
 
   doc.autoTable({
