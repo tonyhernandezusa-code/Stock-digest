@@ -366,6 +366,21 @@ def fmt_big_number(n):
         return f"{n/1e3:.0f}K"
     return f"{n:.0f}"
 
+def ai_insight_button(name, value, unit="", pct=None, six_mo=None, history=None):
+    """Small button + collapsible area for the click-to-get-AI-interpretation feature.
+    Embeds the card's data as attributes so the click handler can send it to the Worker."""
+    name_esc = str(name).replace("'", "&#39;")
+    history_str = ",".join(str(v) for v in history) if history else ""
+    pct_str = "" if pct is None else str(pct)
+    six_mo_str = "" if six_mo is None else str(six_mo)
+    return (
+        f"<button onclick='showAIInsight(this)' data-name='{name_esc}' data-value='{value}' "
+        f"data-unit='{unit}' data-pct='{pct_str}' data-sixmo='{six_mo_str}' data-history='{history_str}' "
+        f"style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;"
+        f"border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button>"
+        f"<div class='ai-insight-area' style='display:none;margin-top:4px;'></div>"
+    )
+
 def sixmo_line(old, new, unit="", pt_label=False):
     """Build the '6 months ago' comparison line: amount change + (% change)."""
     if old is None or new is None:
@@ -796,6 +811,7 @@ def simple_cards(items, dollar=True):
         six = sixmo_line(i.get("price_6mo"), i["price"], unit="")
         price_decimals = 2 if i["price"] >= 0.01 else 8
         spark = sparkline_svg(i.get("history", []))
+        insight = ai_insight_button(i['name'], i['price'], prefix, i['pct'], i.get('price_6mo'), i.get('history'))
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
@@ -803,6 +819,7 @@ def simple_cards(items, dollar=True):
       <p style="margin:2px 0 0;font-size:13px;color:{pct_color(i['pct'])};">{i['pct']:+.2f}% today</p>
       {spark}
       {six}
+      {insight}
     </div>"""
     return out
 
@@ -811,6 +828,7 @@ def rate_cards(items):
     for i in items:
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
         spark = sparkline_svg(i.get("history", []))
+        insight = ai_insight_button(i['name'], i['value'], "%", None, i.get('value_6mo'), i.get('history'))
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
@@ -818,6 +836,7 @@ def rate_cards(items):
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
       {spark}
       {six}
+      {insight}
     </div>"""
     return out
 
@@ -842,6 +861,7 @@ def econ_cards(items):
         if i.get("num") is not None and i.get("num_6mo") is not None:
             six = sixmo_line(i["num_6mo"], i["num"], unit="", pt_label=True)
         spark = sparkline_svg(i.get("history", []))
+        insight = ai_insight_button(i['name'], i.get('num', i['display']), "", None, i.get('num_6mo'), i.get('history'))
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
@@ -849,6 +869,7 @@ def econ_cards(items):
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
       {spark}
       {six}
+      {insight}
     </div>"""
     return out
 
@@ -858,6 +879,7 @@ def bond_cards(items):
         val = f"{i['value']:.2f}%"
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
         spark = sparkline_svg(i.get("history", []))
+        insight = ai_insight_button(i['name'], i['value'], "%", None, i.get('value_6mo'), i.get('history'))
         out += f"""
     <div class="card">
       <p class="label">{i['name']}</p>
@@ -865,6 +887,7 @@ def bond_cards(items):
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
       {spark}
       {six}
+      {insight}
     </div>"""
     return out
 
@@ -895,6 +918,7 @@ def currency_cards(items):
             val = f"1 USD = {i['value']:.4f} {i['code']}"
         six = sixmo_line(i.get("value_6mo"), i["value"], unit="")
         spark = sparkline_svg(i.get("history", []))
+        insight = ai_insight_button(f"{i['name']} ({i['code']})", i['value'], "", None, i.get('value_6mo'), i.get('history'))
         out += f"""
     <div class="card" title="{i['name']} ({i['code']}) vs US Dollar, Federal Reserve H.10 daily rate">
       <p class="label">{i['name']} ({i['code']})</p>
@@ -902,6 +926,7 @@ def currency_cards(items):
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
       {spark}
       {six}
+      {insight}
     </div>"""
     return out
 
@@ -1072,6 +1097,47 @@ function toggleAllSparklineType() {{
     }});
   }}
 }})();
+
+var AI_INSIGHT_WORKER_URL = "https://finnhub-proxy.tonyhernandezusa.workers.dev";
+
+function showAIInsight(btn) {{
+  var card = btn.closest('.card');
+  var area = card.querySelector('.ai-insight-area');
+  var isOpen = area.style.display !== 'none';
+  if (isOpen) {{
+    area.style.display = 'none';
+    btn.textContent = '🤖 AI Insight';
+    return;
+  }}
+  area.style.display = 'block';
+  btn.textContent = '🤖 Hide Insight';
+
+  if (area.getAttribute('data-loaded') === 'true') return; // already fetched once, just re-showing
+
+  area.innerHTML = '<span style="font-size:11px;color:#888;">Asking AI for context...</span>';
+  var params = new URLSearchParams({{
+    name: btn.getAttribute('data-name') || '',
+    value: btn.getAttribute('data-value') || '',
+    unit: btn.getAttribute('data-unit') || '',
+    pct: btn.getAttribute('data-pct') || '',
+    sixMo: btn.getAttribute('data-sixmo') || '',
+    history: btn.getAttribute('data-history') || ''
+  }});
+  fetch(AI_INSIGHT_WORKER_URL + '/ai-chart-insight?' + params.toString())
+    .then(function(resp) {{ return resp.json(); }})
+    .then(function(data) {{
+      if (data.error) {{
+        area.innerHTML = '<span style="font-size:11px;color:#c0392b;">' + data.error + '</span>';
+        return;
+      }}
+      area.innerHTML = '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;">' + data.insight + '</p>' +
+        '<span style="font-size:10px;color:#999;">AI-generated - a general explanation, not personalized financial advice.</span>';
+      area.setAttribute('data-loaded', 'true');
+    }})
+    .catch(function() {{
+      area.innerHTML = '<span style="font-size:11px;color:#c0392b;">Could not reach the AI insight service.</span>';
+    }});
+}}
 </script>
 {NAV_HTML}
 <h1>Daily Stock Digest</h1>
