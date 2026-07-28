@@ -497,7 +497,9 @@ def sparkline_svg(values, width=80, height=24):
     Color reflects the overall trend: green if the series ends higher than it started,
     red if lower, gray if flat or if there isn't enough data to draw a meaningful line.
     Clickable - toggles between line and bar view via toggleSparklineType() in the page JS."""
-    values = [v for v in values if v is not None]
+    # v == v is False only for NaN - filters out both None and NaN, since NaN passes
+    # 'is not None' but corrupts min/max/span math, producing invalid SVG coordinates.
+    values = [v for v in values if v is not None and v == v]
     if len(values) < 2:
         return ""
     lo, hi = min(values), max(values)
@@ -1037,11 +1039,12 @@ function toggleTheme() {{
 }}
 
 function renderSparklineAsMode(svg, mode) {{
-  var values = svg.getAttribute('data-values').split(',').map(Number);
+  var values = svg.getAttribute('data-values').split(',').map(Number).filter(function(v) {{ return !isNaN(v); }});
   svg.setAttribute('data-mode', mode);
   var width = parseFloat(svg.getAttribute('width'));
   var height = parseFloat(svg.getAttribute('height'));
   var n = values.length;
+  if (n < 2) return; // not enough valid data to draw anything meaningful
   var lo = Math.min.apply(null, values);
   var hi = Math.max.apply(null, values);
   var span = hi - lo;
@@ -1135,8 +1138,8 @@ function showAIInsight(btn) {{
       var cleaned = data.insight
         .replace(/^#{{1,6}}\s*/gm, '')
         .replace(/\*\*(.+?)\*\*/g, '$1')
-        .replace(/\n\s*\n/g, '</p><p style="font-size:12px;line-height:1.5;margin:8px 0 0;">')
-        .replace(/\n/g, ' ')
+        .replace(/\\n\s*\\n/g, '</p><p style="font-size:12px;line-height:1.5;margin:8px 0 0;">')
+        .replace(/\\n/g, ' ')
         .trim();
       area.innerHTML = '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;">' + cleaned + '</p>' +
         '<span style="font-size:10px;color:#999;">AI-generated - a general explanation, not personalized financial advice.</span>';
