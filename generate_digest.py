@@ -983,11 +983,18 @@ body.dark-mode {{
   background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
   border-radius: 20px; cursor: pointer;
 }}
+#chart-mode-toggle {{
+  position: fixed; top: 56px; right: 16px; z-index: 1000;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+  border-radius: 20px; cursor: pointer;
+}}
 .sparkline {{ display: block; margin-top: 6px; }}
 </style>
 </head>
 <body>
 <button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
+<button id="chart-mode-toggle" onclick="toggleAllSparklineType()">&#128202; View as Bars</button>
 <script>
 (function() {{
   var saved = localStorage.getItem('stocksPageTheme');
@@ -1004,9 +1011,8 @@ function toggleTheme() {{
   document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
 }}
 
-function toggleSparklineType(svg) {{
+function renderSparklineAsMode(svg, mode) {{
   var values = svg.getAttribute('data-values').split(',').map(Number);
-  var mode = svg.getAttribute('data-mode') === 'bar' ? 'line' : 'bar';
   svg.setAttribute('data-mode', mode);
   var width = parseFloat(svg.getAttribute('width'));
   var height = parseFloat(svg.getAttribute('height'));
@@ -1037,6 +1043,35 @@ function toggleSparklineType(svg) {{
   }}
   svg.innerHTML = content;
 }}
+
+function toggleSparklineType(svg) {{
+  var mode = svg.getAttribute('data-mode') === 'bar' ? 'line' : 'bar';
+  renderSparklineAsMode(svg, mode);
+}}
+
+function setAllSparklineType(mode) {{
+  document.querySelectorAll('svg.sparkline').forEach(function(svg) {{
+    renderSparklineAsMode(svg, mode);
+  }});
+  localStorage.setItem('stocksPageChartMode', mode);
+  var btn = document.getElementById('chart-mode-toggle');
+  if (btn) btn.innerHTML = mode === 'bar' ? '&#128200; View as Lines' : '&#128202; View as Bars';
+}}
+
+function toggleAllSparklineType() {{
+  var current = (document.querySelector('svg.sparkline') || {{}}).getAttribute
+    ? document.querySelector('svg.sparkline').getAttribute('data-mode') : 'line';
+  setAllSparklineType(current === 'bar' ? 'line' : 'bar');
+}}
+
+(function() {{
+  var savedChartMode = localStorage.getItem('stocksPageChartMode');
+  if (savedChartMode === 'bar') {{
+    document.addEventListener('DOMContentLoaded', function() {{
+      setAllSparklineType('bar');
+    }});
+  }}
+}})();
 </script>
 {NAV_HTML}
 <h1>Daily Stock Digest</h1>
