@@ -1130,7 +1130,15 @@ function showAIInsight(btn) {{
         area.innerHTML = '<span style="font-size:11px;color:#c0392b;">' + data.error + '</span>';
         return;
       }}
-      area.innerHTML = '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;">' + data.insight + '</p>' +
+      // Defensive cleanup in case the AI includes markdown despite being asked not to -
+      // strip headers/bold markers and convert paragraph breaks to real HTML breaks.
+      var cleaned = data.insight
+        .replace(/^#{{1,6}}\s*/gm, '')
+        .replace(/\*\*(.+?)\*\*/g, '$1')
+        .replace(/\n\s*\n/g, '</p><p style="font-size:12px;line-height:1.5;margin:8px 0 0;">')
+        .replace(/\n/g, ' ')
+        .trim();
+      area.innerHTML = '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;">' + cleaned + '</p>' +
         '<span style="font-size:10px;color:#999;">AI-generated - a general explanation, not personalized financial advice.</span>';
       area.setAttribute('data-loaded', 'true');
     }})
