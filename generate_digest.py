@@ -4101,6 +4101,12 @@ __NAV__
         <input type="number" step="0.1" id="d-rentgrowth" placeholder="e.g. 3" style="max-width:160px;">
         <label>Annual Expense Growth Rate (%) - for the 5/10-Year Pro Forma</label>
         <input type="number" step="0.1" id="d-expensegrowth" placeholder="e.g. 3" style="max-width:160px;">
+        <label>Closing Costs (% of purchase price) - for the IRR calculation, added to your initial cash investment</label>
+        <input type="number" step="0.1" id="d-closingcosts" placeholder="e.g. 3" style="max-width:160px;">
+        <label>Assumed Exit Cap Rate (%) - for the IRR calculation, used to estimate the sale price if you sold at the end of the hold period (Sale Price = that year's NOI &divide; this rate)</label>
+        <input type="number" step="0.01" id="d-exitcaprate" placeholder="e.g. 6" style="max-width:160px;">
+        <label>Selling Costs (% of sale price) - broker commission, closing costs, etc.</label>
+        <input type="number" step="0.1" id="d-sellingcosts" placeholder="e.g. 6" style="max-width:160px;">
         <button onclick="saveFinancingDetails()">Save Financing Details</button>
         <span id="financing-save-status" style="margin-left:10px;font-size:13px;"></span>
       </div>
@@ -4412,6 +4418,27 @@ function calculateRemainingBalanceWithIO(loanAmount, annualRatePct, amortTermYea
 // cover the real interest owed, and the shortfall is added to the balance each month.
 // Returns, for each of the requested number of years: the annual debt service paid and the
 // balance remaining at the end of that year.
+// Solves for the Internal Rate of Return given a series of annual cash flows (index 0 = the
+// initial investment, typically negative). Uses bisection search rather than a closed-form
+// formula, since none exists for an arbitrary cash flow series - verified against known cases
+// and cross-checked against numpy_financial's IRR implementation during development.
+function calculateIRR(cashFlows) {
+  function npv(rate) {
+    return cashFlows.reduce(function(sum, cf, i) { return sum + cf / Math.pow(1 + rate, i); }, 0);
+  }
+  var low = -0.99, high = 10;
+  var npvLow = npv(low), npvHigh = npv(high);
+  if (npvLow * npvHigh > 0) return null; // no clear single IRR found in this range
+  for (var i = 0; i < 100; i++) {
+    var mid = (low + high) / 2;
+    var npvMid = npv(mid);
+    if (Math.abs(npvMid) < 0.0001) return mid;
+    if (npvMid * npvLow < 0) { high = mid; npvHigh = npvMid; }
+    else { low = mid; npvLow = npvMid; }
+  }
+  return (low + high) / 2;
+}
+
 function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, isNegativeAmortization, numYears) {
   var balance = loanAmount;
   var ioMonths = Math.round((interestOnlyYears || 0) * 12);
@@ -5197,6 +5224,9 @@ function openPropertyDetail(propertyId, address) {
     toggleARMFields();
     document.getElementById("d-rentgrowth").value = data.rentGrowthRate || "";
     document.getElementById("d-expensegrowth").value = data.expenseGrowthRate || "";
+    document.getElementById("d-closingcosts").value = data.closingCostsPct || "";
+    document.getElementById("d-exitcaprate").value = data.exitCapRate || "";
+    document.getElementById("d-sellingcosts").value = data.sellingCostsPct || "";
     restoreManagementFeeUI();
     renderKeyRatios();
   });
@@ -5780,7 +5810,10 @@ function saveFinancingDetails() {
     armRateIncreasePerYear: parseFloat(document.getElementById("d-armincrease").value) || 0,
     isNegativeAmortization: document.getElementById("d-negam").checked,
     rentGrowthRate: parseFloat(document.getElementById("d-rentgrowth").value) || 0,
-    expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0
+    expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0,
+    closingCostsPct: parseFloat(document.getElementById("d-closingcosts").value) || 0,
+    exitCapRate: parseFloat(document.getElementById("d-exitcaprate").value) || 0,
+    sellingCostsPct: parseFloat(document.getElementById("d-sellingcosts").value) || 0
   };
   var statusEl = document.getElementById("financing-save-status");
   statusEl.textContent = "Saving...";
@@ -5843,6 +5876,17 @@ function renderKeyRatios() {
 
   var expenseRatio = totalMonthlyIncome > 0 ? (totalMonthlyOpEx * 12) / (totalMonthlyIncome * 12) * 100 : 0;
   var grm = grossScheduledIncome > 0 ? purchasePrice / (grossScheduledIncome * 12) : 0;
+  var ltv = loanAmount > 0 && purchasePrice > 0 ? (loanAmount / purchasePrice) * 100 : null;
+  var debtYield = loanAmount > 0 ? (annualNOI / loanAmount) * 100 : null;
+
+  // Equity Growth: how much of the loan balance gets paid down over the next 12 months from
+  // today - reuses the same tested IO-aware balance calculation, just called twice.
+  var annualPrincipalPaydown = null;
+  if (loanAmount > 0) {
+    var balanceNow = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsed);
+    var balanceIn12Months = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsed + 12);
+    annualPrincipalPaydown = balanceNow - balanceIn12Months;
+  }
 
   var html = "<h4 style='font-size:13px;margin:0 0 6px;'>Key Financial Ratios</h4>" +
     "<div style='display:flex;flex-wrap:wrap;gap:16px;font-size:13px;'>" +
@@ -5857,7 +5901,10 @@ function renderKeyRatios() {
     html += "<div><strong>Monthly Debt Service:</strong> $" + monthlyDebtService.toLocaleString(undefined, {maximumFractionDigits: 0}) +
       (monthlyCapExFinancing > 0 ? " <span style='font-size:11px;color:#888;'>(incl. $" + monthlyCapExFinancing.toLocaleString(undefined, {maximumFractionDigits: 0}) + " financed CapEx)</span>" : "") + "</div>" +
       "<div><strong>DSCR:</strong> " + dscr.toFixed(2) + (dscr < 1.25 ? " <span style='color:#c0392b;'>(below typical 1.25 lender minimum)</span>" : "") + "</div>" +
-      (cashOnCash !== null ? "<div><strong>Cash-on-Cash Return:</strong> " + cashOnCash.toFixed(2) + "%</div>" : "");
+      (cashOnCash !== null ? "<div><strong>Cash-on-Cash Return:</strong> " + cashOnCash.toFixed(2) + "%</div>" : "") +
+      (ltv !== null ? "<div><strong>LTV:</strong> " + ltv.toFixed(1) + "%" + (ltv > 75 ? " <span style='color:#c0392b;'>(above typical 75% lender max)</span>" : "") + "</div>" : "") +
+      (debtYield !== null ? "<div><strong>Debt Yield:</strong> " + debtYield.toFixed(2) + "%" + (debtYield < 8 ? " <span style='color:#c0392b;'>(below typical 8% lender minimum)</span>" : "") + "</div>" : "") +
+      (annualPrincipalPaydown !== null ? "<div><strong>Equity Growth (next 12mo):</strong> $" + annualPrincipalPaydown.toLocaleString(undefined, {maximumFractionDigits: 0}) + " principal paydown" + (annualPrincipalPaydown === 0 ? " <span style='font-size:11px;color:#888;'>(interest-only - no paydown yet)</span>" : "") + "</div>" : "");
   }
 
   var balloonTermYears = currentPropertyData.balloonTermYears || 0;
@@ -5879,6 +5926,30 @@ function renderKeyRatios() {
       "</div>";
   } else {
     html += "</div>";
+  }
+
+  // Lending-target comparison table - shows how the property's metrics stack up against
+  // typical commercial underwriting guidelines. Cap Rate has no universal target (it's
+  // market/property-type dependent), so it's shown for reference without a pass/fail mark.
+  if (loanAmount > 0) {
+    var occupancyPct = currentUnits.length > 0 ? (occupiedUnits.length / currentUnits.length) * 100 : null;
+    var vacancyPct = occupancyPct !== null ? 100 - occupancyPct : null;
+    var checks = [
+      { label: "Loan-to-Value", value: ltv, fmt: "%", target: "&le; 75%", pass: ltv !== null ? ltv <= 75 : null },
+      { label: "DSCR", value: dscr, fmt: "", target: "&ge; 1.25", pass: dscr > 0 ? dscr >= 1.25 : null },
+      { label: "Cap Rate", value: capRate, fmt: "%", target: "Market dependent", pass: null },
+      { label: "Debt Yield", value: debtYield, fmt: "%", target: "&ge; 8%", pass: debtYield !== null ? debtYield >= 8 : null },
+      { label: "Occupancy", value: occupancyPct, fmt: "%", target: "&ge; 90%", pass: occupancyPct !== null ? occupancyPct >= 90 : null },
+      { label: "Vacancy", value: vacancyPct, fmt: "%", target: "&le; 10%", pass: vacancyPct !== null ? vacancyPct <= 10 : null }
+    ];
+    html += "<h4 style='font-size:13px;margin:14px 0 6px;'>Lending Guideline Comparison</h4>" +
+      "<div class='table-wrap'><table><tr><th>Metric</th><th style='text-align:right;'>Property</th><th>Typical Target</th><th>Status</th></tr>";
+    checks.forEach(function(c) {
+      var valStr = c.value === null ? "N/A" : c.value.toFixed(2) + c.fmt;
+      var statusStr = c.pass === null ? "&mdash;" : (c.pass ? "<span style='color:#1a8a3d;'>&#10003;</span>" : "<span style='color:#c0392b;'>&#10007;</span>");
+      html += "<tr><td>" + c.label + "</td><td style='text-align:right;'>" + valStr + "</td><td>" + c.target + "</td><td>" + statusStr + "</td></tr>";
+    });
+    html += "</table></div>";
   }
 
   html += "<span style='font-size:11px;color:#888;'>Based on this month's rent and expenses, annualized. Cap Rate and Expense Ratio don't depend on financing; DSCR and Cash-on-Cash require loan details under Financing Details.</span>";
@@ -6014,6 +6085,9 @@ function generate5And10YearProFormaPDF() {
     : [];
 
   var rows = [];
+  var yearlyNOI = [];
+  var yearlyCashFlow = [];
+  var yearlyEndingBalance = [];
   var cumulativeCashFlow = 0;
   var lastRate = interestRate;
   for (var year = 1; year <= 10; year++) {
@@ -6031,6 +6105,9 @@ function generate5And10YearProFormaPDF() {
     if (simYear) lastRate = simYear.rate;
 
     var yearCashFlow = yearNOI - annualDebtService;
+    yearlyNOI.push(yearNOI);
+    yearlyCashFlow.push(yearCashFlow);
+    yearlyEndingBalance.push(endingBalance);
     cumulativeCashFlow += yearCashFlow;
     var balloonNote = (balloonDueYear && calendarYear === balloonDueYear) ? " (balloon due)" : "";
     var ioNote = justTransitioned ? " (IO ends)" : "";
@@ -6047,6 +6124,35 @@ function generate5And10YearProFormaPDF() {
       loanAmount > 0 ? "$" + Math.round(endingBalance).toLocaleString() : "N/A"
     ]);
   }
+
+  // IRR at a 5-year and 10-year exit, using the assumed exit cap rate to estimate sale price
+  // (Sale Price = that exit year's NOI / Exit Cap Rate), less selling costs and the remaining
+  // loan balance, to get net sale proceeds added to that final year's cash flow.
+  var downPaymentForIRR = currentPropertyData.downPayment || 0;
+  var purchasePriceForIRR = currentPropertyData.purchasePrice || 0;
+  var closingCostsPct = (currentPropertyData.closingCostsPct || 0) / 100;
+  var exitCapRatePct = currentPropertyData.exitCapRate || 0;
+  var sellingCostsPct = (currentPropertyData.sellingCostsPct || 0) / 100;
+  var initialInvestment = downPaymentForIRR + purchasePriceForIRR * closingCostsPct;
+
+  function irrForHoldPeriod(holdYears) {
+    if (initialInvestment <= 0 || exitCapRatePct <= 0) return null;
+    var exitNOI = yearlyNOI[holdYears - 1];
+    var exitBalance = yearlyEndingBalance[holdYears - 1];
+    var salePrice = exitNOI / (exitCapRatePct / 100);
+    var netSaleProceeds = salePrice * (1 - sellingCostsPct) - exitBalance;
+    var cashFlows = [-initialInvestment];
+    for (var y = 0; y < holdYears; y++) {
+      var cf = yearlyCashFlow[y];
+      if (y === holdYears - 1) cf += netSaleProceeds;
+      cashFlows.push(cf);
+    }
+    var irr = calculateIRR(cashFlows);
+    return { irr: irr, salePrice: salePrice, netSaleProceeds: netSaleProceeds };
+  }
+
+  var irr5 = irrForHoldPeriod(5);
+  var irr10 = irrForHoldPeriod(10);
 
   var doc = new jspdf.jsPDF();
   var today = new Date().toLocaleDateString();
@@ -6101,6 +6207,29 @@ function generate5And10YearProFormaPDF() {
   });
 
   var afterTableY = doc.lastAutoTable.finalY + 10;
+
+  if (irr5 || irr10) {
+    doc.setFontSize(11);
+    doc.setTextColor(31, 78, 121);
+    doc.text("IRR Analysis (assumes sale at exit)", 14, afterTableY);
+    doc.setFontSize(9);
+    doc.setTextColor(60);
+    var irrY = afterTableY + 6;
+    if (irr5) {
+      doc.text("5-Year Hold: IRR " + (irr5.irr !== null ? (irr5.irr * 100).toFixed(1) + "%" : "N/A (check assumptions)") +
+        "  |  Est. Sale Price: $" + Math.round(irr5.salePrice).toLocaleString() +
+        "  |  Net Sale Proceeds: $" + Math.round(irr5.netSaleProceeds).toLocaleString(), 14, irrY);
+      irrY += 5;
+    }
+    if (irr10) {
+      doc.text("10-Year Hold: IRR " + (irr10.irr !== null ? (irr10.irr * 100).toFixed(1) + "%" : "N/A (check assumptions)") +
+        "  |  Est. Sale Price: $" + Math.round(irr10.salePrice).toLocaleString() +
+        "  |  Net Sale Proceeds: $" + Math.round(irr10.netSaleProceeds).toLocaleString(), 14, irrY);
+      irrY += 5;
+    }
+    afterTableY = irrY + 4;
+  }
+
   doc.setFontSize(8);
   doc.setTextColor(140);
   var noteLines = [
@@ -6112,6 +6241,11 @@ function generate5And10YearProFormaPDF() {
     "This is a projection based on assumptions you provide, not a guarantee - actual results depend on real market",
     "conditions, tenant turnover, unexpected expenses, and other factors this model cannot predict."
   ];
+  if (irr5 || irr10) {
+    noteLines.push("IRR assumes you sell at the end of the hold period at the Exit Cap Rate you entered (Sale Price = that year's");
+    noteLines.push("NOI / Exit Cap Rate), less selling costs and the remaining loan balance. This is a projection based on your");
+    noteLines.push("assumptions, not a market prediction - actual sale price and timing depend on real conditions at exit.");
+  }
   if (isARM) {
     noteLines.push("This loan is modeled as an ARM: the rate holds during the fixed period, then increases by the assumed");
     noteLines.push("rate above every year after - marked with the new rate in the year each adjustment takes effect. This is a");
