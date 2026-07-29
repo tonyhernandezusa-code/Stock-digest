@@ -342,6 +342,63 @@ td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:1
 .note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
 """
 
+# Reusable across every page (not just Stocks & Rates) - site-wide dark mode using a single
+# shared localStorage key, so toggling on any one page applies everywhere. Covers both the
+# shared PAGE_CSS elements (via the --variables it already defines) and the common page-specific
+# patterns (calculator boxes, inputs/selects, tabs, tables) that use hardcoded light colors.
+DARK_MODE_CSS = """
+body.dark-mode {
+  --bg: #0d0d0d;
+  --text: #e8e8e8;
+  --text-secondary: #b0b0b0;
+  --text-muted: #909090;
+  --text-faint: #787878;
+  --card-bg: #1a1a1a;
+  --card-border: #333;
+  --table-header-bg: #222;
+  --table-row-border: #2a2a2a;
+}
+#theme-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 1000;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+  border-radius: 20px; cursor: pointer;
+}
+body.dark-mode .calc, body.dark-mode .calc-wide { background: var(--card-bg); border-color: var(--card-border); color: var(--text); }
+body.dark-mode .result { background: #16281a; color: var(--text); }
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+  background: var(--card-bg); color: var(--text); border-color: var(--card-border);
+}
+body.dark-mode .calc-tab-btn { background: var(--card-bg); color: var(--text); border-color: var(--card-border); }
+body.dark-mode .calc-tab-btn.active { background: #1f4e79; color: #fff; }
+body.dark-mode label { color: var(--text-secondary); }
+body.dark-mode table { background: var(--card-bg); }
+body.dark-mode th { background: var(--table-header-bg); color: var(--text); }
+body.dark-mode td { color: var(--text); border-color: var(--table-row-border); }
+body.dark-mode .suggest-btn { background: #1a2f42; color: #9cc4e0; border-color: #2a4258; }
+"""
+
+DARK_MODE_BUTTON = '<button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>\n'
+
+DARK_MODE_JS = """
+(function() {
+  var saved = localStorage.getItem('siteDarkMode');
+  if (saved === 'dark') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('dark-mode');
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.innerHTML = '&#9728; Light Mode';
+    });
+  }
+})();
+function toggleTheme() {
+  var isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('siteDarkMode', isDark ? 'dark' : 'light');
+  var btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}
+"""
+
 def compute_rsi(series, period=14):
     delta = series.diff()
     gain = delta.where(delta > 0, 0).rolling(period).mean()
@@ -1024,7 +1081,7 @@ body.dark-mode {{
 <button id="chart-mode-toggle" onclick="toggleAllSparklineType()">&#128202; View as Bars</button>
 <script>
 (function() {{
-  var saved = localStorage.getItem('stocksPageTheme');
+  var saved = localStorage.getItem('siteDarkMode');
   if (saved === 'dark') {{
     document.addEventListener('DOMContentLoaded', function() {{
       document.body.classList.add('dark-mode');
@@ -1034,7 +1091,7 @@ body.dark-mode {{
 }})();
 function toggleTheme() {{
   var isDark = document.body.classList.toggle('dark-mode');
-  localStorage.setItem('stocksPageTheme', isDark ? 'dark' : 'light');
+  localStorage.setItem('siteDarkMode', isDark ? 'dark' : 'light');
   document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
 }}
 
@@ -1336,9 +1393,11 @@ CALC_TEMPLATE = """<!DOCTYPE html>
 .unit-row .row-remove { flex:0 0 auto; background:#fbe0dd; color:#c0392b; border:1px solid #f3c6c2; border-radius:6px; padding:6px 10px; font-size:11px; cursor:pointer; }
 .unit-row .row-remove:hover { background:#f7cac5; }
 .unit-totals { background:#f0f6ec; border-radius:6px; padding:10px 12px; font-size:13px; margin:8px 0 16px; }
+__DARKMODE_CSS__
 </style>
 </head>
 <body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __NAV__
 <h1>Financial Calculators</h1>
 <p class="timestamp">These calculators run in your browser - nothing is saved or sent anywhere.</p>
@@ -1437,6 +1496,14 @@ __NAV__
 <label>Interest rate (% per year - national average by property type, editable)</label><input type="number" id="cre_rate" value="7.25" step="0.01">
 <label>Amortization period (years - length used to calculate the payment)</label><input type="number" id="cre_amort" value="30">
 <label>Loan term / balloon due (years - 0 for no balloon/fully amortizing, as is standard for 1-4 unit residential loans. Commercial loans on 5+ units commonly have a shorter 5, 7, or 10-yr term with a balloon due, even though the payment is calculated on a longer amortization.)</label><input type="number" id="cre_term" value="0">
+<label>Loan start date (optional - used to show the balloon due date as an actual calendar date, and to determine where you are in an interest-only or ARM schedule)</label><input type="date" id="cre_loanstart">
+<label>Interest-only period (years, optional) - no principal reduction during this time, then converts to a fully-amortizing payment</label><input type="number" step="0.5" min="0" id="cre_io" value="0">
+<label><input type="checkbox" id="cre_isarm" onchange="toggleCREArmFields()" style="width:auto;display:inline-block;"> This is an ARM (Adjustable Rate Mortgage)</label>
+<div id="cre_arm_fields" style="display:none;">
+  <label>Fixed-rate period (years) - the rate above (the teaser rate) holds until this point</label><input type="number" step="0.5" min="0" id="cre_armfixed" value="0">
+  <label>Rate after fixed period (%) - the fully-indexed rate it resets to once the fixed period ends</label><input type="number" step="0.01" min="0" id="cre_armreset" value="0">
+  <label>Assumed further increase per year after that (percentage points)</label><input type="number" step="0.1" id="cre_armincrease" value="0">
+</div>
 <label>Closing costs (% of purchase price - typically 2-3% for residential, 2-5% for commercial)</label><input type="number" id="cre_closing" value="3" step="0.1">
 <h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Income &amp; Operating Expenses</h4>
 <label>Rent roll (unit mix) - add a row for each unit type, enter how many units of that type and the monthly rent per unit</label>
@@ -1929,12 +1996,77 @@ function applyCREDefaults() {
   document.getElementById("cre_term").value = d.term;
   document.getElementById("cre_type_hint").textContent = d.hint;
 }
+function toggleCREArmFields() {
+  document.getElementById("cre_arm_fields").style.display = document.getElementById("cre_isarm").checked ? "block" : "none";
+}
+
+// Same tested month-by-month amortization simulator used in Property Manager - handles an
+// interest-only period, an ARM's rate adjustments (teaser rate holds through the fixed period,
+// then jumps once to the reset rate, then optionally keeps climbing), and balance tracking
+// together, since none of this has a single closed-form formula once the rate itself changes.
+function simulateLoanAmortization(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, numYears) {
+  var balance = loanAmount;
+  var ioMonths = Math.round((interestOnlyYears || 0) * 12);
+  var armFixedMonths = isARM ? Math.round((armFixedYears || 0) * 12) : Infinity;
+  var totalTermMonths = amortTermYears * 12;
+  var currentRate = initialRatePct;
+  var monthlyPayment = null;
+  var yearResults = [];
+  var yearDebtServiceSum = 0;
+
+  for (var month = 0; month < numYears * 12; month++) {
+    var newRate;
+    if (!isARM || month < armFixedMonths) {
+      newRate = initialRatePct;
+    } else {
+      var yearsPastReset = Math.floor((month - armFixedMonths) / 12);
+      newRate = (armResetRate || 0) + yearsPastReset * (armRateIncreasePerYear || 0);
+    }
+    var rateChanged = newRate !== currentRate;
+    currentRate = newRate;
+    var monthlyRate = currentRate / 100 / 12;
+
+    var thisMonthPayment;
+    if (month < ioMonths) {
+      thisMonthPayment = balance * monthlyRate;
+    } else {
+      var remainingMonths = totalTermMonths - month;
+      if (remainingMonths <= 0) {
+        thisMonthPayment = 0;
+      } else if (monthlyPayment === null || rateChanged || month === ioMonths) {
+        thisMonthPayment = calculateMonthlyPI(balance, currentRate, remainingMonths / 12);
+      } else {
+        thisMonthPayment = monthlyPayment;
+      }
+      var interestPortion = balance * monthlyRate;
+      var principalPortion = thisMonthPayment - interestPortion;
+      balance = Math.max(0, balance - principalPortion);
+    }
+    monthlyPayment = thisMonthPayment;
+    yearDebtServiceSum += thisMonthPayment;
+
+    if ((month + 1) % 12 === 0) {
+      yearResults.push({ debtService: yearDebtServiceSum, endingBalance: balance, rate: currentRate, monthlyPayment: thisMonthPayment });
+      yearDebtServiceSum = 0;
+    }
+  }
+  return yearResults;
+}
+
+function calculateMonthlyPI(loanAmount, annualRatePct, termYears) {
+  if (!loanAmount || loanAmount <= 0 || !termYears || termYears <= 0) return 0;
+  var n = termYears * 12;
+  if (!annualRatePct) return loanAmount / n;
+  var r = (annualRatePct / 100) / 12;
+  return loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
 function calcCRE() {
   var propType = document.getElementById("cre_type").value;
   var totalUnits = +document.getElementById("cre_total_units_hidden").value || 0;
   var price = +document.getElementById("cre_price").value;
   var downPct = (+document.getElementById("cre_down_pct").value || 0) / 100;
-  var rate = +document.getElementById("cre_rate").value / 100 / 12;
+  var ratePct = +document.getElementById("cre_rate").value || 0;
   var amortYears = +document.getElementById("cre_amort").value;
   var n = amortYears * 12;
   var termYears = +document.getElementById("cre_term").value || 0;
@@ -1946,6 +2078,12 @@ function calcCRE() {
   var mgmt_pct = (+document.getElementById("cre_mgmt").value || 0) / 100;
   var maint_m = (+document.getElementById("cre_maint").value || 0);
   var other_m = (+document.getElementById("cre_other").value || 0);
+  var loanStartDate = document.getElementById("cre_loanstart").value || "";
+  var ioYears = +document.getElementById("cre_io").value || 0;
+  var isARM = document.getElementById("cre_isarm").checked;
+  var armFixedYears = +document.getElementById("cre_armfixed").value || 0;
+  var armResetRate = +document.getElementById("cre_armreset").value || 0;
+  var armIncrease = +document.getElementById("cre_armincrease").value || 0;
 
   var down = price * downPct;
   var loan = price - down;
@@ -1954,7 +2092,23 @@ function calcCRE() {
 
   if (loan <= 0 || n <= 0 || rent_m <= 0) { show("cre_result", "Check your inputs - purchase price, amortization, and rental income must all be greater than zero."); return; }
 
-  var pmt = rate > 0 ? loan * rate / (1 - Math.pow(1 + rate, -n)) : loan / n;
+  // Months elapsed since loan start (0 if no date given, e.g. evaluating a brand-new deal)
+  var monthsElapsed = 0;
+  if (loanStartDate) {
+    var startYear = parseInt(loanStartDate.slice(0, 4), 10);
+    var startMonthIdx = parseInt(loanStartDate.slice(5, 7), 10) - 1;
+    var today = new Date();
+    var startLinear = startYear * 12 + startMonthIdx;
+    var nowLinear = today.getFullYear() * 12 + today.getMonth();
+    monthsElapsed = Math.max(0, nowLinear - startLinear);
+  }
+
+  // Simulate far enough to cover both today's position and the balloon term (or full amortization)
+  var yearsToSimulate = Math.max(Math.ceil(monthsElapsed / 12) + 1, termYears || amortYears, 1);
+  var simYears = simulateLoanAmortization(loan, ratePct, amortYears, ioYears, isARM, armFixedYears, armResetRate, armIncrease, yearsToSimulate);
+  var currentYearIndex = Math.floor(monthsElapsed / 12);
+  var currentYear = simYears[Math.min(currentYearIndex, simYears.length - 1)] || { monthlyPayment: 0 };
+  var pmt = currentYear.monthlyPayment;
   var annualDebtService = pmt * 12;
 
   var vacancy_loss_m = rent_m * vacancy_pct;
@@ -1972,12 +2126,18 @@ function calcCRE() {
 
   var balloonNote = "";
   if (termYears > 0 && termYears * 12 < n) {
-    var bal = loan;
-    for (var m = 0; m < termYears * 12; m++) {
-      var interest = bal * rate;
-      bal -= (pmt - interest);
+    var balloonYear = simYears[Math.min(termYears - 1, simYears.length - 1)];
+    var bal = balloonYear ? balloonYear.endingBalance : loan;
+    var dueLabel = "year " + termYears;
+    if (loanStartDate) {
+      var startY = parseInt(loanStartDate.slice(0, 4), 10);
+      var startM = parseInt(loanStartDate.slice(5, 7), 10) - 1;
+      var dueLinear = startY * 12 + startM + termYears * 12;
+      var dueYear = Math.floor(dueLinear / 12);
+      var dueMonth = (dueLinear % 12) + 1;
+      dueLabel = dueMonth + "/" + dueYear;
     }
-    balloonNote = "<span style='color:#c0392b;font-weight:600;'>Balloon payment due at year " + termYears + ": " + money(Math.max(bal, 0)) + "</span><br>";
+    balloonNote = "<span style='color:#c0392b;font-weight:600;'>Balloon payment due " + dueLabel + ": " + money(Math.max(bal, 0)) + "</span><br>";
   }
 
   var dscrColor = dscr >= 1.25 ? "#1a8a3d" : (dscr >= 1.0 ? "#a5720b" : "#c0392b");
@@ -2940,7 +3100,10 @@ function calcRV() {
 
 calculators_html = (CALC_TEMPLATE
                     .replace("__CSS__", PAGE_CSS)
-                    .replace("__NAV__", NAV_HTML))
+                    .replace("__NAV__", NAV_HTML)
+                    .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                    .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                    .replace("__DARKMODE_JS__", DARK_MODE_JS))
 
 # ------------------- PAGE 4: PROPERTY / FORECLOSURE SEARCH -------------------
 
@@ -2974,9 +3137,11 @@ SEARCH_TEMPLATE = """<!DOCTYPE html>
   .calc button { width:100%; }
   .calc-tab-btn { flex:1 1 auto; text-align:center; font-size:12px; padding:10px 8px; }
 }
+__DARKMODE_CSS__
 </style>
 </head>
 <body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __NAV__
 <h1>Property &amp; Foreclosure Search</h1>
 <p class="timestamp">Live lookups powered by ATTOM Data, via a Cloudflare Worker proxy.</p>
@@ -3308,7 +3473,10 @@ async function searchForeclosures() {
 
 search_html = (SEARCH_TEMPLATE
                .replace("__CSS__", PAGE_CSS)
-               .replace("__NAV__", NAV_HTML))
+               .replace("__NAV__", NAV_HTML)
+               .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+               .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+               .replace("__DARKMODE_JS__", DARK_MODE_JS))
 
 # ------------------- PAGE 5: STOCK SEARCH -------------------
 
@@ -3339,9 +3507,11 @@ STOCKSEARCH_TEMPLATE = """<!DOCTYPE html>
   .calc input { font-size:16px !important; padding:10px !important; }
   .calc button { width:100%; }
 }
+__DARKMODE_CSS__
 </style>
 </head>
 <body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __NAV__
 <h1>Stock Search</h1>
 <p class="timestamp">Search any U.S. publicly traded company - live data via Finnhub, through a Cloudflare Worker proxy.</p>
@@ -3565,7 +3735,10 @@ async function getAiSummary(symbol) {
 
 stocksearch_html = (STOCKSEARCH_TEMPLATE
                      .replace("__CSS__", PAGE_CSS)
-                     .replace("__NAV__", NAV_HTML))
+                     .replace("__NAV__", NAV_HTML)
+                     .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                     .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                     .replace("__DARKMODE_JS__", DARK_MODE_JS))
 
 tickers_json = json.dumps(all_us_tickers)
 
@@ -3604,9 +3777,12 @@ PROPERTYMANAGER_TEMPLATE = """<!DOCTYPE html>
   .calc input { font-size:16px !important; padding:10px !important; }
   .calc button { width:100%; }
 }
+__DARKMODE_CSS__
+body.dark-mode .property-card { background: var(--card-bg); border-color: var(--card-border); color: var(--text); }
 </style>
 </head>
 <body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __NAV__
 <h1>Property Manager</h1>
 <p class="timestamp">Track your rental properties, units, rent, and expenses in one place.</p>
@@ -6327,7 +6503,10 @@ function generateIncomeStatementPDF() {
 
 propertymanager_html = (PROPERTYMANAGER_TEMPLATE
                         .replace("__CSS__", PAGE_CSS)
-                        .replace("__NAV__", NAV_HTML))
+                        .replace("__NAV__", NAV_HTML)
+                        .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                        .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                        .replace("__DARKMODE_JS__", DARK_MODE_JS))
 
 with open("index.html", "w") as f:
     f.write(stocks_html)
@@ -6375,9 +6554,11 @@ INSIGHTS_TEMPLATE = """<!DOCTYPE html>
   .calc input { font-size:16px !important; padding:10px !important; }
   .calc button { width:100%; }
 }
+__DARKMODE_CSS__
 </style>
 </head>
 <body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __NAV__
 <h1>Market Insights</h1>
 <p class="timestamp">Not yet public - restricted to a single account while data-licensing terms with Finnhub and FINRA are being confirmed.</p>
@@ -6474,7 +6655,10 @@ auth.onAuthStateChanged(function(user) {
 
 insights_html = (INSIGHTS_TEMPLATE
                   .replace("__CSS__", PAGE_CSS)
-                  .replace("__NAV__", NAV_HTML))
+                  .replace("__NAV__", NAV_HTML)
+                  .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                  .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                  .replace("__DARKMODE_JS__", DARK_MODE_JS))
 
 with open("insights.html", "w") as f:
     f.write(insights_html)
