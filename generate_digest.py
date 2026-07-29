@@ -1428,6 +1428,38 @@ __NAV__
   <div><label>Estimated monthly home maintenance ($ - national average, editable)</label><input type="number" id="q_maint" value="300"></div>
   <button type="button" class="suggest-btn" onclick="document.getElementById('q_maint').value=300;">Use Nat'l Avg ($300)</button>
 </div>
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Advanced Loan Structure (optional)</h4>
+<p class="chart-caption" style="text-align:left;margin:0 0 10px;">These change how much loan your monthly budget can support, or how fast you'd pay it off - not everyone needs these, but they matter if you're considering anything other than a plain fixed-rate loan.</p>
+
+<label>Loan type</label>
+<select id="q_loantype" onchange="toggleQualifyAdvanced()">
+<option value="fixed" selected>Standard fixed-rate</option>
+<option value="io">Interest-only period</option>
+<option value="arm">Adjustable rate (ARM)</option>
+</select>
+
+<div id="q_io_fields" style="display:none;">
+  <label>Interest-only period (years) - your qualifying payment during this time is interest only, letting the same budget support a larger loan. Many lenders still qualify you on the full amortizing payment for safety - this shows what's possible if they don't.</label>
+  <input type="number" step="0.5" min="0" id="q_io_years" value="5">
+</div>
+
+<div id="q_arm_fields" style="display:none;">
+  <label>Fixed-rate (teaser) period (years) - the rate above holds until this point</label><input type="number" step="0.5" min="0" id="q_arm_fixed" value="5">
+  <label>Rate after fixed period (%) - the fully-indexed rate it resets to</label><input type="number" step="0.01" min="0" id="q_arm_reset" value="8">
+  <label>Assumed further increase per year after that (percentage points)</label><input type="number" step="0.1" id="q_arm_increase" value="0.5">
+</div>
+
+<label><input type="checkbox" id="q_negam" style="width:auto;display:inline-block;"> Payment doesn't fully cover interest (negative amortization) - <span style="color:#c0392b;font-weight:600;">the unpaid difference gets added to your loan balance, meaning you'd owe MORE over time, not less. This is a genuinely risky structure - shown here for informational comparison, not as a recommendation.</span></label>
+
+<label style="margin-top:10px;">Balloon due (years, optional) - 0 for none. The loan is calculated as if paid off over your loan term above, but the full remaining balance comes due at this point instead, requiring refinance or payoff.</label>
+<input type="number" min="0" id="q_balloon" value="0">
+
+<label style="margin-top:10px;"><input type="checkbox" id="q_biweekly" style="width:auto;display:inline-block;"> Pay biweekly instead of monthly (half the payment every 2 weeks = 13 monthly-equivalent payments/year instead of 12 - shows payoff time and interest saved, doesn't change what you qualify for)</label>
+
+<label>Additional principal payment ($/month, optional) - extra amount applied directly to principal each month, on top of your regular payment</label>
+<input type="number" min="0" id="q_extra_principal" value="0">
+
 <button onclick="calcQualify()">Calculate</button>
 <div class="result" id="q_result"></div>
 </div>
@@ -2215,21 +2247,120 @@ function addPricePremium(amount) {
   var priceField = document.getElementById("a_price");
   priceField.value = (+priceField.value || 0) + amount;
 }
+function toggleQualifyAdvanced() {
+  var type = document.getElementById("q_loantype").value;
+  document.getElementById("q_io_fields").style.display = type === "io" ? "block" : "none";
+  document.getElementById("q_arm_fields").style.display = type === "arm" ? "block" : "none";
+}
+
+// Extended version of the tested Property Manager/CRE simulator, adding biweekly payments
+// (approximated as an extra 1/12 payment's worth of principal each month, once amortizing -
+// a standard, widely-used approximation for biweekly acceleration) and a fixed extra principal
+// amount. Runs month-by-month up to a hard cap (50 years) so a loan structure that genuinely
+// never pays off (e.g. negative amortization with no offsetting extra payment) can't loop forever.
+function simulateLoanWithExtras(loanAmount, initialRatePct, amortTermYears, interestOnlyYears, isARM, armFixedYears, armResetRate, armRateIncreasePerYear, isNegativeAmortization, isBiweekly, extraPrincipal) {
+  var balance = loanAmount;
+  var ioMonths = Math.round((interestOnlyYears || 0) * 12);
+  var armFixedMonths = isARM ? Math.round((armFixedYears || 0) * 12) : Infinity;
+  var totalTermMonths = amortTermYears * 12;
+  var currentRate = initialRatePct;
+  var monthlyPayment = null;
+  var negAmActive = isARM && isNegativeAmortization && (armResetRate || 0) > 0;
+  var totalInterestPaid = 0;
+  var month = 0;
+  var maxMonths = 50 * 12;
+  var firstMonthPayment = null;
+
+  while (month < maxMonths && balance > 0.01) {
+    var inTeaserPeriod = isARM && month < armFixedMonths;
+    var newRate;
+    if (!isARM || month < armFixedMonths) {
+      newRate = initialRatePct;
+    } else {
+      var yearsPastReset = Math.floor((month - armFixedMonths) / 12);
+      newRate = (armResetRate || 0) + yearsPastReset * (armRateIncreasePerYear || 0);
+    }
+    var rateChanged = newRate !== currentRate;
+    currentRate = newRate;
+    var monthlyRate = currentRate / 100 / 12;
+    var accrualRate = (negAmActive && inTeaserPeriod) ? armResetRate : currentRate;
+    var accrualMonthlyRate = accrualRate / 100 / 12;
+
+    var thisMonthPayment;
+    if (month < ioMonths) {
+      thisMonthPayment = balance * monthlyRate;
+    } else {
+      var remainingMonths = totalTermMonths - month;
+      if (remainingMonths <= 0) {
+        thisMonthPayment = 0;
+      } else if (monthlyPayment === null || rateChanged || month === ioMonths) {
+        thisMonthPayment = calculateMonthlyPI(balance, currentRate, remainingMonths / 12);
+      } else {
+        thisMonthPayment = monthlyPayment;
+      }
+    }
+    monthlyPayment = thisMonthPayment;
+    if (firstMonthPayment === null) firstMonthPayment = thisMonthPayment;
+
+    var interestAccrued = balance * accrualMonthlyRate;
+    var principalPortion = thisMonthPayment - interestAccrued;
+
+    var acceleration = 0;
+    if (isBiweekly && month >= ioMonths) acceleration += thisMonthPayment / 12;
+    acceleration += (extraPrincipal || 0);
+    principalPortion += acceleration;
+
+    totalInterestPaid += interestAccrued;
+    balance = Math.max(0, balance - principalPortion);
+    month++;
+  }
+
+  return {
+    monthsToPayoff: month,
+    payoffReached: balance <= 0.01,
+    totalInterestPaid: totalInterestPaid,
+    firstMonthPayment: firstMonthPayment,
+    finalBalance: balance
+  };
+}
+
 function calcQualify() {
   var gm = ((+document.getElementById("q_inc1").value || 0) + (+document.getElementById("q_inc2").value || 0)) / 12;
   var debts = (+document.getElementById("q_debts").value || 0);
   var down = (+document.getElementById("q_down").value || 0);
-  var rate = (+document.getElementById("q_rate").value || 0) / 100 / 12;
-  var n = (+document.getElementById("q_years").value || 30) * 12;
+  var ratePct = (+document.getElementById("q_rate").value || 0);
+  var rate = ratePct / 100 / 12;
+  var years = (+document.getElementById("q_years").value || 30);
+  var n = years * 12;
   var tih = (+document.getElementById("q_tih").value || 0);
   var maint = (+document.getElementById("q_maint").value || 0);
+  var loanType = document.getElementById("q_loantype").value;
+  var ioYears = +document.getElementById("q_io_years").value || 0;
+  var armFixedYears = +document.getElementById("q_arm_fixed").value || 0;
+  var armResetRate = +document.getElementById("q_arm_reset").value || 0;
+  var armIncrease = +document.getElementById("q_arm_increase").value || 0;
+  var isNegAm = document.getElementById("q_negam").checked;
+  var balloonYears = +document.getElementById("q_balloon").value || 0;
+  var isBiweekly = document.getElementById("q_biweekly").checked;
+  var extraPrincipal = +document.getElementById("q_extra_principal").value || 0;
   if (gm <= 0) { show("q_result", "Enter your income."); return; }
+
+  // The rate used to reverse-calculate the loan from the qualifying P&I payment - for IO/ARM,
+  // this is the teaser rate entered above (since that's what the initial payment is based on);
+  // for a plain fixed loan, it's simply the loan's rate.
+  var qualifyRate = ratePct;
+  var qualifyRateDecimal = qualifyRate / 100 / 12;
 
   function scenario(front_pct, back_pct) {
     var housing = Math.min(gm * front_pct, gm * back_pct - debts);
     var pi = housing - tih - maint;
     if (pi <= 0) return null;
-    var loan = rate > 0 ? pi * (1 - Math.pow(1 + rate, -n)) / rate : pi * n;
+    var loan;
+    if (loanType === "io") {
+      loan = qualifyRateDecimal > 0 ? pi / qualifyRateDecimal : pi * n;
+    } else {
+      loan = qualifyRateDecimal > 0 ? pi * (1 - Math.pow(1 + qualifyRateDecimal, -n)) / qualifyRateDecimal : pi * n;
+    }
     return { housing: housing, pi: pi, loan: loan, price: loan + down };
   }
 
@@ -2252,7 +2383,60 @@ function calcQualify() {
       "&nbsp;&nbsp;Max loan: " + money(aggr.loan) + " + your " + money(down) + " down<br>" +
       "&nbsp;&nbsp;Monthly housing budget: " + money(aggr.housing) + "<br><br>";
   }
-  html += "<span style='font-size:11px;color:#888;'>This is an estimate, not a preapproval. Lenders' 28/36 and 31/43 ratios do not actually count maintenance, but it is a real monthly cost - this calculator sets it aside first so the price you see is one you can genuinely afford to live in, not just qualify for. Lenders also weigh credit score, employment history, and cash reserves. The first number uses the classic 28/36 rule: housing under 28% of gross income, all debts under 36%.</span>";
+
+  // Use the more generous (aggressive) scenario for the advanced-structure illustrations below,
+  // since that's the one most likely to actually use them
+  var illustrative = aggr || cons;
+  if (illustrative && (loanType === "io" || loanType === "arm")) {
+    var sim = simulateLoanWithExtras(illustrative.loan, ratePct, years, loanType === "io" ? ioYears : 0,
+      loanType === "arm", loanType === "arm" ? armFixedYears : 0, loanType === "arm" ? armResetRate : 0,
+      loanType === "arm" ? armIncrease : 0, isNegAm, false, 0);
+    html += "<span style='color:#a5720b;font-weight:600;'>Payment change ahead:</span> the payment above is only your ";
+    html += (loanType === "io" ? "interest-only" : "initial teaser-rate") + " payment on the upper-limit loan of " + money(illustrative.loan) + ". ";
+    if (isNegAm && loanType === "arm") {
+      html += "Because this is modeled with negative amortization, your balance would actually <strong style='color:#c0392b;'>grow</strong> during the initial period rather than shrink" +
+        (sim.payoffReached ? "" : " - and at this rate, it would not fully pay off within 50 years") + ". ";
+    }
+    html += "Once " + (loanType === "io" ? "the interest-only period ends" : "the rate resets") + ", expect the payment to rise significantly - budget for that before committing to this structure.<br><br>";
+  }
+
+  if (illustrative && balloonYears > 0 && balloonYears * 12 < n) {
+    var balloonSim = simulateLoanWithExtras(illustrative.loan, ratePct, years, loanType === "io" ? ioYears : 0,
+      loanType === "arm", loanType === "arm" ? armFixedYears : 0, loanType === "arm" ? armResetRate : 0,
+      loanType === "arm" ? armIncrease : 0, isNegAm, false, 0);
+    // Re-simulate but stop exactly at the balloon year to read the balance at that point
+    var balloonMonths = balloonYears * 12;
+    var bal = illustrative.loan, curRate = ratePct, pmt = null;
+    var ioM = Math.round((loanType === "io" ? ioYears : 0) * 12);
+    var armFixedM = loanType === "arm" ? Math.round(armFixedYears * 12) : Infinity;
+    for (var m = 0; m < balloonMonths; m++) {
+      var nr = (!(loanType === "arm") || m < armFixedM) ? ratePct : armResetRate + Math.floor((m - armFixedM) / 12) * armIncrease;
+      curRate = nr;
+      var mr = curRate / 100 / 12;
+      if (m < ioM) { pmt = bal * mr; }
+      else {
+        var remM = n - m;
+        if (pmt === null || m === ioM) pmt = calculateMonthlyPI(bal, curRate, remM / 12);
+        var ip = bal * mr;
+        bal = Math.max(0, bal - (pmt - ip));
+      }
+    }
+    html += "<span style='color:#c0392b;font-weight:600;'>Balloon due at year " + balloonYears + ":</span> " + money(bal) + " remaining principal on the upper-limit loan - you'd need to refinance or pay this off in full at that point.<br><br>";
+  }
+
+  if (illustrative && (isBiweekly || extraPrincipal > 0)) {
+    var baseline = simulateLoanWithExtras(illustrative.loan, ratePct, years, 0, false, 0, 0, 0, false, false, 0);
+    var accelerated = simulateLoanWithExtras(illustrative.loan, ratePct, years, 0, false, 0, 0, 0, false, isBiweekly, extraPrincipal);
+    var yearsSaved = (baseline.monthsToPayoff - accelerated.monthsToPayoff) / 12;
+    var interestSaved = baseline.totalInterestPaid - accelerated.totalInterestPaid;
+    html += "<u>Paying " + (isBiweekly ? "biweekly" : "") + (isBiweekly && extraPrincipal > 0 ? " + " : "") +
+      (extraPrincipal > 0 ? money(extraPrincipal) + "/mo extra principal" : "") + "</u><br>" +
+      "Payoff in " + (accelerated.monthsToPayoff / 12).toFixed(1) + " years instead of " + (baseline.monthsToPayoff / 12).toFixed(1) +
+      " - about " + yearsSaved.toFixed(1) + " years sooner<br>" +
+      "Interest saved: <strong>" + money(interestSaved) + "</strong> over the life of the loan<br><br>";
+  }
+
+  html += "<span style='font-size:11px;color:#888;'>This is an estimate, not a preapproval. Lenders' 28/36 and 31/43 ratios do not actually count maintenance, but it is a real monthly cost - this calculator sets it aside first so the price you see is one you can genuinely afford to live in, not just qualify for. Lenders also weigh credit score, employment history, and cash reserves, and most qualify IO/ARM borrowers on the fully-amortizing or fully-indexed payment rather than the teaser payment shown here, specifically to guard against payment shock. The first number uses the classic 28/36 rule: housing under 28% of gross income, all debts under 36%.</span>";
   show("q_result", html);
 }
 function calcMortgage() {
