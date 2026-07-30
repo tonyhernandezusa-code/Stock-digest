@@ -1,6 +1,8 @@
 import warnings
 warnings.filterwarnings("ignore")
 
+import os
+import re
 import yfinance as yf
 import requests
 import json
@@ -549,6 +551,153 @@ def downsample_series(values, max_points=20):
     indices = [round(i * step) for i in range(max_points)]
     return [values[i] for i in indices]
 
+def call_anthropic_market_alert(snapshot_text):
+    """Calls Claude directly (server-side, once per digest run) to synthesize an overall market
+    condition score and explanation from a snapshot of today's key data. Returns
+    {"score": int, "explanation": str} or None if the key isn't configured or the call fails -
+    callers should treat None as "skip this section," not crash the whole digest generation."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        print("Warning: ANTHROPIC_API_KEY not set - skipping market alert generation")
+        return None
+
+    prompt = ("You are a market conditions summarizer for a personal investor dashboard. Based on today's data below, "
+        "synthesize an overall market condition score from -100 (severe risk - multiple serious warning signs) to +100 "
+        "(strongly favorable - broadly positive conditions), with 0 being neutral/mixed. Today's data: " + snapshot_text + ". "
+        "Respond in exactly this format with nothing else before or after: "
+        "SCORE: [a single integer from -100 to 100]\nEXPLANATION: [4-6 sentences explaining the score, citing the specific "
+        "data points that matter most and why caution or optimism is warranted. Plain prose only, no markdown formatting.]")
+
+    try:
+        resp = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={"Content-Type": "application/json", "x-api-key": api_key, "anthropic-version": "2023-06-01"},
+            json={"model": "claude-haiku-4-5-20251001", "max_tokens": 400, "messages": [{"role": "user", "content": prompt}]},
+            timeout=30
+        )
+        data = resp.json()
+        content = data.get("content", [])
+        text = content[0].get("text", "") if content else ""
+        if not text:
+            print(f"Warning: empty/unexpected response from Anthropic API for market alert: {data}")
+            return None
+        score_match = re.search(r"SCORE:\s*(-?\d+)", text, re.IGNORECASE)
+        explanation_match = re.search(r"EXPLANATION:\s*([\s\S]+)", text, re.IGNORECASE)
+        if not score_match or not explanation_match:
+            print(f"Warning: could not parse market alert response: {text}")
+            return None
+        score = max(-100, min(100, int(score_match.group(1))))
+        return {"score": score, "explanation": explanation_match.group(1).strip()}
+    except Exception as e:
+        print(f"Warning: market alert generation failed ({e})")
+        return None
+
+def load_alert_history(filepath, max_days=400):
+    """Loads a market alert history JSON file (a list of {"date": "YYYY-MM-DD", "score": int}
+    entries). Returns an empty list if the file doesn't exist yet (e.g. the very first run)."""
+    if not os.path.exists(filepath):
+        return []
+    try:
+        with open(filepath, "r") as f:
+            history = json.load(f)
+        return history[-max_days:]
+    except Exception as e:
+        print(f"Warning: could not read history file {filepath} ({e}) - starting fresh")
+        return []
+
+def save_alert_history(filepath, history):
+    """Saves the history list back to disk, so the GitHub Actions workflow can commit it."""
+    with open(filepath, "w") as f:
+        json.dump(history, f)
+
+def append_to_history(history, score, explanation):
+    """Adds today's score and explanation, replacing any existing entry for today (so re-runs
+    on the same day don't create duplicate entries). Explanation is stored too, not just the
+    score, so a later run that skips the API call can still display a full result."""
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    history = [h for h in history if h.get("date") != today_str]
+    history.append({"date": today_str, "score": score, "explanation": explanation})
+    return history
+
+def get_todays_entry(history):
+    """Returns today's history entry if one already exists, so the workflow (which runs every
+    15 minutes for fresh stock prices) doesn't call the AI 96 times a day for the same answer -
+    only the first run of each calendar day actually generates a new market alert."""
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    return next((h for h in history if h.get("date") == today_str), None)
+
+def gauge_svg(score, width=320, height=90):
+    """Server-side rendered horizontal market alert gauge - same visual design as the gauge
+    already used for the live per-visit version, just generated in Python instead of JS."""
+    track_y, track_height = 45, 24
+    def x_for(s):
+        return 10 + ((s + 100) / 200) * (width - 20)
+    needle_x = x_for(score)
+    zones = [(-100, -50, "#b91c1c"), (-50, -15, "#f87171"), (-15, 15, "#d1d5db"),
+              (15, 50, "#86efac"), (50, 100, "#15803d")]
+    zones_svg = "".join(
+        f'<rect x="{x_for(f):.1f}" y="{track_y}" width="{x_for(t) - x_for(f):.1f}" height="{track_height}" fill="{c}"/>'
+        for f, t, c in zones
+    )
+    return (f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">'
+            f'{zones_svg}'
+            f'<line x1="{x_for(0)}" y1="{track_y - 4}" x2="{x_for(0)}" y2="{track_y + track_height + 4}" stroke="#555" stroke-width="1.5"/>'
+            f'<polygon points="{needle_x - 8},{track_y - 12} {needle_x + 8},{track_y - 12} {needle_x},{track_y - 1}" fill="#111"/>'
+            f'<text x="10" y="{track_y + track_height + 20}" font-size="11" fill="#888">-100 Severe Risk</text>'
+            f'<text x="{width / 2}" y="{track_y + track_height + 20}" font-size="11" fill="#888" text-anchor="middle">0</text>'
+            f'<text x="{width - 10}" y="{track_y + track_height + 20}" font-size="11" fill="#888" text-anchor="end">+100 Strong</text>'
+            f'</svg>')
+
+def alert_history_chart_svg(history, days, width=280, height=60):
+    """Small line chart of the score history over the last N days - used for the
+    daily/weekly/monthly/yearly views, each just a different slice of the same history file."""
+    recent = history[-days:] if len(history) > days else history
+    values = [h["score"] for h in recent]
+    if len(values) < 2:
+        return "<span style='font-size:11px;color:#888;'>Not enough history yet for this view.</span>"
+    lo, hi = min(values + [-10]), max(values + [10])  # keep a reasonable range even if scores are all similar
+    span = hi - lo
+    n = len(values)
+    def x_for(i):
+        return round(i / (n - 1) * (width - 4) + 2, 1)
+    def y_for(v):
+        return round(height - 2 - ((v - lo) / span) * (height - 4), 1) if span else round(height / 2, 1)
+    points = " ".join(f"{x_for(i)},{y_for(v)}" for i, v in enumerate(values))
+    color = "#1a8a3d" if values[-1] > values[0] else "#c0392b" if values[-1] < values[0] else "#999"
+    return (f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">'
+            f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+            f'</svg>')
+
+def render_market_alert_section(score_data, history, title):
+    """Builds the full HTML block for a market alert gauge: the gauge itself, score, explanation,
+    and four historical views (daily/weekly/monthly/yearly) from the accumulated history file."""
+    if score_data is None:
+        return (f'<div class="card" style="max-width:100%;margin-bottom:16px;">'
+                f'<p class="label" style="font-size:14px;font-weight:600;color:#333;">{title}</p>'
+                f'<span style="font-size:12px;color:#888;">Not available today - AI market alert generation was skipped or failed. Check the GitHub Actions log for details.</span>'
+                f'</div>')
+    score = score_data["score"]
+    explanation = score_data["explanation"]
+    score_color = "#b91c1c" if score <= -50 else "#f87171" if score <= -15 else "#15803d" if score >= 50 else "#4ade80" if score >= 15 else "#6b7280"
+
+    views = [("Daily (30d)", 30), ("Weekly (90d)", 90), ("Monthly (365d)", 365), ("Yearly (all)", len(history) or 1)]
+    history_html = "<div style='display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;'>"
+    for label, days in views:
+        chart = alert_history_chart_svg(history, days)
+        history_html += f"<div><p style='font-size:11px;color:#666;margin:0 0 2px;'>{label}</p>{chart}</div>"
+    history_html += "</div>"
+
+    return (f'<div class="card" style="max-width:100%;margin-bottom:16px;">'
+            f'<p class="label" style="font-size:14px;font-weight:600;color:#333;">{title}</p>'
+            f'<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">'
+            f'{gauge_svg(score)}'
+            f'<div style="font-size:28px;font-weight:700;color:{score_color};">{"+" if score > 0 else ""}{score}</div>'
+            f'</div>'
+            f'<p style="font-size:12px;line-height:1.5;margin:8px 0 0;max-width:700px;">{explanation}</p>'
+            f'<span style="font-size:10px;color:#999;">AI-generated market synthesis - not personalized financial advice. Updated once daily.</span>'
+            f'{history_html}'
+            f'</div>')
+
 def sparkline_svg(values, width=80, height=24):
     """Render a small inline SVG sparkline from a list of numeric values.
     Color reflects the overall trend: green if the series ends higher than it started,
@@ -816,6 +965,72 @@ state_rows.sort(key=lambda x: -x["yoy"])
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
 top_mover = max(rows, key=lambda r: abs(r["pct"])) if rows else None
+
+# ------------------- MARKET ALERT GAUGES (once per digest run, not per visit) -------------------
+# Reuses data already fetched above - no additional API calls needed beyond the one Claude call
+# per gauge. History accumulates in a small JSON file committed alongside the site each run.
+
+def find_row(rows_list, name):
+    return next((r for r in rows_list if r.get("name") == name), None)
+
+_sp500 = find_row(index_rows, "S&P 500")
+_dow = find_row(index_rows, "Dow Jones")
+_nasdaq = find_row(index_rows, "Nasdaq Composite")
+_fed_funds = find_row(rate_rows, "Fed Funds Rate")
+_yield_curve = find_row(curve_rows, "10-Yr minus 2-Yr Spread")
+_oil = find_row(commodity_rows, "Oil (WTI)")
+_chip_tickers = ["NVDA", "AMD", "INTC", "QCOM", "TSM", "MU", "AVGO"]
+_chip_pcts = [r["pct"] for r in rows if r["ticker"] in _chip_tickers]
+
+_stock_snapshot_parts = []
+if _sp500: _stock_snapshot_parts.append(f"S&P 500: {_sp500['price']} ({_sp500['pct']:+.2f}% today)")
+if _dow: _stock_snapshot_parts.append(f"Dow Jones: {_dow['price']} ({_dow['pct']:+.2f}% today)")
+if _nasdaq: _stock_snapshot_parts.append(f"Nasdaq Composite: {_nasdaq['price']} ({_nasdaq['pct']:+.2f}% today)")
+if _fed_funds: _stock_snapshot_parts.append(f"Fed Funds Rate: {_fed_funds['value']:.2f}%")
+if _yield_curve: _stock_snapshot_parts.append(f"10-Yr minus 2-Yr Spread: {_yield_curve['value']:.2f}")
+if _oil: _stock_snapshot_parts.append(f"Oil (WTI): {_oil['price']} ({_oil['pct']:+.2f}% today)")
+if _chip_pcts:
+    _avg_chip = sum(_chip_pcts) / len(_chip_pcts)
+    _stock_snapshot_parts.append(f"Semiconductor sector (avg of {len(_chip_pcts)} major chip stocks): {_avg_chip:+.2f}% today")
+
+_stock_history = load_alert_history("market_alert_stocks_history.json")
+_todays_stock_entry = get_todays_entry(_stock_history)
+if _todays_stock_entry:
+    # Already generated once today (this workflow runs every 15 min for fresh prices, but the
+    # market alert only needs to run once per day) - reuse today's existing result.
+    _stock_score_data = {"score": _todays_stock_entry["score"], "explanation": _todays_stock_entry["explanation"]}
+else:
+    _stock_score_data = None
+    if _stock_snapshot_parts:
+        _stock_score_data = call_anthropic_market_alert(". ".join(_stock_snapshot_parts))
+    if _stock_score_data:
+        _stock_history = append_to_history(_stock_history, _stock_score_data["score"], _stock_score_data["explanation"])
+        save_alert_history("market_alert_stocks_history.json", _stock_history)
+
+_mortgage_rate = find_row(re_national_rows, "30-Yr Mortgage Rate")
+_housing_starts = find_row(re_national_rows, "Housing Starts (annualized)")
+_permits = find_row(re_national_rows, "Building Permits (annualized)")
+_new_home_sales = find_row(re_national_rows, "New Home Sales (annualized)")
+_delinquency = find_row(re_national_rows, "Mortgage Delinquency Rate")
+
+_re_snapshot_parts = []
+if _mortgage_rate: _re_snapshot_parts.append(f"30-Yr Mortgage Rate: {_mortgage_rate['value']:.2f}%, 6 months ago: {_mortgage_rate.get('value_6mo')}")
+if _housing_starts: _re_snapshot_parts.append(f"Housing Starts (annualized): {_housing_starts['value']:.0f}K, 6 months ago: {_housing_starts.get('value_6mo')}")
+if _permits: _re_snapshot_parts.append(f"Building Permits (annualized): {_permits['value']:.0f}K, 6 months ago: {_permits.get('value_6mo')}")
+if _new_home_sales: _re_snapshot_parts.append(f"New Home Sales (annualized): {_new_home_sales['value']:.0f}K, 6 months ago: {_new_home_sales.get('value_6mo')}")
+if _delinquency: _re_snapshot_parts.append(f"Mortgage Delinquency Rate: {_delinquency['value']:.2f}%, 6 months ago: {_delinquency.get('value_6mo')}")
+
+_re_history = load_alert_history("market_alert_realestate_history.json")
+_todays_re_entry = get_todays_entry(_re_history)
+if _todays_re_entry:
+    _re_score_data = {"score": _todays_re_entry["score"], "explanation": _todays_re_entry["explanation"]}
+else:
+    _re_score_data = None
+    if _re_snapshot_parts:
+        _re_score_data = call_anthropic_market_alert(". ".join(_re_snapshot_parts) + ". This is for a real estate market condition assessment, not general stocks.")
+    if _re_score_data:
+        _re_history = append_to_history(_re_history, _re_score_data["score"], _re_score_data["explanation"])
+        save_alert_history("market_alert_realestate_history.json", _re_history)
 
 # ------------------- HTML HELPERS -------------------
 
@@ -1207,118 +1422,12 @@ function showAIInsight(btn) {{
     }});
 }}
 
-// Market Alert Gauge - gathers a snapshot of today's key market-moving data already on this
-// page (major indices, Fed Funds Rate, yield curve spread, oil, and a semiconductor-sector
-// proxy from the watchlist), sends it to the AI for a synthesized -100 (severe risk) to +100
-// (strongly favorable) score, and renders it as a horizontal gauge with a needle.
-function renderGaugeSVG(score) {{
-  var width = 320, height = 90;
-  var trackY = 45, trackHeight = 24;
-  // Position: score -100 maps to x=10, score +100 maps to x=310 (linear scale)
-  function xFor(s) {{ return 10 + ((s + 100) / 200) * (width - 20); }}
-  var needleX = xFor(score);
-
-  var zones = [
-    {{ from: -100, to: -50, color: '#b91c1c' }},
-    {{ from: -50, to: -15, color: '#f87171' }},
-    {{ from: -15, to: 15, color: '#d1d5db' }},
-    {{ from: 15, to: 50, color: '#86efac' }},
-    {{ from: 50, to: 100, color: '#15803d' }}
-  ];
-  var zonesSVG = zones.map(function(z) {{
-    var x1 = xFor(z.from), x2 = xFor(z.to);
-    return '<rect x="' + x1.toFixed(1) + '" y="' + trackY + '" width="' + (x2 - x1).toFixed(1) + '" height="' + trackHeight + '" fill="' + z.color + '"/>';
-  }}).join('');
-
-  return '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '" xmlns="http://www.w3.org/2000/svg">' +
-    zonesSVG +
-    '<line x1="' + xFor(0) + '" y1="' + (trackY - 4) + '" x2="' + xFor(0) + '" y2="' + (trackY + trackHeight + 4) + '" stroke="#555" stroke-width="1.5"/>' +
-    '<polygon points="' + (needleX - 8) + ',' + (trackY - 12) + ' ' + (needleX + 8) + ',' + (trackY - 12) + ' ' + needleX + ',' + (trackY - 1) + '" fill="#111"/>' +
-    '<text x="10" y="' + (trackY + trackHeight + 20) + '" font-size="11" fill="#888">-100 Severe Risk</text>' +
-    '<text x="' + (width / 2) + '" y="' + (trackY + trackHeight + 20) + '" font-size="11" fill="#888" text-anchor="middle">0</text>' +
-    '<text x="' + (width - 10) + '" y="' + (trackY + trackHeight + 20) + '" font-size="11" fill="#888" text-anchor="end">+100 Strong</text>' +
-    '</svg>';
-}}
-
-function loadMarketAlertGauge() {{
-  var container = document.getElementById('market-alert-gauge');
-  if (!container) return;
-
-  function getCardData(name) {{
-    var allButtons = document.querySelectorAll('button[data-name]');
-    var btn = null;
-    for (var i = 0; i < allButtons.length; i++) {{
-      if (allButtons[i].getAttribute('data-name') === name) {{ btn = allButtons[i]; break; }}
-    }}
-    if (!btn) return null;
-    return {{
-      value: btn.getAttribute('data-value'),
-      pct: btn.getAttribute('data-pct'),
-      sixMo: btn.getAttribute('data-sixmo')
-    }};
-  }}
-
-  var parts = [];
-  ['S&P 500', 'Dow Jones', 'Nasdaq Composite', 'Fed Funds Rate', '10-Yr minus 2-Yr Spread', 'Oil (WTI)'].forEach(function(name) {{
-    var d = getCardData(name);
-    if (d && d.value) parts.push(name + ': ' + d.value + (d.pct ? ' (' + d.pct + '% today)' : ''));
-  }});
-
-  // Semiconductor sector proxy - average today's % change across key chip tickers already tracked
-  var chipTickers = ['NVDA', 'AMD', 'INTC', 'QCOM', 'TSM', 'MU', 'AVGO'];
-  var chipPcts = [];
-  var allTickerRows = document.querySelectorAll('tr[data-ticker]');
-  chipTickers.forEach(function(t) {{
-    var row = null;
-    for (var i = 0; i < allTickerRows.length; i++) {{
-      if (allTickerRows[i].getAttribute('data-ticker') === t) {{ row = allTickerRows[i]; break; }}
-    }}
-    if (row) {{
-      var pct = parseFloat(row.getAttribute('data-pct'));
-      if (!isNaN(pct)) chipPcts.push(pct);
-    }}
-  }});
-  if (chipPcts.length) {{
-    var avgChipPct = chipPcts.reduce(function(a, b) {{ return a + b; }}, 0) / chipPcts.length;
-    parts.push('Semiconductor sector (avg of ' + chipPcts.length + ' major chip stocks): ' + avgChipPct.toFixed(2) + '% today');
-  }}
-
-  if (!parts.length) {{
-    container.innerHTML = '<span style="font-size:12px;color:#888;">Not enough data loaded yet to generate a market alert.</span>';
-    return;
-  }}
-
-  container.innerHTML = '<span style="font-size:12px;color:#888;">Analyzing today\\'s market conditions...</span>';
-  var snapshot = parts.join('. ');
-  fetch(AI_INSIGHT_WORKER_URL + '/market-alert?snapshot=' + encodeURIComponent(snapshot))
-    .then(function(resp) {{ return resp.json(); }})
-    .then(function(data) {{
-      if (data.error) {{
-        container.innerHTML = '<span style="font-size:12px;color:#c0392b;">' + data.error + '</span>';
-        return;
-      }}
-      var gaugeSVG = renderGaugeSVG(data.score);
-      var scoreColor = data.score <= -50 ? '#b91c1c' : data.score <= -15 ? '#f87171' : data.score >= 50 ? '#15803d' : data.score >= 15 ? '#4ade80' : '#6b7280';
-      container.innerHTML = '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">' +
-        gaugeSVG +
-        '<div style="font-size:28px;font-weight:700;color:' + scoreColor + ';">' + (data.score > 0 ? '+' : '') + data.score + '</div>' +
-        '</div>' +
-        '<p style="font-size:12px;line-height:1.5;margin:8px 0 0;max-width:700px;">' + data.explanation + '</p>' +
-        '<span style="font-size:10px;color:#999;">AI-generated market synthesis - not personalized financial advice.</span>';
-    }})
-    .catch(function() {{
-      container.innerHTML = '<span style="font-size:12px;color:#c0392b;">Could not reach the market alert service.</span>';
-    }});
-}}
 </script>
 {NAV_HTML}
 <h1>Daily Stock Digest</h1>
 <p class="timestamp">Updated {timestamp}</p>
 
-<div class="card" style="max-width:100%;margin-bottom:16px;">
-  <p class="label" style="font-size:14px;font-weight:600;color:#333;">Market Alert</p>
-  <div id="market-alert-gauge"><button onclick="loadMarketAlertGauge()" style="padding:8px 16px;">Check Today's Market Conditions</button></div>
-</div>
+{render_market_alert_section(_stock_score_data, _stock_history, "Stock Market Alert")}
 
 <div class="summary">
   <div class="card" title="{def_for('Watchlist')}"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
@@ -1410,6 +1519,8 @@ realestate_html = f"""<!DOCTYPE html>
 {NAV_HTML}
 <h1>Real Estate Dashboard</h1>
 <p class="timestamp">Updated {timestamp}</p>
+
+{render_market_alert_section(_re_score_data, _re_history, "Real Estate Market Alert")}
 
 <h2>National Housing Indicators</h2>
 <div class="row">{re_national_cards(re_national_rows)}</div>
