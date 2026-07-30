@@ -847,7 +847,7 @@ def stock_table_rows(items):
         pe_txt = f"{r['pe']:.1f}" if r['pe'] else "-"
         dy_txt = f"{r['div_yield']:.2f}%" if r['div_yield'] else "-"
         out += f"""
-    <tr>
+    <tr data-ticker="{r['ticker']}" data-pct="{r['pct']}">
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/{r['ticker']}" target="_blank" title="{r['news']}" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">{r['ticker']}</a></td>
       <td style="text-align:right;">${r['price']:.2f}</td>
       <td style="text-align:right;color:{pct_color(r['pct'])};">{r['pct']:+.2f}%</td>
@@ -1206,10 +1206,119 @@ function showAIInsight(btn) {{
       area.innerHTML = '<span style="font-size:11px;color:#c0392b;">Could not reach the AI insight service.</span>';
     }});
 }}
+
+// Market Alert Gauge - gathers a snapshot of today's key market-moving data already on this
+// page (major indices, Fed Funds Rate, yield curve spread, oil, and a semiconductor-sector
+// proxy from the watchlist), sends it to the AI for a synthesized -100 (severe risk) to +100
+// (strongly favorable) score, and renders it as a horizontal gauge with a needle.
+function renderGaugeSVG(score) {{
+  var width = 320, height = 90;
+  var trackY = 45, trackHeight = 24;
+  // Position: score -100 maps to x=10, score +100 maps to x=310 (linear scale)
+  function xFor(s) {{ return 10 + ((s + 100) / 200) * (width - 20); }}
+  var needleX = xFor(score);
+
+  var zones = [
+    {{ from: -100, to: -50, color: '#b91c1c' }},
+    {{ from: -50, to: -15, color: '#f87171' }},
+    {{ from: -15, to: 15, color: '#d1d5db' }},
+    {{ from: 15, to: 50, color: '#86efac' }},
+    {{ from: 50, to: 100, color: '#15803d' }}
+  ];
+  var zonesSVG = zones.map(function(z) {{
+    var x1 = xFor(z.from), x2 = xFor(z.to);
+    return '<rect x="' + x1.toFixed(1) + '" y="' + trackY + '" width="' + (x2 - x1).toFixed(1) + '" height="' + trackHeight + '" fill="' + z.color + '"/>';
+  }}).join('');
+
+  return '<svg width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '" xmlns="http://www.w3.org/2000/svg">' +
+    zonesSVG +
+    '<line x1="' + xFor(0) + '" y1="' + (trackY - 4) + '" x2="' + xFor(0) + '" y2="' + (trackY + trackHeight + 4) + '" stroke="#555" stroke-width="1.5"/>' +
+    '<polygon points="' + (needleX - 8) + ',' + (trackY - 12) + ' ' + (needleX + 8) + ',' + (trackY - 12) + ' ' + needleX + ',' + (trackY - 1) + '" fill="#111"/>' +
+    '<text x="10" y="' + (trackY + trackHeight + 20) + '" font-size="11" fill="#888">-100 Severe Risk</text>' +
+    '<text x="' + (width / 2) + '" y="' + (trackY + trackHeight + 20) + '" font-size="11" fill="#888" text-anchor="middle">0</text>' +
+    '<text x="' + (width - 10) + '" y="' + (trackY + trackHeight + 20) + '" font-size="11" fill="#888" text-anchor="end">+100 Strong</text>' +
+    '</svg>';
+}}
+
+function loadMarketAlertGauge() {{
+  var container = document.getElementById('market-alert-gauge');
+  if (!container) return;
+
+  function getCardData(name) {{
+    var allButtons = document.querySelectorAll('button[data-name]');
+    var btn = null;
+    for (var i = 0; i < allButtons.length; i++) {{
+      if (allButtons[i].getAttribute('data-name') === name) {{ btn = allButtons[i]; break; }}
+    }}
+    if (!btn) return null;
+    return {{
+      value: btn.getAttribute('data-value'),
+      pct: btn.getAttribute('data-pct'),
+      sixMo: btn.getAttribute('data-sixmo')
+    }};
+  }}
+
+  var parts = [];
+  ['S&P 500', 'Dow Jones', 'Nasdaq Composite', 'Fed Funds Rate', '10-Yr minus 2-Yr Spread', 'Oil (WTI)'].forEach(function(name) {{
+    var d = getCardData(name);
+    if (d && d.value) parts.push(name + ': ' + d.value + (d.pct ? ' (' + d.pct + '% today)' : ''));
+  }});
+
+  // Semiconductor sector proxy - average today's % change across key chip tickers already tracked
+  var chipTickers = ['NVDA', 'AMD', 'INTC', 'QCOM', 'TSM', 'MU', 'AVGO'];
+  var chipPcts = [];
+  var allTickerRows = document.querySelectorAll('tr[data-ticker]');
+  chipTickers.forEach(function(t) {{
+    var row = null;
+    for (var i = 0; i < allTickerRows.length; i++) {{
+      if (allTickerRows[i].getAttribute('data-ticker') === t) {{ row = allTickerRows[i]; break; }}
+    }}
+    if (row) {{
+      var pct = parseFloat(row.getAttribute('data-pct'));
+      if (!isNaN(pct)) chipPcts.push(pct);
+    }}
+  }});
+  if (chipPcts.length) {{
+    var avgChipPct = chipPcts.reduce(function(a, b) {{ return a + b; }}, 0) / chipPcts.length;
+    parts.push('Semiconductor sector (avg of ' + chipPcts.length + ' major chip stocks): ' + avgChipPct.toFixed(2) + '% today');
+  }}
+
+  if (!parts.length) {{
+    container.innerHTML = '<span style="font-size:12px;color:#888;">Not enough data loaded yet to generate a market alert.</span>';
+    return;
+  }}
+
+  container.innerHTML = '<span style="font-size:12px;color:#888;">Analyzing today\\'s market conditions...</span>';
+  var snapshot = parts.join('. ');
+  fetch(AI_INSIGHT_WORKER_URL + '/market-alert?snapshot=' + encodeURIComponent(snapshot))
+    .then(function(resp) {{ return resp.json(); }})
+    .then(function(data) {{
+      if (data.error) {{
+        container.innerHTML = '<span style="font-size:12px;color:#c0392b;">' + data.error + '</span>';
+        return;
+      }}
+      var gaugeSVG = renderGaugeSVG(data.score);
+      var scoreColor = data.score <= -50 ? '#b91c1c' : data.score <= -15 ? '#f87171' : data.score >= 50 ? '#15803d' : data.score >= 15 ? '#4ade80' : '#6b7280';
+      container.innerHTML = '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">' +
+        gaugeSVG +
+        '<div style="font-size:28px;font-weight:700;color:' + scoreColor + ';">' + (data.score > 0 ? '+' : '') + data.score + '</div>' +
+        '</div>' +
+        '<p style="font-size:12px;line-height:1.5;margin:8px 0 0;max-width:700px;">' + data.explanation + '</p>' +
+        '<span style="font-size:10px;color:#999;">AI-generated market synthesis - not personalized financial advice.</span>';
+    }})
+    .catch(function() {{
+      container.innerHTML = '<span style="font-size:12px;color:#c0392b;">Could not reach the market alert service.</span>';
+    }});
+}}
 </script>
 {NAV_HTML}
 <h1>Daily Stock Digest</h1>
 <p class="timestamp">Updated {timestamp}</p>
+
+<div class="card" style="max-width:100%;margin-bottom:16px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:#333;">Market Alert</p>
+  <div id="market-alert-gauge"><button onclick="loadMarketAlertGauge()" style="padding:8px 16px;">Check Today's Market Conditions</button></div>
+</div>
 
 <div class="summary">
   <div class="card" title="{def_for('Watchlist')}"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
