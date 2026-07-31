@@ -23,9 +23,10 @@ jobs:
       - name: Install dependencies
         run: pip install yfinance pandas requests
 
-      - name: Generate digest
+      - - name: Generate digest
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CURRENTS_API_KEY: ${{ secrets.CURRENTS_API_KEY }}
         run: python generate_digest.py
 
       - name: Pull latest changes before pushing
