@@ -215,6 +215,17 @@ RE_NATIONAL = [
     ("30-Yr Mortgage Rate", "MORTGAGE30US", "%"),
 ]
 
+# Consumer debt indicators - each tuple includes a conversion factor to normalize to Billions
+# of Dollars for display, since FRED reports these in different native units: TOTALSL is in
+# Millions (divide by 1000), CCLACBM027SBOG is already in Billions (factor of 1) - verified
+# directly against each series' actual FRED page before including, not assumed.
+CONSUMER_DEBT = [
+    ("Total Consumer Credit (non-mortgage)", "TOTALSL", "$B", 1 / 1000),
+    ("Credit Card Balances", "CCLACBM027SBOG", "$B", 1),
+    ("Credit Card Delinquency Rate", "DRCCLACBS", "%", 1),
+    ("Mortgage Delinquency Rate (Consumer)", "DRSFRMACBS", "%", 1),
+]
+
 # All 50 states: FHFA House Price Index series on FRED follows pattern XXSTHPI
 STATES = [
     ("Alabama", "AL"), ("Alaska", "AK"), ("Arizona", "AZ"), ("Arkansas", "AR"),
@@ -923,6 +934,17 @@ for name, series_id, unit in RE_NATIONAL:
     if r:
         re_national_rows.append({"name": name, "unit": unit, **r})
 
+consumer_debt_rows = []
+for name, series_id, unit, factor in CONSUMER_DEBT:
+    r = fetch_fred_rate(series_id)
+    if r:
+        r["value"] = r["value"] * factor
+        if r.get("value_6mo") is not None:
+            r["value_6mo"] = r["value_6mo"] * factor
+        if r.get("history"):
+            r["history"] = [v * factor for v in r["history"]]
+        consumer_debt_rows.append({"name": name, "unit": unit, **r})
+
 currency_rows = []
 for name, code, series_id, direction in CURRENCY_SERIES:
     r = fetch_fred_rate(series_id)
@@ -1171,6 +1193,9 @@ def re_national_cards(items):
         if i["unit"] == "%":
             val = f"{i['value']:.2f}%"
             six = sixmo_line(i.get("value_6mo"), i["value"], unit="%", pt_label=True)
+        elif i["unit"] == "$B":
+            val = f"${i['value']:,.1f}B"
+            six = sixmo_line(i.get("value_6mo"), i["value"], unit="$B")
         else:
             val = f"{i['value']:,.0f}K"
             six = sixmo_line(i.get("value_6mo"), i["value"], unit="K")
@@ -1442,6 +1467,10 @@ function showAIInsight(btn) {{
 <h2>Yield Curve &amp; Credit</h2>
 <div class="row">{curve_cards(curve_rows)}</div>
 <p class="note">Negative Treasury spread (red) = inverted yield curve, historically a recession warning. High-yield credit spread: under ~3.5% = calm, 5%+ = stress building, 8%+ = crisis territory. Source: FRED.</p>
+
+<h2>Consumer Debt</h2>
+<div class="row">{re_national_cards(consumer_debt_rows)}</div>
+<p class="note">Total Consumer Credit and Credit Card Balances are non-mortgage consumer debt (credit cards, auto loans, student loans, personal loans), seasonally adjusted. Delinquency rates are the share of loans 30+ days past due. Source: Federal Reserve (FRED).</p>
 
 <h2>Economic Indicators</h2>
 <div class="row">{econ_cards(econ_rows)}</div>
