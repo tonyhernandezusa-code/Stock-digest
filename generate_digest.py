@@ -637,6 +637,29 @@ def get_todays_entry(history):
     today_str = datetime.now().strftime("%Y-%m-%d")
     return next((h for h in history if h.get("date") == today_str), None)
 
+def news_feed_html(articles, title):
+    """Renders a headline + brief teaser + link-to-source list - never full article text."""
+    if not articles:
+        return (f'<div class="card" style="max-width:100%;margin-bottom:16px;">'
+                f'<p class="label" style="font-size:14px;font-weight:600;color:#333;">{title}</p>'
+                f'<span style="font-size:12px;color:#888;">Not available right now - the news feed was skipped or failed on this run.</span>'
+                f'</div>')
+    items_html = ""
+    for a in articles:
+        source_line = f"{a['source']} &middot; {a['published']}" if a['source'] else a['published']
+        items_html += (
+            f'<div style="padding:10px 0;border-top:1px solid #eee;">'
+            f'<a href="{html_escape_mod.escape(a["url"])}" target="_blank" rel="noopener" '
+            f'style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">{html_escape_mod.escape(a["title"])}</a>'
+            f'{"<p style=\'margin:4px 0 0;font-size:12px;color:#555;\'>" + html_escape_mod.escape(a["description"]) + "</p>" if a["description"] else ""}'
+            f'<p style="margin:4px 0 0;font-size:11px;color:#999;">{source_line}</p>'
+            f'</div>'
+        )
+    return (f'<div class="card" style="max-width:100%;margin-bottom:16px;">'
+            f'<p class="label" style="font-size:14px;font-weight:600;color:#333;">{title}</p>'
+            f'{items_html}'
+            f'</div>')
+
 def gauge_svg(score, width=320, height=90):
     """Server-side rendered horizontal market alert gauge - same visual design as the gauge
     already used for the live per-visit version, just generated in Python instead of JS."""
@@ -777,6 +800,46 @@ def fetch_fred(series_id, limit=1, sort_order="desc", observation_start=None):
         return [{"value": float(o["value"]), "date": o["date"]} for o in obs if o["value"] != "."]
     except Exception:
         return None
+
+def fetch_currents_news(category, limit=8):
+    """Fetches recent headlines from Currents API (free tier, commercial use permitted per
+    their published terms - verified before building this). Returns only headline, a brief
+    description, publish date, and a link back to the original source - never full article
+    text, consistent with standard news-aggregation copyright practice regardless of the API's
+    own terms. Returns an empty list (not an error) if the key isn't configured or the call
+    fails, so a missing/failed news feed never breaks the rest of the digest."""
+    api_key = os.environ.get("CURRENTS_API_KEY")
+    if not api_key:
+        print("Warning: CURRENTS_API_KEY not set - skipping news feed for category:", category)
+        return []
+    try:
+        resp = requests.get(
+            "https://api.currentsapi.services/v1/latest-news",
+            params={"apiKey": api_key, "category": category, "language": "en"},
+            timeout=15
+        )
+        data = resp.json()
+        articles = data.get("news", [])
+        results = []
+        for a in articles[:limit]:
+            title = a.get("title", "").strip()
+            if not title:
+                continue
+            description = (a.get("description") or "").strip()
+            # Keep the description brief - a headline-and-teaser format, not a full summary
+            if len(description) > 160:
+                description = description[:157].rsplit(" ", 1)[0] + "..."
+            results.append({
+                "title": title,
+                "description": description,
+                "url": a.get("url", ""),
+                "published": (a.get("published") or "")[:10],
+                "source": a.get("author") or "",
+            })
+        return results
+    except Exception as e:
+        print(f"Warning: news fetch failed for category {category} ({e})")
+        return []
 
 def fetch_fred_rate(series_id):
     """Latest value, the value from ~6 months ago, and the full history in between for sparklines."""
@@ -987,6 +1050,9 @@ state_rows.sort(key=lambda x: -x["yoy"])
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
 top_mover = max(rows, key=lambda r: abs(r["pct"])) if rows else None
+
+# ------------------- NEWS FEED (Currents API - free tier, commercial use permitted) -------------------
+business_news = fetch_currents_news("business")
 
 # ------------------- MARKET ALERT GAUGES (once per digest run, not per visit) -------------------
 # Reuses data already fetched above - no additional API calls needed beyond the one Claude call
@@ -1457,6 +1523,8 @@ function showAIInsight(btn) {{
 <p class="timestamp">Updated {timestamp}</p>
 
 {render_market_alert_section(_stock_score_data, _stock_history, "Stock Market Alert")}
+
+{news_feed_html(business_news, "Stocks & Economy News")}
 
 <div class="summary">
   <div class="card" title="{def_for('Watchlist')}"><p class="label">Watchlist</p><p class="value">{len(rows)}</p></div>
