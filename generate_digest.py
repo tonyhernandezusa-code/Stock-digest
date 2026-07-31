@@ -647,11 +647,15 @@ def news_feed_html(articles, title):
     items_html = ""
     for a in articles:
         source_line = f"{a['source']} &middot; {a['published']}" if a['source'] else a['published']
+        desc_html = ""
+        if a["description"]:
+            escaped_desc = html_escape_mod.escape(a["description"])
+            desc_html = f'<p style="margin:4px 0 0;font-size:12px;color:#555;">{escaped_desc}</p>'
         items_html += (
             f'<div style="padding:10px 0;border-top:1px solid #eee;">'
             f'<a href="{html_escape_mod.escape(a["url"])}" target="_blank" rel="noopener" '
             f'style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">{html_escape_mod.escape(a["title"])}</a>'
-            f'{"<p style=\'margin:4px 0 0;font-size:12px;color:#555;\'>" + html_escape_mod.escape(a["description"]) + "</p>" if a["description"] else ""}'
+            f'{desc_html}'
             f'<p style="margin:4px 0 0;font-size:11px;color:#999;">{source_line}</p>'
             f'</div>'
         )
