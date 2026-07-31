@@ -1199,12 +1199,16 @@ def re_national_cards(items):
         else:
             val = f"{i['value']:,.0f}K"
             six = sixmo_line(i.get("value_6mo"), i["value"], unit="K")
+        spark = sparkline_svg(i.get("history", []))
+        insight = ai_insight_button(i['name'], i['value'], i['unit'] if i['unit'] != "$B" else "B", None, i.get('value_6mo'), i.get('history'))
         out += f"""
     <div class="card" title="{def_for(i['name'])}">
       <p class="label">{i['name']}</p>
       <p class="value">{val}</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {spark}
       {six}
+      {insight}
     </div>"""
     return out
 
