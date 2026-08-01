@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary - Stock Digest</title>
+<style>
+:root {
+  --bg: #f7f7f5;
+  --text: #111;
+  --text-secondary: #666;
+  --text-muted: #888;
+  --text-faint: #999;
+  --card-bg: #fff;
+  --card-border: #e5e3dc;
+  --table-header-bg: #f0efe9;
+  --table-row-border: #eee;
+}
+body { font-family: -apple-system, sans-serif; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+h1 { font-size:20px; margin:0 0 4px; color:var(--text); }
+h2 { font-size:15px; margin:24px 0 10px; color:var(--text-secondary); }
+.timestamp { color:var(--text-secondary); font-size:13px; margin:0 0 20px; }
+.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
+.row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+.card { background:var(--card-bg); border-radius:10px; padding:14px; border:1px solid var(--card-border); flex:1; min-width:150px; cursor:help; }
+.label { font-size:12px; color:var(--text-secondary); margin:0 0 4px; }
+.value { font-size:20px; font-weight:600; margin:0; color:var(--text); }
+.sixmo { font-size:11px; color:var(--text-muted); margin:4px 0 0; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; background:var(--card-bg); border-radius:10px; overflow:hidden; }
+th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-size:12px; color:var(--text-secondary); font-weight:600; white-space:nowrap; }
+td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
+.note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
+
+
+body.dark-mode {
+  --bg: #0d0d0d;
+  --text: #e8e8e8;
+  --text-secondary: #b0b0b0;
+  --text-muted: #909090;
+  --text-faint: #787878;
+  --card-bg: #1a1a1a;
+  --card-border: #333;
+  --table-header-bg: #222;
+  --table-row-border: #2a2a2a;
+}
+#theme-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 1000;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+  border-radius: 20px; cursor: pointer;
+}
+body.dark-mode .calc, body.dark-mode .calc-wide { background: var(--card-bg); border-color: var(--card-border); color: var(--text); }
+body.dark-mode .result { background: #16281a; color: var(--text); }
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+  background: var(--card-bg); color: var(--text); border-color: var(--card-border);
+}
+body.dark-mode .calc-tab-btn { background: var(--card-bg); color: var(--text); border-color: var(--card-border); }
+body.dark-mode .calc-tab-btn.active { background: #1f4e79; color: #fff; }
+body.dark-mode label { color: var(--text-secondary); }
+body.dark-mode table { background: var(--card-bg); }
+body.dark-mode th { background: var(--table-header-bg); color: var(--text); }
+body.dark-mode td { color: var(--text); border-color: var(--table-row-border); }
+body.dark-mode .suggest-btn { background: #1a2f42; color: #9cc4e0; border-color: #2a4258; }
+
+</style>
+</head>
+<body>
+<button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
+<script>
+(function() {
+  var saved = localStorage.getItem('siteDarkMode');
+  if (saved === 'dark') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('dark-mode');
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.innerHTML = '&#9728; Light Mode';
+    });
+  }
+})();
+function toggleTheme() {
+  var isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('siteDarkMode', isDark ? 'dark' : 'light');
+  var btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}
+</script>
+
+<div style="margin-bottom:16px;">
+  <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
+  <a href="realestate.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
+  <a href="calculators.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Calculators</a>
+  <a href="search.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
+  <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
+  <a href="propertymanager.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
+  <a href="insights.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
+  <a href="glossary.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Glossary</a>
+</div>
+
+<h1>Glossary</h1>
+<p class="timestamp">Every indicator, index, and rate used across Stock Digest - what it is, what it measures, and who calculates it.</p>
+<div class="row" style="flex-wrap:wrap;">
+
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">10-Yr minus 2-Yr Spread</p>
+  <p style='margin:2px 0;'>The 10-year Treasury yield minus the 2-year Treasury yield.</p><p style='margin:2px 0;'>A negative (inverted) spread has historically preceded US recessions, since it means short-term rates exceed long-term rates.</p><p style='margin:2px 0;'>Calculated from Treasury yields tracked by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">10-Yr minus 3-Mo Spread</p>
+  <p style='margin:2px 0;'>The 10-year Treasury yield minus the 3-month Treasury yield.</p><p style='margin:2px 0;'>This version of the yield curve is the one the Federal Reserve&#x27;s own research has cited as its preferred recession-signal spread.</p><p style='margin:2px 0;'>Calculated from Treasury yields tracked by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">10-Yr Treasury</p>
+  <p style='margin:2px 0;'>The yield on a 10-year US government bond.</p><p style='margin:2px 0;'>It&#x27;s the benchmark long-term interest rate that drives mortgage rates and stock valuations across the economy.</p><p style='margin:2px 0;'>Yields are set by Treasury auctions and tracked daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">2-Yr Treasury</p>
+  <p style='margin:2px 0;'>The yield on a 2-year US government bond.</p><p style='margin:2px 0;'>It reflects where bond markets expect the Fed to set interest rate policy over the next couple of years.</p><p style='margin:2px 0;'>Yields are set by Treasury auctions and tracked daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">30-Yr Mortgage</p>
+  <p style='margin:2px 0;'>The average interest rate on a 30-year fixed-rate US home loan.</p><p style='margin:2px 0;'>It measures the typical borrowing cost for a conventional home purchase.</p><p style='margin:2px 0;'>Published weekly by Freddie Mac&#x27;s Primary Mortgage Market Survey.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">30-Yr Mortgage Rate</p>
+  <p style='margin:2px 0;'>The average interest rate on a 30-year fixed-rate US home loan.</p><p style='margin:2px 0;'>It measures the typical borrowing cost for a conventional home purchase.</p><p style='margin:2px 0;'>Published weekly by Freddie Mac&#x27;s Primary Mortgage Market Survey.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">AEX (Netherlands)</p>
+  <p style='margin:2px 0;'>The Netherlands&#x27; benchmark index of the largest companies on Euronext Amsterdam.</p><p style='margin:2px 0;'>Tracks the health of the Netherlands&#x27; largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Euronext.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">ASX 200 (Australia)</p>
+  <p style='margin:2px 0;'>Australia&#x27;s benchmark index of the 200 largest companies on the Australian Securities Exchange.</p><p style='margin:2px 0;'>Tracks the health of Australia&#x27;s largest public companies, heavily weighted toward mining and banks.</p><p style='margin:2px 0;'>Calculated and maintained by S&amp;P Dow Jones Indices.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">ATX (Austria)</p>
+  <p style='margin:2px 0;'>Austria&#x27;s benchmark index tracking the largest companies on the Vienna Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of Austria&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Wiener Börse (the Vienna Stock Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">BEL 20 (Belgium)</p>
+  <p style='margin:2px 0;'>Belgium&#x27;s benchmark index of the 20 largest companies on Euronext Brussels.</p><p style='margin:2px 0;'>Tracks the health of Belgium&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Euronext.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Bovespa (Brazil)</p>
+  <p style='margin:2px 0;'>Brazil&#x27;s benchmark index tracking the most actively traded stocks on B3, Brazil&#x27;s main exchange.</p><p style='margin:2px 0;'>Tracks the health of Brazil&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by B3 S.A.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Building Permits (annualized)</p>
+  <p style='margin:2px 0;'>Permits issued for future home construction, annualized in thousands of units.</p><p style='margin:2px 0;'>A leading indicator for housing starts, since permits are typically pulled before construction begins.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Census Bureau, jointly with HUD.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">CAC 40 (France)</p>
+  <p style='margin:2px 0;'>France&#x27;s benchmark index of the 40 largest companies listed on Euronext Paris.</p><p style='margin:2px 0;'>Tracks the health of France&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Euronext.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Cocoa</p>
+  <p style='margin:2px 0;'>Cocoa, price per metric ton.</p><p style='margin:2px 0;'>The raw input for chocolate production, with supply concentrated in a small number of West African countries, making it prone to sharp price swings.</p><p style='margin:2px 0;'>Priced and traded on ICE (Intercontinental Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Coffee</p>
+  <p style='margin:2px 0;'>Coffee (Arabica), price per pound.</p><p style='margin:2px 0;'>A tropical soft commodity heavily influenced by weather in major growing regions like Brazil and Vietnam.</p><p style='margin:2px 0;'>Priced and traded on ICE (Intercontinental Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Copper</p>
+  <p style='margin:2px 0;'>Copper, price per pound.</p><p style='margin:2px 0;'>Nicknamed &#x27;Dr. Copper&#x27; because demand tracks construction and manufacturing activity closely, making it a widely watched economic health gauge.</p><p style='margin:2px 0;'>Priced and traded on the COMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Core PCE Inflation (YoY)</p>
+  <p style='margin:2px 0;'>Core Personal Consumption Expenditures Price Index, year-over-year change.</p><p style='margin:2px 0;'>It measures inflation in consumer spending but excludes food and energy, since those categories are volatile and can distort the underlying trend.</p><p style='margin:2px 0;'>Calculated and published monthly by the Bureau of Economic Analysis (BEA), and it&#x27;s the Federal Reserve&#x27;s own preferred inflation gauge for setting monetary policy.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Corn</p>
+  <p style='margin:2px 0;'>Corn, price per bushel.</p><p style='margin:2px 0;'>A major agricultural commodity used for food, animal feed, and ethanol - prices are sensitive to weather, planting reports, and biofuel demand.</p><p style='margin:2px 0;'>Priced and traded on the CBOT (Chicago Board of Trade), part of CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Cotton</p>
+  <p style='margin:2px 0;'>Cotton, price per pound.</p><p style='margin:2px 0;'>A key input for the textile industry, sensitive to both agricultural conditions and global apparel demand.</p><p style='margin:2px 0;'>Priced and traded on ICE (Intercontinental Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">CPI (Inflation)</p>
+  <p style='margin:2px 0;'>The Consumer Price Index, year-over-year change.</p><p style='margin:2px 0;'>It measures how much the prices consumers actually pay for a broad basket of goods and services rose over the past 12 months - the most widely cited inflation gauge.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Bureau of Labor Statistics (BLS).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">CPI Inflation (YoY)</p>
+  <p style='margin:2px 0;'>The Consumer Price Index, year-over-year change.</p><p style='margin:2px 0;'>It measures how much prices consumers actually pay for a broad basket of goods and services rose over the past 12 months - the most widely cited inflation gauge, and the one compared here to the Fed&#x27;s 2% target.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Bureau of Labor Statistics (BLS).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">DAX (Germany)</p>
+  <p style='margin:2px 0;'>Germany&#x27;s blue-chip index of 40 major companies listed on the Frankfurt Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of Germany&#x27;s largest public companies - Europe&#x27;s biggest economy.</p><p style='margin:2px 0;'>Calculated and maintained by Deutsche Börse (via its STOXX subsidiary).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Dow Futures (E-mini)</p>
+  <p style='margin:2px 0;'>A futures contract tracking the Dow Jones Industrial Average, tradable nearly 24 hours a day.</p><p style='margin:2px 0;'>Since it trades outside normal stock market hours, it shows where traders expect the Dow to open.</p><p style='margin:2px 0;'>Traded on the CBOT (Chicago Board of Trade), part of CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Dow Jones</p>
+  <p style='margin:2px 0;'>The Dow Jones Industrial Average.</p><p style='margin:2px 0;'>A price-weighted index of 30 large US blue-chip companies, tracking the health of major established industry.</p><p style='margin:2px 0;'>Calculated and maintained by S&amp;P Dow Jones Indices.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Effective Fed Funds Rate</p>
+  <p style='margin:2px 0;'>The actual (as opposed to targeted) overnight rate banks charge each other for reserves.</p><p style='margin:2px 0;'>It shows where the Fed Funds rate is really trading within the FOMC&#x27;s announced target range, compared here to the Fed&#x27;s own longer-run &#x27;neutral rate&#x27; estimate.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve Bank of New York.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Euro Stoxx 50</p>
+  <p style='margin:2px 0;'>An index of 50 large-cap companies spanning multiple eurozone countries.</p><p style='margin:2px 0;'>Tracks the broader eurozone blue-chip market as a whole, rather than any single country&#x27;s exchange.</p><p style='margin:2px 0;'>Calculated and maintained by STOXX, a Deutsche Börse Group company.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Fed Funds Rate</p>
+  <p style='margin:2px 0;'>The interest rate banks charge each other for overnight loans of reserves.</p><p style='margin:2px 0;'>It&#x27;s the base rate the Federal Reserve uses to influence borrowing costs throughout the economy - mortgages, credit cards, and business loans all key off it.</p><p style='margin:2px 0;'>The target range is set by the Federal Open Market Committee (FOMC); the actual effective rate is calculated and published daily by the Federal Reserve Bank of New York.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">FTSE 100 (UK)</p>
+  <p style='margin:2px 0;'>The 100 largest companies listed on the London Stock Exchange by market value.</p><p style='margin:2px 0;'>Tracks the health of the UK&#x27;s largest public companies, many of which are large multinationals earning most revenue abroad.</p><p style='margin:2px 0;'>Calculated and maintained by FTSE Russell.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">FTSE MIB (Italy)</p>
+  <p style='margin:2px 0;'>Italy&#x27;s benchmark index of roughly the 40 most-traded companies on the Milan exchange.</p><p style='margin:2px 0;'>Tracks the health of Italy&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by FTSE Russell in partnership with Borsa Italiana.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Gold</p>
+  <p style='margin:2px 0;'>Gold, price per troy ounce.</p><p style='margin:2px 0;'>A classic inflation hedge and safe-haven asset that investors often turn to during economic or geopolitical stress.</p><p style='margin:2px 0;'>Priced and traded on the COMEX exchange (CME Group), with a benchmark also set via the LBMA.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Hang Seng (Hong Kong)</p>
+  <p style='margin:2px 0;'>Hong Kong&#x27;s benchmark index of major companies listed on the Hong Kong Stock Exchange.</p><p style='margin:2px 0;'>Tracks large-cap Hong Kong-listed stocks, many with significant mainland Chinese business ties.</p><p style='margin:2px 0;'>Calculated and maintained by Hang Seng Indexes Company.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Heating Oil</p>
+  <p style='margin:2px 0;'>Heating oil, price per gallon.</p><p style='margin:2px 0;'>A refined petroleum product used for home heating and as a proxy for diesel/distillate fuel costs.</p><p style='margin:2px 0;'>Priced and traded on the NYMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">High-Yield Credit Spread</p>
+  <p style='margin:2px 0;'>The extra yield &#x27;junk&#x27; (below-investment-grade) corporate bonds pay over comparable Treasuries.</p><p style='margin:2px 0;'>It measures how much extra compensation investors demand for credit risk; under ~3.5% is calm, 5%+ signals building stress, 8%+ is crisis territory.</p><p style='margin:2px 0;'>Calculated by ICE Data Indices and published via the Federal Reserve&#x27;s FRED database.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Housing Starts (annualized)</p>
+  <p style='margin:2px 0;'>New homes that began construction, expressed as an annualized pace in thousands of units.</p><p style='margin:2px 0;'>It&#x27;s a direct read on homebuilder activity and confidence.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Census Bureau, jointly with HUD.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">IBEX 35 (Spain)</p>
+  <p style='margin:2px 0;'>Spain&#x27;s benchmark index of the 35 most liquid stocks on the Madrid exchange.</p><p style='margin:2px 0;'>Tracks the health of Spain&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by BME (Bolsas y Mercados Españoles), part of SIX Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">IPC (Mexico)</p>
+  <p style='margin:2px 0;'>Mexico&#x27;s benchmark index tracking the largest, most liquid stocks on the Mexican Stock Exchange (BMV).</p><p style='margin:2px 0;'>Tracks the health of Mexico&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by S&amp;P Dow Jones Indices in partnership with the BMV.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">ISEQ (Ireland)</p>
+  <p style='margin:2px 0;'>Ireland&#x27;s benchmark index tracking companies listed on Euronext Dublin.</p><p style='margin:2px 0;'>Tracks the health of Ireland&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Euronext.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">ISM Manufacturing PMI</p>
+  <p style='margin:2px 0;'>The Institute for Supply Management&#x27;s Manufacturing Purchasing Managers&#x27; Index.</p><p style='margin:2px 0;'>It surveys factory purchasing managers on output, orders, and employment; a reading above 50 means manufacturing is expanding, below 50 means it&#x27;s contracting.</p><p style='margin:2px 0;'>Calculated and published monthly by the Institute for Supply Management (ISM).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Jakarta Composite (Indonesia)</p>
+  <p style='margin:2px 0;'>Indonesia&#x27;s benchmark index tracking all common shares on the Indonesia Stock Exchange.</p><p style='margin:2px 0;'>Tracks the broad health of Indonesia&#x27;s public equity market.</p><p style='margin:2px 0;'>Calculated and maintained by the Indonesia Stock Exchange.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">JSE Top 40 (South Africa)</p>
+  <p style='margin:2px 0;'>South Africa&#x27;s benchmark index of the 40 largest companies on the Johannesburg Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of South Africa&#x27;s largest public companies, heavily weighted toward mining and resources.</p><p style='margin:2px 0;'>Calculated and maintained by the JSE, in partnership with FTSE Russell.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">KLCI (Malaysia)</p>
+  <p style='margin:2px 0;'>Malaysia&#x27;s benchmark index of the 30 largest companies on Bursa Malaysia.</p><p style='margin:2px 0;'>Tracks the health of Malaysia&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by FTSE Russell in partnership with Bursa Malaysia.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">KOSPI (South Korea)</p>
+  <p style='margin:2px 0;'>South Korea&#x27;s benchmark index of all common stocks listed on the Korea Exchange.</p><p style='margin:2px 0;'>Tracks the health of South Korea&#x27;s public equity market, heavily weighted toward tech and semiconductor exporters.</p><p style='margin:2px 0;'>Calculated and maintained by the Korea Exchange (KRX).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Lean Hogs</p>
+  <p style='margin:2px 0;'>Lean hogs, price per pound.</p><p style='margin:2px 0;'>Tracks prices for hogs ready for slaughter, a key input cost for the pork industry.</p><p style='margin:2px 0;'>Priced and traded on the CME (Chicago Mercantile Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Live Cattle</p>
+  <p style='margin:2px 0;'>Live cattle, price per pound.</p><p style='margin:2px 0;'>Tracks prices for cattle ready for slaughter, a key input cost for the beef industry.</p><p style='margin:2px 0;'>Priced and traded on the CME (Chicago Mercantile Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Mortgage Delinquency Rate</p>
+  <p style='margin:2px 0;'>The share of single-family mortgages 30+ days past due on payments.</p><p style='margin:2px 0;'>Rising delinquencies are an early-warning sign that can lead to foreclosures down the line.</p><p style='margin:2px 0;'>Reported by the Mortgage Bankers Association (MBA) and tracked via the Federal Reserve&#x27;s FRED database.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nasdaq</p>
+  <p style='margin:2px 0;'>The Nasdaq Composite index.</p><p style='margin:2px 0;'>Tracks essentially every stock listed on the Nasdaq exchange, heavily weighted toward technology companies.</p><p style='margin:2px 0;'>Calculated and maintained by Nasdaq, Inc.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nasdaq Composite</p>
+  <p style='margin:2px 0;'>Tracks essentially every stock listed on the Nasdaq exchange, heavily weighted toward technology.</p><p style='margin:2px 0;'>A broader read on the Nasdaq market than the Nasdaq-100, since it includes smaller and mid-sized companies too.</p><p style='margin:2px 0;'>Calculated and maintained by Nasdaq, Inc.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nasdaq-100</p>
+  <p style='margin:2px 0;'>The Nasdaq-100 index.</p><p style='margin:2px 0;'>The 100 largest non-financial companies listed on Nasdaq - a concentrated read on big tech.</p><p style='margin:2px 0;'>Calculated and maintained by Nasdaq, Inc.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nasdaq-100 Futures (E-mini)</p>
+  <p style='margin:2px 0;'>A futures contract tracking the Nasdaq-100 index, tradable nearly 24 hours a day.</p><p style='margin:2px 0;'>Since it trades outside normal stock market hours, it shows where traders expect tech-heavy Nasdaq-100 stocks to open.</p><p style='margin:2px 0;'>Traded on the CME (Chicago Mercantile Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Natl Avg 12-Mo CD (FDIC)</p>
+  <p style='margin:2px 0;'>The national average interest rate on 12-month certificates of deposit.</p><p style='margin:2px 0;'>It measures the typical yield for locking up savings for a year.</p><p style='margin:2px 0;'>Published monthly by the FDIC.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Natl Avg Credit Card Rate</p>
+  <p style='margin:2px 0;'>The average interest rate US banks charge on credit card balances.</p><p style='margin:2px 0;'>It measures the typical cost of carrying a credit card balance nationally.</p><p style='margin:2px 0;'>Published quarterly by the Federal Reserve (G.19 Consumer Credit release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Natl Avg Money Market (FDIC)</p>
+  <p style='margin:2px 0;'>The national average interest rate paid on money market deposit accounts.</p><p style='margin:2px 0;'>It measures typical bank money-market yields, distinct from money market mutual funds.</p><p style='margin:2px 0;'>Published monthly by the FDIC.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Natl Avg Savings (FDIC)</p>
+  <p style='margin:2px 0;'>The national average interest rate paid on standard savings accounts.</p><p style='margin:2px 0;'>It measures what a typical bank (not the high-yield outliers) pays depositors.</p><p style='margin:2px 0;'>Published monthly by the FDIC.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Natural Gas</p>
+  <p style='margin:2px 0;'>Natural gas, price per million British thermal units (MMBtu).</p><p style='margin:2px 0;'>A key input cost for heating, electricity generation, and industrial use - prices swing heavily with weather and storage levels.</p><p style='margin:2px 0;'>Priced and traded on the NYMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">New Home Sales (annualized)</p>
+  <p style='margin:2px 0;'>Newly built single-family homes sold, annualized in thousands of units.</p><p style='margin:2px 0;'>Measures actual buyer demand for new construction, as opposed to starts/permits which measure builder activity.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Census Bureau, jointly with HUD.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nifty 50 (India)</p>
+  <p style='margin:2px 0;'>India&#x27;s other major benchmark index, tracking the 50 largest companies on the National Stock Exchange of India.</p><p style='margin:2px 0;'>Plays a similar role to the Sensex, but on a different exchange with a different constituent list.</p><p style='margin:2px 0;'>Calculated and maintained by NSE Indices Limited.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nikkei 225 (Japan)</p>
+  <p style='margin:2px 0;'>Japan&#x27;s most widely quoted stock index, tracking 225 large companies on the Tokyo Stock Exchange.</p><p style='margin:2px 0;'>It&#x27;s price-weighted (like the Dow), and tracks the health of Japan&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and published by Nikkei Inc.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nikkei 225 Futures</p>
+  <p style='margin:2px 0;'>A futures contract tracking Japan&#x27;s Nikkei 225 index.</p><p style='margin:2px 0;'>Since Japanese markets open while US markets are closed, this gives US investors an overnight read on how Japanese equities are trading.</p><p style='margin:2px 0;'>Traded on the Osaka Exchange, CME, and SGX (Singapore Exchange), depending on the contract.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nonfarm Payrolls</p>
+  <p style='margin:2px 0;'>The change in US jobs last month, excluding farm work.</p><p style='margin:2px 0;'>It&#x27;s the headline monthly measure of hiring or layoffs across the economy.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Bureau of Labor Statistics (BLS), as part of the Employment Situation report.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">NZX 50 (New Zealand)</p>
+  <p style='margin:2px 0;'>New Zealand&#x27;s benchmark index of the 50 largest companies on the NZX exchange.</p><p style='margin:2px 0;'>Tracks the health of New Zealand&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by NZX Limited.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Oil (Brent)</p>
+  <p style='margin:2px 0;'>Brent crude oil, price per barrel.</p><p style='margin:2px 0;'>The primary international benchmark for oil prices (as opposed to WTI, the US benchmark) - most oil outside the Americas is priced off Brent.</p><p style='margin:2px 0;'>Priced and traded on ICE (Intercontinental Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Oil (WTI)</p>
+  <p style='margin:2px 0;'>West Texas Intermediate crude oil, price per barrel.</p><p style='margin:2px 0;'>The primary US benchmark price for crude oil, used to price much of the domestic energy market.</p><p style='margin:2px 0;'>Priced and traded on the NYMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">OMX Stockholm 30 (Sweden)</p>
+  <p style='margin:2px 0;'>Sweden&#x27;s benchmark index of the 30 most-traded stocks on the Stockholm exchange.</p><p style='margin:2px 0;'>Tracks the health of Sweden&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Nasdaq, which operates the Stockholm exchange.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Overbought (RSI≥70)</p>
+  <p style='margin:2px 0;'>A Relative Strength Index reading of 70 or above.</p><p style='margin:2px 0;'>RSI measures how fast and how far a stock&#x27;s price has moved recently; a high reading means it has been bought up hard and fast and is sometimes due for a pullback.</p><p style='margin:2px 0;'>RSI is a technical indicator calculated directly from each stock&#x27;s own price history, not published by any government or index agency.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Oversold (RSI≤30)</p>
+  <p style='margin:2px 0;'>A Relative Strength Index reading of 30 or below.</p><p style='margin:2px 0;'>RSI measures how fast and how far a stock&#x27;s price has moved recently; a low reading means it has sold off hard and fast and is sometimes due for a bounce.</p><p style='margin:2px 0;'>RSI is a technical indicator calculated directly from each stock&#x27;s own price history, not published by any government or index agency.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Palladium</p>
+  <p style='margin:2px 0;'>Palladium, price per troy ounce.</p><p style='margin:2px 0;'>Used primarily in catalytic converters for gasoline engines, making it closely tied to auto production and emissions regulations.</p><p style='margin:2px 0;'>Priced and traded on the NYMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Platinum</p>
+  <p style='margin:2px 0;'>Platinum, price per troy ounce.</p><p style='margin:2px 0;'>Used heavily in catalytic converters and jewelry, so it responds to both industrial (especially auto) demand and precious-metal investment demand.</p><p style='margin:2px 0;'>Priced and traded on the NYMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">PPI (Producer Prices)</p>
+  <p style='margin:2px 0;'>The Producer Price Index, year-over-year change.</p><p style='margin:2px 0;'>It measures how much prices businesses receive for their output rose over the past 12 months, and often leads consumer inflation since higher input costs get passed downstream.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Bureau of Labor Statistics (BLS).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">RBOB Gasoline</p>
+  <p style='margin:2px 0;'>RBOB (Reformulated Blendstock for Oxygenate Blending) gasoline, price per gallon.</p><p style='margin:2px 0;'>The wholesale gasoline benchmark used to price fuel before retail markup and taxes - a leading indicator for pump prices.</p><p style='margin:2px 0;'>Priced and traded on the NYMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Real GDP Growth (YoY)</p>
+  <p style='margin:2px 0;'>Real Gross Domestic Product, year-over-year change, adjusted for inflation.</p><p style='margin:2px 0;'>It measures the total growth of everything the US economy produces, stripped of price changes so it reflects actual output growth.</p><p style='margin:2px 0;'>Calculated and published quarterly by the Bureau of Economic Analysis (BEA).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Retail Sales</p>
+  <p style='margin:2px 0;'>The month-over-month change in consumer retail spending.</p><p style='margin:2px 0;'>It&#x27;s a timely gauge of consumer financial health and spending momentum.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Census Bureau.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Russell 1000</p>
+  <p style='margin:2px 0;'>Tracks the largest 1,000 US companies by market capitalization.</p><p style='margin:2px 0;'>It&#x27;s the large-cap complement to the Russell 2000&#x27;s small-caps, together making up most of the US stock market&#x27;s total value.</p><p style='margin:2px 0;'>Calculated and maintained by FTSE Russell.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Russell 2000</p>
+  <p style='margin:2px 0;'>The Russell 2000 index.</p><p style='margin:2px 0;'>Tracks 2,000 smaller-capitalization US companies, used as a gauge of smaller domestic businesses rather than multinational giants.</p><p style='margin:2px 0;'>Calculated and maintained by FTSE Russell.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Russell 2000 Futures (E-mini)</p>
+  <p style='margin:2px 0;'>A futures contract tracking the Russell 2000 small-cap index, tradable nearly 24 hours a day.</p><p style='margin:2px 0;'>Since it trades outside normal stock market hours, it shows where traders expect small-cap stocks to open.</p><p style='margin:2px 0;'>Traded on the ICE (Intercontinental Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">S&amp;P 500</p>
+  <p style='margin:2px 0;'>The Standard &amp; Poor&#x27;s 500 index.</p><p style='margin:2px 0;'>The 500 largest publicly traded US companies by market value - the main benchmark for the overall US stock market.</p><p style='margin:2px 0;'>Calculated and maintained by S&amp;P Dow Jones Indices.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">S&amp;P 500 Futures (E-mini)</p>
+  <p style='margin:2px 0;'>A futures contract tracking the S&amp;P 500 index, tradable nearly 24 hours a day.</p><p style='margin:2px 0;'>Since it trades outside normal stock market hours, it shows where traders expect the S&amp;P 500 to open - a preview of sentiment before the cash market opens.</p><p style='margin:2px 0;'>Traded on the CME (Chicago Mercantile Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">S&amp;P MidCap 400</p>
+  <p style='margin:2px 0;'>Tracks 400 mid-sized US companies.</p><p style='margin:2px 0;'>It fills the gap between large-cap indexes like the S&amp;P 500 and small-cap indexes like the Russell 2000, gauging the health of the market&#x27;s middle tier.</p><p style='margin:2px 0;'>Calculated and maintained by S&amp;P Dow Jones Indices.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Sensex (India)</p>
+  <p style='margin:2px 0;'>India&#x27;s benchmark index of the 30 largest, most actively traded companies on the Bombay Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of India&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by BSE Ltd. (the Bombay Stock Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Shanghai Composite (China)</p>
+  <p style='margin:2px 0;'>Tracks all stocks listed on the Shanghai Stock Exchange.</p><p style='margin:2px 0;'>The broadest widely cited gauge of mainland Chinese equities.</p><p style='margin:2px 0;'>Calculated and maintained by the Shanghai Stock Exchange.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Silver</p>
+  <p style='margin:2px 0;'>Silver, price per troy ounce.</p><p style='margin:2px 0;'>Part precious metal (safe-haven demand) and part industrial metal (electronics, solar), so it responds to both investment demand and manufacturing activity.</p><p style='margin:2px 0;'>Priced and traded on the COMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">SMI (Switzerland)</p>
+  <p style='margin:2px 0;'>Switzerland&#x27;s benchmark index of its 20 largest, most liquid stocks.</p><p style='margin:2px 0;'>Tracks the health of Switzerland&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by SIX Swiss Exchange.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Soybean Oil</p>
+  <p style='margin:2px 0;'>Soybean oil, price per pound.</p><p style='margin:2px 0;'>A processed soybean product used in cooking oil and, increasingly, biodiesel production.</p><p style='margin:2px 0;'>Priced and traded on the CBOT (Chicago Board of Trade), part of CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Soybeans</p>
+  <p style='margin:2px 0;'>Soybeans, price per bushel.</p><p style='margin:2px 0;'>A major crop used for animal feed, cooking oil, and food products; US-China trade relations have historically been a significant price driver.</p><p style='margin:2px 0;'>Priced and traded on the CBOT (Chicago Board of Trade), part of CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Straits Times (Singapore)</p>
+  <p style='margin:2px 0;'>Singapore&#x27;s benchmark index of the 30 largest companies on the Singapore Exchange.</p><p style='margin:2px 0;'>Tracks the health of Singapore&#x27;s largest public companies, a major regional financial hub.</p><p style='margin:2px 0;'>Calculated and maintained by the Singapore Exchange (SGX) in partnership with FTSE Russell.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Sugar</p>
+  <p style='margin:2px 0;'>Sugar, price per pound.</p><p style='margin:2px 0;'>A soft commodity used in food and, in some countries, ethanol production; supply is concentrated among a handful of major producing nations.</p><p style='margin:2px 0;'>Priced and traded on ICE (Intercontinental Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Taiwan Weighted</p>
+  <p style='margin:2px 0;'>Taiwan&#x27;s benchmark index tracking all listed common shares on the Taiwan Stock Exchange.</p><p style='margin:2px 0;'>Heavily weighted toward semiconductor manufacturers, making it a closely watched gauge for the global chip supply chain.</p><p style='margin:2px 0;'>Calculated and maintained by the Taiwan Stock Exchange.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Top mover</p>
+  <p style='margin:2px 0;'>The stock in your watchlist with the largest price move today.</p><p style='margin:2px 0;'>Measures today&#x27;s percentage change, up or down, across everything you&#x27;re tracking.</p><p style='margin:2px 0;'>Calculated directly from live market price data, not a published economic series.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">TSX Composite (Canada)</p>
+  <p style='margin:2px 0;'>Canada&#x27;s benchmark index tracking the largest companies on the Toronto Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of Canada&#x27;s largest public companies, heavily weighted toward financials and energy/mining.</p><p style='margin:2px 0;'>Calculated and maintained by TMX Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Unemployment Rate</p>
+  <p style='margin:2px 0;'>The share of the labor force that is jobless and actively looking for work.</p><p style='margin:2px 0;'>It measures labor-market slack; the Fed watches it alongside inflation as part of its dual mandate (maximum employment and stable prices).</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Bureau of Labor Statistics (BLS), based on the Current Population Survey.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">US Dollar (DXY)</p>
+  <p style='margin:2px 0;'>The US Dollar Index.</p><p style='margin:2px 0;'>Measures the strength of the US dollar against a basket of major foreign currencies; a strong dollar tends to pressure multinational earnings and commodity prices.</p><p style='margin:2px 0;'>Calculated and maintained by ICE (Intercontinental Exchange).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">VIX (Volatility)</p>
+  <p style='margin:2px 0;'>The CBOE Volatility Index, the market&#x27;s &#x27;fear gauge.&#x27;</p><p style='margin:2px 0;'>It measures the options market&#x27;s expectation of S&amp;P 500 volatility over the next 30 days; under 15 is calm, over 25 is fearful, over 35 is panic-level.</p><p style='margin:2px 0;'>Calculated and published in real time by Cboe Global Markets.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Watchlist</p>
+  <p style='margin:2px 0;'>The stocks you&#x27;ve added to track.</p><p style='margin:2px 0;'>Counts how many tickers are currently in your watchlist table below.</p><p style='margin:2px 0;'>The list itself is something you maintain - not a published data series.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Wheat</p>
+  <p style='margin:2px 0;'>Wheat, price per bushel.</p><p style='margin:2px 0;'>A staple food-grain commodity; prices are sensitive to global harvests and geopolitical disruptions in major growing regions.</p><p style='margin:2px 0;'>Priced and traded on the CBOT (Chicago Board of Trade), part of CME Group.</p>
+</div>
+</div>
+</body>
+</html>
