@@ -594,6 +594,7 @@ NAV_HTML = """
   <a href="search.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
   <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
   <a href="propertymanager.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
+  <a href="portfolio.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">My Portfolio</a>
   <a href="insights.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
   <a href="glossary.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Glossary</a>
   <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
@@ -8261,8 +8262,266 @@ educators_html = (EDUCATORS_TEMPLATE
                    .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                    .replace("__EDUCATOR_EMAIL__", EDUCATOR_CONTACT_EMAIL))
 
+# ------------------- PAGE 10: MY PORTFOLIO (SIMPLEST VERSION - ONE PORTFOLIO, ONE EXPERIENCE) -------------------
+#
+# Reuses the exact same Firebase project, Auth pattern, and login UI already proven out in
+# Property Manager - same account works on both pages. Adds one new Firestore collection
+# ("portfolios", one doc per user at portfolios/{uid} with a single "tickers" array field)
+# rather than a doc-per-ticker model, since a simple array is all this needs for now.
+#
+# IMPORTANT: when you add the "portfolios" collection, add a matching Firestore security rule
+# restricting it to the owner only - e.g.:
+#   match /portfolios/{userId} {
+#     allow read, write: if request.auth != null && request.auth.uid == userId;
+#   }
+# Firestore does not automatically extend the rule protecting "properties" to a new collection.
+#
+# Live prices for each user's own tickers can't be pre-baked at build time (unlike the fixed
+# WATCHLIST on the Stocks & Rates page), since we don't know in advance which tickers each user
+# will add - so this fetches quotes client-side from the browser, reusing the same Finnhub
+# Worker already deployed for Stock Search (GET /stock-profile?symbol=X).
+
+PORTFOLIO_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Portfolio - Stock Digest</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>__CSS__
+__DARKMODE_CSS__
+__LEARNINGMODE_CSS__
+.err { color:#c0392b; font-size:13px; margin-top:8px; }
+.calc button.secondary { background:#888; }
+.calc button.secondary:hover { background:#666; }
+.ticker-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:8px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.ticker-card .remove-btn { background:#fbe0dd; color:#c0392b; border:1px solid #f3c6c2; border-radius:6px; padding:6px 10px; font-size:11px; cursor:pointer; }
+.ticker-card .remove-btn:hover { background:#f7cac5; }
+</style>
+</head>
+<body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
+__NAV__
+<h1>My Portfolio</h1>
+<p class="timestamp">Track your own list of tickers - saved to your account, available wherever you log in.</p>
+
+<div class="beginner-box learning-mode-only">
+<h3>&#127891; What This Page Does</h3>
+<p style="font-size:13px;line-height:1.6;margin:0;">This is separate from the main Watchlist on the Stocks &amp; Rates page (which is fixed and the same for every visitor). Here, you create your own personal list of tickers, saved to your own account - log in from any device and it's there. Prices update live when you load the page, using the same data source as Stock Search.</p>
+</div>
+
+<div class="calc" id="auth-panel">
+<h3 id="auth-title">Log In</h3>
+<label>Email</label>
+<input type="email" id="auth-email">
+<label>Password</label>
+<input type="password" id="auth-password">
+<button onclick="doLogin()">Log In</button>
+<button class="secondary" onclick="doSignup()">Create Account</button>
+<div class="err" id="auth-error"></div>
+<p class="note" style="margin-top:10px;">Uses the same account as Property Manager - if you already have one, log in with the same email and password here.</p>
+</div>
+
+<div id="dashboard" style="display:none;">
+  <div class="calc">
+    <span id="welcome-msg"></span> &nbsp;
+    <button class="secondary" onclick="doLogout()" style="margin-top:0;">Log Out</button>
+  </div>
+
+  <div class="calc">
+    <h3>Add a Ticker</h3>
+    <label>Stock or ETF symbol</label>
+    <input type="text" id="add-ticker-input" placeholder="e.g. AAPL" style="text-transform:uppercase;">
+    <button onclick="addTicker()">Add to My Portfolio</button>
+    <div class="err" id="add-ticker-error"></div>
+  </div>
+
+  <div class="calc" id="portfolio-summary" style="display:none;"></div>
+
+  <h3>Your Tickers</h3>
+  <div id="portfolio-list"><p style="font-size:13px;color:#888;">No tickers yet - add one above.</p></div>
+</div>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
+  authDomain: "property-manager-9455a.firebaseapp.com",
+  projectId: "property-manager-9455a",
+  storageBucket: "property-manager-9455a.firebasestorage.app",
+  messagingSenderId: "986237651798",
+  appId: "1:986237651798:web:f42e0af8fce40b180064f7"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.firestore();
+
+// Reuses the same Finnhub Worker already deployed for Stock Search.
+var FINNHUB_WORKER_URL = "https://finnhub-proxy.tonyhernandezusa.workers.dev";
+
+var currentUid = null;
+var portfolioUnsub = null;
+
+function showAddTickerError(message) {
+  document.getElementById("add-ticker-error").textContent = message;
+}
+
+function doSignup() {
+  var email = document.getElementById("auth-email").value.trim();
+  var password = document.getElementById("auth-password").value;
+  document.getElementById("auth-error").textContent = "";
+  auth.createUserWithEmailAndPassword(email, password).catch(function(err) {
+    document.getElementById("auth-error").textContent = err.message;
+  });
+}
+
+function doLogin() {
+  var email = document.getElementById("auth-email").value.trim();
+  var password = document.getElementById("auth-password").value;
+  document.getElementById("auth-error").textContent = "";
+  auth.signInWithEmailAndPassword(email, password).catch(function(err) {
+    document.getElementById("auth-error").textContent = err.message;
+  });
+}
+
+function doLogout() {
+  if (portfolioUnsub) { portfolioUnsub(); portfolioUnsub = null; }
+  auth.signOut();
+}
+
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    currentUid = user.uid;
+    document.getElementById("auth-panel").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
+    loadPortfolio(user.uid);
+  } else {
+    currentUid = null;
+    if (portfolioUnsub) { portfolioUnsub(); portfolioUnsub = null; }
+    document.getElementById("auth-panel").style.display = "block";
+    document.getElementById("dashboard").style.display = "none";
+  }
+});
+
+function addTicker() {
+  var input = document.getElementById("add-ticker-input");
+  var ticker = input.value.trim().toUpperCase();
+  showAddTickerError("");
+  if (!ticker) { showAddTickerError("Enter a ticker symbol first."); return; }
+  if (!/^[A-Z.\\-]{1,10}$/.test(ticker)) { showAddTickerError("That doesn't look like a valid ticker symbol."); return; }
+  db.collection("portfolios").doc(currentUid).set({
+    tickers: firebase.firestore.FieldValue.arrayUnion(ticker)
+  }, { merge: true }).then(function() {
+    input.value = "";
+  }).catch(function(err) {
+    showAddTickerError(err.message);
+  });
+}
+
+function removeTicker(ticker) {
+  db.collection("portfolios").doc(currentUid).set({
+    tickers: firebase.firestore.FieldValue.arrayRemove(ticker)
+  }, { merge: true });
+}
+
+function loadPortfolio(uid) {
+  if (portfolioUnsub) portfolioUnsub();
+  portfolioUnsub = db.collection("portfolios").doc(uid).onSnapshot(function(doc) {
+    var tickers = (doc.exists && doc.data().tickers) || [];
+    renderPortfolio(tickers);
+  });
+}
+
+function money(x) {
+  if (x === undefined || x === null || x === "") return "N/A";
+  return "$" + Number(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+async function fetchQuote(ticker) {
+  try {
+    var resp = await fetch(FINNHUB_WORKER_URL + "/stock-profile?symbol=" + encodeURIComponent(ticker));
+    var data = await resp.json();
+    if (data.error) return { ticker: ticker, error: data.error };
+    return { ticker: ticker, profile: data.profile || {}, quote: data.quote || {} };
+  } catch (e) {
+    return { ticker: ticker, error: "Could not fetch data for this ticker." };
+  }
+}
+
+async function renderPortfolio(tickers) {
+  var listEl = document.getElementById("portfolio-list");
+  var summaryEl = document.getElementById("portfolio-summary");
+  if (!tickers.length) {
+    listEl.innerHTML = "<p style='font-size:13px;color:#888;'>No tickers yet - add one above.</p>";
+    summaryEl.style.display = "none";
+    return;
+  }
+  listEl.innerHTML = "<p style='font-size:13px;color:#888;'>Loading live prices...</p>";
+
+  var results = await Promise.all(tickers.map(fetchQuote));
+
+  var cardsHtml = "";
+  var validChanges = [];
+  var sectorCounts = {};
+  results.forEach(function(r) {
+    if (r.error) {
+      cardsHtml += "<div class='ticker-card'><div><strong>" + r.ticker + "</strong><br><span style='font-size:12px;color:#c0392b;'>" + r.error + "</span></div>" +
+        "<button class='remove-btn' onclick=\\"removeTicker('" + r.ticker + "')\\">Remove</button></div>";
+      return;
+    }
+    var q = r.quote, p = r.profile;
+    var dp = q.dp;
+    var changeColor = (q.d || 0) >= 0 ? "#1a8a3d" : "#c0392b";
+    if (typeof dp === "number") validChanges.push(dp);
+    var sector = p.finnhubIndustry || "Unclassified";
+    sectorCounts[sector] = (sectorCounts[sector] || 0) + 1;
+    cardsHtml += "<div class='ticker-card'>" +
+      "<div><strong>" + r.ticker + "</strong> - " + (p.name || "") + "<br>" +
+      "<span style='font-size:12px;color:#666;'>" + sector + "</span></div>" +
+      "<div style='text-align:right;'><div style='font-size:16px;font-weight:700;'>" + money(q.c) + "</div>" +
+      "<div style='font-size:12px;font-weight:600;color:" + changeColor + ";'>" + (q.d >= 0 ? "+" : "") +
+      (q.d !== undefined ? q.d.toFixed(2) : "N/A") + " (" + (dp !== undefined ? dp.toFixed(2) : "N/A") + "%)</div></div>" +
+      "<button class='remove-btn' onclick=\\"removeTicker('" + r.ticker + "')\\">Remove</button></div>";
+  });
+  listEl.innerHTML = cardsHtml;
+
+  if (validChanges.length) {
+    var avgChange = validChanges.reduce(function(a, b) { return a + b; }, 0) / validChanges.length;
+    var avgColor = avgChange >= 0 ? "#1a8a3d" : "#c0392b";
+    var sectorLines = Object.keys(sectorCounts).sort(function(a, b) { return sectorCounts[b] - sectorCounts[a]; })
+      .map(function(s) { return s + ": " + sectorCounts[s] + " of " + results.length; }).join(" &middot; ");
+    summaryEl.style.display = "block";
+    summaryEl.innerHTML = "<h3>Portfolio Summary</h3>" +
+      "<p style='margin:4px 0;'>Average change today across your " + results.length + " ticker(s): " +
+      "<strong style='color:" + avgColor + ";'>" + (avgChange >= 0 ? "+" : "") + avgChange.toFixed(2) + "%</strong></p>" +
+      "<p style='font-size:12px;color:#666;margin:4px 0;'>By sector: " + sectorLines + "</p>" +
+      "<p class='note' style='margin-top:8px;'>A simple average across your holdings, not weighted by position size (this page doesn't track how many shares you own, only which tickers you follow).</p>";
+  } else {
+    summaryEl.style.display = "none";
+  }
+}
+</script>
+</body>
+</html>"""
+
+portfolio_html = (PORTFOLIO_TEMPLATE
+                   .replace("__CSS__", PAGE_CSS)
+                   .replace("__NAV__", NAV_HTML)
+                   .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                   .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                   .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                   .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                   .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                   .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
+
 with open("index.html", "w") as f:
     f.write(stocks_html)
+
+with open("portfolio.html", "w") as f:
+    f.write(portfolio_html)
 
 with open("realestate.html", "w") as f:
     f.write(realestate_html)
