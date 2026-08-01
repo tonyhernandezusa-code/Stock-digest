@@ -3,9 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Market Insights</title>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<title>For Educators &amp; Students - Stock Digest</title>
 <style>
 :root {
   --bg: #f7f7f5;
@@ -34,20 +32,6 @@ th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-
 td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
 .note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
 
-.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
-.calc h3 { margin:0 0 12px; font-size:16px; }
-.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
-.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
-.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
-.calc button.secondary { background:#888; }
-.err { color:#c0392b; font-size:13px; margin-top:8px; }
-.restricted-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
-@media (max-width: 600px) {
-  body { padding:12px; }
-  .calc { padding:14px; max-width:100%; }
-  .calc input { font-size:16px !important; padding:10px !important; }
-  .calc button { width:100%; }
-}
 
 body.dark-mode {
   --bg: #0d0d0d;
@@ -79,6 +63,11 @@ body.dark-mode th { background: var(--table-header-bg); color: var(--text); }
 body.dark-mode td { color: var(--text); border-color: var(--table-row-border); }
 body.dark-mode .suggest-btn { background: #1a2f42; color: #9cc4e0; border-color: #2a4258; }
 
+.edu-section { background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:16px 18px; margin-bottom:16px; }
+.edu-section h2 { margin:0 0 8px; font-size:16px; color:var(--text); }
+.edu-section p { font-size:13px; line-height:1.6; color:var(--text); margin:0 0 10px; }
+.edu-section ul { margin:0 0 10px; padding-left:18px; font-size:13px; line-height:1.7; color:var(--text); }
+.edu-cta { display:inline-block; background:#1f4e79; color:#fff; text-decoration:none; font-weight:600; font-size:13px; padding:10px 18px; border-radius:6px; }
 </style>
 </head>
 <body>
@@ -114,95 +103,32 @@ function toggleTheme() {
   <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
 </div>
 
-<h1>Market Insights</h1>
-<p class="timestamp">Not yet public - restricted to a single account while data-licensing terms with Finnhub and FINRA are being confirmed.</p>
+<h1>For Business Educators &amp; Students</h1>
+<p class="timestamp">Stock Digest is free to explore, and we're glad to have it used in the classroom.</p>
 
-<div class="calc" id="auth-panel">
-<h3 id="auth-title">Log In</h3>
-<label>Email</label>
-<input type="email" id="auth-email">
-<label>Password</label>
-<input type="password" id="auth-password">
-<button onclick="doLogin()">Log In</button>
-<div class="err" id="auth-error"></div>
+<div class="edu-section">
+<h2>Free Classroom Access for Professors</h2>
+<p>If you teach finance, economics, accounting, or business at the high school, community college, or university level, we'll set up free classroom access for you and your students - no cost, no catch. This is a manual, no-verification-hassle process right now: just tell us a bit about your course and we'll get you set up.</p>
+<a class="edu-cta" href="mailto:tonyhernandezusa@gmail.com?subject=Classroom%20Access%20Request&amp;body=Course%20name%3A%0ASchool%2Finstitution%3A%0AApproximate%20number%20of%20students%3A%0AWhat%20you%27d%20like%20to%20use%20Stock%20Digest%20for%3A" target="_blank" rel="noopener">Request Classroom Access</a>
 </div>
 
-<div id="restricted-view" style="display:none;">
-  <div class="restricted-banner">
-    You're logged in, but this account doesn't have access to this section. Market Insights is
-    restricted to a single account while licensing terms are confirmed with data providers.
-  </div>
-  <button class="secondary" onclick="doLogout()">Log Out</button>
+<div class="edu-section">
+<h2>Suggested Classroom Uses</h2>
+<ul>
+<li><strong>Monetary policy &amp; the Fed's dual mandate:</strong> The <a href="index.html">Fed Policy Targets</a> table shows real, current CPI, Core PCE, unemployment, GDP growth, and Fed Funds Rate readings against the Fed's own longer-run targets - a live example for teaching how the FOMC's Summary of Economic Projections works.</li>
+<li><strong>Fundamentals vs. market sentiment:</strong> The <a href="index.html">Fundamentals vs. Sentiment Gauge</a> gives students a concrete, numeric way to separate "what the macro data explains" from "what's left over" in a sector's price move - a good jumping-off point for discussing market efficiency and behavioral finance.</li>
+<li><strong>Time value of money &amp; loan mechanics:</strong> The <a href="calculators.html">Financial Calculators</a> page (mortgage, auto loan, business valuation, real estate investment) shows students the actual amortization and DSCR math behind the numbers, not just a black-box payment figure.</li>
+<li><strong>Building financial vocabulary:</strong> The <a href="glossary.html">Glossary</a> covers every indicator, index, and rate on the site, with what it measures and who publishes it - useful as an assigned reading or reference for an intro finance/econ course.</li>
+<li><strong>Real estate &amp; property finance:</strong> The <a href="propertymanager.html">Property Manager</a> and <a href="realestate.html">Real Estate</a> pages work as a live case study for cap rate, cash-on-cash return, and DSCR concepts in a real estate finance course.</li>
+</ul>
 </div>
 
-<div id="allowed-view" style="display:none;">
-  <div class="calc">
-    <span id="welcome-msg"></span> &nbsp;
-    <button class="secondary" onclick="doLogout()" style="margin-top:0;">Log Out</button>
-  </div>
-  <div class="calc">
-    <h3>Under development</h3>
-    <p class="note">This section is reserved for AI-generated stock and bond market summaries.
-    It's intentionally empty right now - content will be added once Finnhub and FINRA have
-    confirmed what can be shared under their personal-use terms. This page itself is safe to use
-    in the meantime: it's just a login gate with nothing behind it yet.</p>
-  </div>
+<div class="edu-section">
+<h2>For Students</h2>
+<p>Everything on Stock Digest is free to explore on your own - no login required for most pages. If your professor sets up classroom access, ask them about any course-specific materials or discussion questions they're using alongside it. If you're studying independently and have a question about how a specific calculator or indicator works, the <a href="glossary.html">Glossary</a> and the hover-over definitions throughout the site are a good place to start.</p>
 </div>
 
-<script>
-// Same Firebase project as Property Manager - reused here only for its login system,
-// not for sharing any Property Manager data.
-var firebaseConfig = {
-  apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
-  authDomain: "property-manager-9455a.firebaseapp.com",
-  projectId: "property-manager-9455a",
-  storageBucket: "property-manager-9455a.firebasestorage.app",
-  messagingSenderId: "986237651798",
-  appId: "1:986237651798:web:f42e0af8fce40b180064f7"
-};
-firebase.initializeApp(firebaseConfig);
-var auth = firebase.auth();
-
-// Hard allowlist - only these specific accounts can see the "allowed-view" content below,
-// regardless of who else signs up for Property Manager on this same Firebase project.
-var ALLOWED_EMAILS = ["chambelon@aol.com"];
-
-function showError(elId, message) {
-  document.getElementById(elId).textContent = message;
-}
-
-function doLogin() {
-  var email = document.getElementById("auth-email").value.trim();
-  var password = document.getElementById("auth-password").value;
-  showError("auth-error", "");
-  auth.signInWithEmailAndPassword(email, password).catch(function(err) {
-    showError("auth-error", err.message);
-  });
-}
-
-function doLogout() {
-  auth.signOut();
-}
-
-auth.onAuthStateChanged(function(user) {
-  document.getElementById("auth-panel").style.display = "none";
-  document.getElementById("restricted-view").style.display = "none";
-  document.getElementById("allowed-view").style.display = "none";
-
-  if (!user) {
-    document.getElementById("auth-panel").style.display = "block";
-    return;
-  }
-
-  if (ALLOWED_EMAILS.indexOf(user.email) === -1) {
-    document.getElementById("restricted-view").style.display = "block";
-    return;
-  }
-
-  document.getElementById("allowed-view").style.display = "block";
-  document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
-});
-</script>
+<p class="note">Stock Digest is an educational and informational tool. Nothing on this site is personalized financial advice or a recommendation to buy or sell any security.</p>
 
 </body>
 </html>
