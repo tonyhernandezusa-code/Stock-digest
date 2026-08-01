@@ -3,9 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Market Insights</title>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<title>Privacy Policy - Stock Digest</title>
 <style>
 :root {
   --bg: #f7f7f5;
@@ -34,20 +32,6 @@ th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-
 td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
 .note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
 
-.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
-.calc h3 { margin:0 0 12px; font-size:16px; }
-.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
-.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
-.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
-.calc button.secondary { background:#888; }
-.err { color:#c0392b; font-size:13px; margin-top:8px; }
-.restricted-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
-@media (max-width: 600px) {
-  body { padding:12px; }
-  .calc { padding:14px; max-width:100%; }
-  .calc input { font-size:16px !important; padding:10px !important; }
-  .calc button { width:100%; }
-}
 
 body.dark-mode {
   --bg: #0d0d0d;
@@ -89,6 +73,11 @@ body.learning-mode tr.learning-mode-only { display: table-row; }
 .beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
 body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
 
+.legal-content h2 { font-size:16px; margin:22px 0 8px; }
+.legal-content ul { padding-left:20px; }
+.legal-content li { margin-bottom:4px; }
+.legal-content hr { border:none; border-top:1px solid var(--card-border); margin:16px 0; }
+.legal-content em { display:block; font-size:12px; color:var(--text-faint); margin-top:20px; }
 </style>
 </head>
 <body>
@@ -144,96 +133,83 @@ function toggleLearningMode() {
   <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
 </div>
 
-<h1>Market Insights</h1>
-<p class="timestamp">Not yet public - restricted to a single account while data-licensing terms with Finnhub and FINRA are being confirmed.</p>
-
-<div class="calc" id="auth-panel">
-<h3 id="auth-title">Log In</h3>
-<label>Email</label>
-<input type="email" id="auth-email">
-<label>Password</label>
-<input type="password" id="auth-password">
-<button onclick="doLogin()">Log In</button>
-<div class="err" id="auth-error"></div>
+<div class="legal-content">
+<h1>Privacy Policy</h1>
+<p><strong>Winners Stock LLC</strong> ("Winners Stock," "we," "us," or "our")
+Operating Stock Digest at winnersstock.com (the "Service")</p>
+<p><strong>Effective Date:</strong> September 1, 2026
+<strong>Last Updated:</strong> September 1, 2026</p>
+<hr />
+<h2>1. Overview</h2>
+<p>This Privacy Policy explains what information we collect, how we use it, and the choices you have. By using the Service, you agree to the collection and use of information as described here.</p>
+<h2>2. Information We Collect</h2>
+<h3>Information you provide directly</h3>
+<ul>
+<li><strong>Account information</strong>: email address and password (used to create and secure your account). Passwords are handled by our authentication provider (Firebase Authentication, operated by Google) and are never stored or visible to us in plain text.</li>
+<li><strong>Portfolio data</strong>: any stock or ETF tickers you choose to add to your personal portfolio.</li>
+<li><strong>Property Manager data</strong> (if applicable to your account): property addresses, financial details, and related records you choose to enter for your own use.</li>
+<li><strong>Payment information</strong>: if you subscribe to a paid tier, billing is handled directly by our payment processor. We do not receive or store your full credit card number on our own servers.</li>
+<li><strong>Communications</strong>: information you provide when you contact us for support (e.g., email content).</li>
+</ul>
+<h3>Information collected automatically</h3>
+<ul>
+<li>Basic usage data such as pages visited and general browser/device information, to the extent provided by standard web hosting and analytics tools.</li>
+<li>A local browser preference (e.g., dark mode or "Learning Mode" setting) stored in your browser's local storage. This is not transmitted to our servers and is specific to the browser/device you're using.</li>
+</ul>
+<h3>Information we do NOT collect</h3>
+<ul>
+<li>We do not collect your full payment card number, card verification code, or bank account number directly - these are handled by our third-party payment processor.</li>
+<li>We do not sell your personal information to third parties.</li>
+</ul>
+<h2>3. How We Use Your Information</h2>
+<p>We use the information we collect to:</p>
+<ul>
+<li>Create and maintain your account</li>
+<li>Provide the features you use (e.g., displaying your saved portfolio tickers, saving your property records)</li>
+<li>Process subscription payments and manage billing</li>
+<li>Respond to support requests</li>
+<li>Maintain the security and integrity of the Service</li>
+<li>Comply with legal obligations</li>
+</ul>
+<p>We do not use your portfolio holdings, property data, or other account content to generate targeted advertising, and we do not sell this information.</p>
+<h2>4. Third-Party Service Providers</h2>
+<p>We use the following categories of third-party providers to operate the Service. Each handles a defined, limited scope of data as part of providing their service to us:</p>
+<ul>
+<li><strong>Firebase (Google)</strong> - authentication and database storage for account and portfolio/property data</li>
+<li><strong>Payment processor</strong> [NAME ONCE FINALIZED - e.g., PayPal, North American Bancard/Payments Hub] - subscription billing</li>
+<li><strong>Market data providers</strong> (Yahoo Finance, Finnhub, FRED, and similar) - supply the market data displayed on the Service; we do not share your personal account information with these providers as part of displaying market data</li>
+<li><strong>Cloudflare</strong> - infrastructure used to securely relay certain data requests (e.g., live stock quote lookups) without exposing API credentials in your browser</li>
+</ul>
+<p>These providers have their own privacy policies governing how they handle data on our behalf.</p>
+<h2>5. Data Security</h2>
+<p>We use industry-standard providers (Firebase Authentication and Firestore) to store account and application data, with access restricted so that each user can only read or modify their own data. No method of electronic storage or transmission is 100% secure, and we cannot guarantee absolute security.</p>
+<h2>6. Data Retention</h2>
+<p>We retain your account information and associated data for as long as your account remains active. If you close your account, we will delete or anonymize your personal data within [RETENTION PERIOD, e.g., 30-90 days], except where we are required to retain certain records (e.g., billing records) for legal, tax, or accounting purposes.</p>
+<h2>7. Your Rights and Choices</h2>
+<p>Depending on your location, you may have rights to:</p>
+<ul>
+<li>Access the personal information we hold about you</li>
+<li>Request correction of inaccurate information</li>
+<li>Request deletion of your account and associated data</li>
+<li>Object to or restrict certain processing of your information</li>
+</ul>
+<p>To exercise any of these rights, contact us at support@winnersstock.com. We will respond within a reasonable time and in accordance with applicable law.</p>
+<p>If you are a California resident, you may have additional rights under the California Consumer Privacy Act (CCPA); if you are in the European Economic Area or UK, you may have additional rights under the GDPR/UK GDPR. [Confirm with counsel whether these apply based on where your users are located, and expand this section accordingly if so.]</p>
+<h2>8. Children's Privacy</h2>
+<p>The Service is not directed to children under 13 (or under 16 in jurisdictions where that is the relevant threshold), and we do not knowingly collect personal information from children. If you believe a child has provided us with personal information, contact us at support@winnersstock.com and we will take steps to delete it.</p>
+<h2>9. Cookies and Local Storage</h2>
+<p>We use browser local storage (not third-party tracking cookies) to remember display preferences such as dark mode and Learning Mode settings. This information stays on your device and is not transmitted to us.</p>
+<h2>10. Changes to This Policy</h2>
+<p>We may update this Privacy Policy from time to time. Material changes will be posted on this page with an updated "Last Updated" date. If changes are significant, we will make reasonable efforts to notify account holders (e.g., via email or an in-app notice).</p>
+<h2>11. Contact Us</h2>
+<p>Questions about this Privacy Policy or your personal information can be directed to:</p>
+<p>Winners Stock LLC<br />
+2037 NW 27th Avenue<br />
+Miami, Florida 33142<br />
+support@winnersstock.com</p>
+<hr />
+<em>This document is a draft template and has not been reviewed by an attorney. Data privacy law varies significantly by state and country (e.g., CCPA, GDPR, and other state privacy laws), and applicability depends on where your users are located. Please have this reviewed by a business attorney before publishing it live or relying on it for compliance.</em>
 </div>
-
-<div id="restricted-view" style="display:none;">
-  <div class="restricted-banner">
-    You're logged in, but this account doesn't have access to this section. Market Insights is
-    restricted to a single account while licensing terms are confirmed with data providers.
-  </div>
-  <button class="secondary" onclick="doLogout()">Log Out</button>
-</div>
-
-<div id="allowed-view" style="display:none;">
-  <div class="calc">
-    <span id="welcome-msg"></span> &nbsp;
-    <button class="secondary" onclick="doLogout()" style="margin-top:0;">Log Out</button>
-  </div>
-  <div class="calc">
-    <h3>Under development</h3>
-    <p class="note">This section is reserved for AI-generated stock and bond market summaries.
-    It's intentionally empty right now - content will be added once Finnhub and FINRA have
-    confirmed what can be shared under their personal-use terms. This page itself is safe to use
-    in the meantime: it's just a login gate with nothing behind it yet.</p>
-  </div>
-</div>
-
-<script>
-// Same Firebase project as Property Manager - reused here only for its login system,
-// not for sharing any Property Manager data.
-var firebaseConfig = {
-  apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
-  authDomain: "property-manager-9455a.firebaseapp.com",
-  projectId: "property-manager-9455a",
-  storageBucket: "property-manager-9455a.firebasestorage.app",
-  messagingSenderId: "986237651798",
-  appId: "1:986237651798:web:f42e0af8fce40b180064f7"
-};
-firebase.initializeApp(firebaseConfig);
-var auth = firebase.auth();
-
-// Hard allowlist - only these specific accounts can see the "allowed-view" content below,
-// regardless of who else signs up for Property Manager on this same Firebase project.
-var ALLOWED_EMAILS = ["chambelon@aol.com"];
-
-function showError(elId, message) {
-  document.getElementById(elId).textContent = message;
-}
-
-function doLogin() {
-  var email = document.getElementById("auth-email").value.trim();
-  var password = document.getElementById("auth-password").value;
-  showError("auth-error", "");
-  auth.signInWithEmailAndPassword(email, password).catch(function(err) {
-    showError("auth-error", err.message);
-  });
-}
-
-function doLogout() {
-  auth.signOut();
-}
-
-auth.onAuthStateChanged(function(user) {
-  document.getElementById("auth-panel").style.display = "none";
-  document.getElementById("restricted-view").style.display = "none";
-  document.getElementById("allowed-view").style.display = "none";
-
-  if (!user) {
-    document.getElementById("auth-panel").style.display = "block";
-    return;
-  }
-
-  if (ALLOWED_EMAILS.indexOf(user.email) === -1) {
-    document.getElementById("restricted-view").style.display = "block";
-    return;
-  }
-
-  document.getElementById("allowed-view").style.display = "block";
-  document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
-});
-</script>
-
 
 <hr style="margin:32px 0 16px;border:none;border-top:1px solid var(--card-border);">
 <div style="font-size:12px;color:var(--text-faint);padding-bottom:20px;">

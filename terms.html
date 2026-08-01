@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service - Stock Digest</title>
+<style>
+:root {
+  --bg: #f7f7f5;
+  --text: #111;
+  --text-secondary: #666;
+  --text-muted: #888;
+  --text-faint: #999;
+  --card-bg: #fff;
+  --card-border: #e5e3dc;
+  --table-header-bg: #f0efe9;
+  --table-row-border: #eee;
+}
+body { font-family: -apple-system, sans-serif; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+h1 { font-size:20px; margin:0 0 4px; color:var(--text); }
+h2 { font-size:15px; margin:24px 0 10px; color:var(--text-secondary); }
+.timestamp { color:var(--text-secondary); font-size:13px; margin:0 0 20px; }
+.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:8px; }
+.row { display:flex; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+.card { background:var(--card-bg); border-radius:10px; padding:14px; border:1px solid var(--card-border); flex:1; min-width:150px; cursor:help; }
+.label { font-size:12px; color:var(--text-secondary); margin:0 0 4px; }
+.value { font-size:20px; font-weight:600; margin:0; color:var(--text); }
+.sixmo { font-size:11px; color:var(--text-muted); margin:4px 0 0; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; background:var(--card-bg); border-radius:10px; overflow:hidden; }
+th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-size:12px; color:var(--text-secondary); font-weight:600; white-space:nowrap; }
+td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
+.note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
+
+
+body.dark-mode {
+  --bg: #0d0d0d;
+  --text: #e8e8e8;
+  --text-secondary: #b0b0b0;
+  --text-muted: #909090;
+  --text-faint: #787878;
+  --card-bg: #1a1a1a;
+  --card-border: #333;
+  --table-header-bg: #222;
+  --table-row-border: #2a2a2a;
+}
+#theme-toggle {
+  position: fixed; top: 16px; right: 16px; z-index: 1000;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+  border-radius: 20px; cursor: pointer;
+}
+body.dark-mode .calc, body.dark-mode .calc-wide { background: var(--card-bg); border-color: var(--card-border); color: var(--text); }
+body.dark-mode .result { background: #16281a; color: var(--text); }
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+  background: var(--card-bg); color: var(--text); border-color: var(--card-border);
+}
+body.dark-mode .calc-tab-btn { background: var(--card-bg); color: var(--text); border-color: var(--card-border); }
+body.dark-mode .calc-tab-btn.active { background: #1f4e79; color: #fff; }
+body.dark-mode label { color: var(--text-secondary); }
+body.dark-mode table { background: var(--card-bg); }
+body.dark-mode th { background: var(--table-header-bg); color: var(--text); }
+body.dark-mode td { color: var(--text); border-color: var(--table-row-border); }
+body.dark-mode .suggest-btn { background: #1a2f42; color: #9cc4e0; border-color: #2a4258; }
+
+
+.learning-mode-only { display: none; }
+body.learning-mode .learning-mode-only { display: block; }
+tr.learning-mode-only { display: none; }
+body.learning-mode tr.learning-mode-only { display: table-row; }
+.beginner-box { background: #eef6f0; border:1px solid #cfe8d6; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+.beginner-box h3 { margin:0 0 8px; font-size:14px; }
+.beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
+body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
+
+.legal-content h2 { font-size:16px; margin:22px 0 8px; }
+.legal-content ul { padding-left:20px; }
+.legal-content li { margin-bottom:4px; }
+.legal-content hr { border:none; border-top:1px solid var(--card-border); margin:16px 0; }
+.legal-content em { display:block; font-size:12px; color:var(--text-faint); margin-top:20px; }
+</style>
+</head>
+<body>
+<button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
+<script>
+(function() {
+  var saved = localStorage.getItem('siteDarkMode');
+  if (saved === 'dark') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('dark-mode');
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.innerHTML = '&#9728; Light Mode';
+    });
+  }
+})();
+function toggleTheme() {
+  var isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('siteDarkMode', isDark ? 'dark' : 'light');
+  var btn = document.getElementById('theme-toggle');
+  if (btn) btn.innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}
+</script>
+<button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>
+<script>
+(function() {
+  var savedLearning = localStorage.getItem('siteLearningMode');
+  if (savedLearning === 'on') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('learning-mode');
+      var btn = document.getElementById('learning-mode-toggle');
+      if (btn) btn.innerHTML = '&#127891; Learning Mode: On';
+    });
+  }
+})();
+function toggleLearningMode() {
+  var isOn = document.body.classList.toggle('learning-mode');
+  localStorage.setItem('siteLearningMode', isOn ? 'on' : 'off');
+  var btn = document.getElementById('learning-mode-toggle');
+  if (btn) btn.innerHTML = isOn ? '&#127891; Learning Mode: On' : '&#127891; Learning Mode: Off';
+}
+</script>
+
+<div style="margin-bottom:16px;">
+  <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
+  <a href="realestate.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Real Estate</a>
+  <a href="calculators.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Calculators</a>
+  <a href="search.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
+  <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
+  <a href="propertymanager.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
+  <a href="portfolio.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">My Portfolio</a>
+  <a href="insights.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
+  <a href="glossary.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Glossary</a>
+  <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
+</div>
+
+<div class="legal-content">
+<h1>Terms of Service</h1>
+<p><strong>Winners Stock LLC</strong> ("Winners Stock," "we," "us," or "our")
+Operating Stock Digest at winnersstock.com (the "Service")</p>
+<p><strong>Effective Date:</strong> September 1, 2026
+<strong>Last Updated:</strong> September 1, 2026</p>
+<hr />
+<h2>1. Acceptance of Terms</h2>
+<p>By accessing or using Stock Digest, creating an account, or subscribing to any paid tier of the Service, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service.</p>
+<p>You must be at least 18 years old, or the age of majority in your jurisdiction, to create an account or subscribe to the Service.</p>
+<h2>2. Description of Service</h2>
+<p>Stock Digest provides financial market data, economic indicators, educational content, calculators, and portfolio-tracking tools for informational and educational purposes. The Service may include:</p>
+<ul>
+<li>Market data dashboards (stock indexes, commodities, currencies, cryptocurrency prices, interest rates, and related economic indicators)</li>
+<li>Real estate market data and calculators</li>
+<li>Financial calculators (mortgage, loan, tax estimation, and related tools)</li>
+<li>A personal portfolio-tracking feature tied to your account</li>
+<li>Educational glossary and reference content</li>
+<li>[Any additional features - property management tools, market insights, etc.]</li>
+</ul>
+<h2>3. Not Financial Advice</h2>
+<p><strong>The Service is for informational and educational purposes only.</strong> Nothing on Stock Digest constitutes financial, investment, legal, or tax advice, and nothing on the Service is a recommendation to buy, sell, or hold any security, cryptocurrency, real property, or other asset.</p>
+<ul>
+<li>Market data, indicators, and calculator outputs are estimates based on available data sources and may contain errors, delays, or inaccuracies.</li>
+<li>Any AI-generated content, summaries, or "insight" features are automated and may be incomplete or incorrect.</li>
+<li>You are solely responsible for your own financial, investment, and tax decisions. Consult a licensed financial advisor, attorney, or tax professional before making decisions based on anything presented through the Service.</li>
+<li>Winners Stock LLC is not a registered investment advisor, broker-dealer, or tax preparation service.</li>
+</ul>
+<h2>4. Accounts</h2>
+<ul>
+<li>You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account.</li>
+<li>You must provide accurate information when creating an account.</li>
+<li>You may not share your account, or create multiple accounts to circumvent subscription limits or pricing.</li>
+<li>We reserve the right to suspend or terminate accounts that violate these Terms, engage in abusive behavior, or are used for unlawful purposes.</li>
+</ul>
+<h2>5. Subscriptions, Billing, and Cancellation</h2>
+<ul>
+<li>Certain features of the Service require a paid subscription. Current pricing is listed at [PRICING PAGE URL].</li>
+<li>Subscriptions renew automatically at the end of each billing period unless canceled before the renewal date.</li>
+<li>You may cancel your subscription at any time through your account settings. Cancellation takes effect at the end of the current billing period; you will retain access through that period, and you will not be billed again afterward.</li>
+<li>Refunds: see our <a href="refund-policy.html">Cancellation &amp; Refund Policy</a>.</li>
+<li>We reserve the right to change subscription pricing with advance notice. Continued use of the Service after a price change takes effect constitutes acceptance of the new pricing.</li>
+<li>Payment processing is handled by a third-party payment processor. We do not store your full payment card information on our own servers.</li>
+</ul>
+<h2>6. Educational and Institutional Access</h2>
+<p>Free classroom access offered to educators and students under our Educators &amp; Students program is provided at our discretion and may be modified, limited, or discontinued at any time. Educational access is for non-commercial classroom use only.</p>
+<h2>7. Acceptable Use</h2>
+<p>You agree not to:</p>
+<ul>
+<li>Use the Service for any unlawful purpose or in violation of any applicable law or regulation</li>
+<li>Attempt to gain unauthorized access to any part of the Service, other users' accounts or data, or our underlying systems</li>
+<li>Scrape, reverse-engineer, or systematically extract data from the Service beyond normal personal use</li>
+<li>Interfere with or disrupt the integrity or performance of the Service</li>
+<li>Use automated means (bots, scripts) to access the Service in a manner that sends more requests than a human could reasonably send</li>
+</ul>
+<h2>8. Intellectual Property</h2>
+<p>The Service, including its design, calculators, compiled data presentations, and original written content, is owned by Winners Stock LLC and protected by applicable intellectual property laws. Underlying market data is sourced from third parties (see Section 9) and remains subject to those parties' own rights where applicable. You may not copy, resell, or redistribute the Service or its content without our written permission.</p>
+<h2>9. Third-Party Data Sources</h2>
+<p>The Service aggregates and displays data from third-party sources, including but not limited to Yahoo Finance, the Federal Reserve Bank of St. Louis (FRED), the U.S. Bureau of Labor Statistics, the U.S. Census Bureau, the Federal Housing Finance Agency, Finnhub, and other public or licensed data providers. We do not control, and are not responsible for, the accuracy, timeliness, or availability of third-party data. Data may be delayed and is not intended for use in time-sensitive trading decisions.</p>
+<h2>10. Disclaimer of Warranties</h2>
+<p>THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, OR NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE.</p>
+<h2>11. Limitation of Liability</h2>
+<p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, WINNERS STOCK LLC AND ITS OWNERS, EMPLOYEES, AND CONTRACTORS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR FINANCIAL LOSSES ARISING FROM YOUR USE OF, OR INABILITY TO USE, THE SERVICE, INCLUDING ANY FINANCIAL, INVESTMENT, OR TRADING DECISIONS MADE IN RELIANCE ON INFORMATION PROVIDED THROUGH THE SERVICE. OUR TOTAL LIABILITY FOR ANY CLAIM ARISING FROM THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.</p>
+<h2>12. Indemnification</h2>
+<p>You agree to indemnify and hold harmless Winners Stock LLC from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising from your use of the Service or violation of these Terms.</p>
+<h2>13. Changes to These Terms</h2>
+<p>We may update these Terms from time to time. Material changes will be posted on this page with an updated "Last Updated" date. Continued use of the Service after changes take effect constitutes acceptance of the revised Terms.</p>
+<h2>14. Termination</h2>
+<p>We may suspend or terminate your access to the Service at any time for violation of these Terms. You may stop using the Service and close your account at any time.</p>
+<h2>15. Governing Law</h2>
+<p>These Terms are governed by the laws of the State of Florida, without regard to its conflict of law principles. Any disputes arising from these Terms or the Service shall be resolved in the state or federal courts located in Miami-Dade County, Florida.</p>
+<h2>16. Contact</h2>
+<p>Questions about these Terms can be directed to:</p>
+<p>Winners Stock LLC<br />
+2037 NW 27th Avenue<br />
+Miami, Florida 33142<br />
+support@winnersstock.com</p>
+<hr />
+<em>This document is a draft template and has not been reviewed by an attorney. Please have it reviewed by a business attorney licensed in your state before publishing it live or relying on it for legal protection.</em>
+</div>
+
+<hr style="margin:32px 0 16px;border:none;border-top:1px solid var(--card-border);">
+<div style="font-size:12px;color:var(--text-faint);padding-bottom:20px;">
+  <a href="terms.html" style="margin-right:14px;color:var(--text-faint);text-decoration:underline;">Terms of Service</a>
+  <a href="privacy.html" style="margin-right:14px;color:var(--text-faint);text-decoration:underline;">Privacy Policy</a>
+  <a href="refund-policy.html" style="color:var(--text-faint);text-decoration:underline;">Cancellation &amp; Refund Policy</a>
+  <p style="margin:8px 0 0;">&copy; 2026 Winners Stock LLC. Stock Digest is provided for informational and educational purposes only and is not financial, investment, legal, or tax advice.</p>
+</div>
+
+</body>
+</html>

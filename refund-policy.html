@@ -3,9 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Market Insights</title>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<title>Cancellation & Refund Policy - Stock Digest</title>
 <style>
 :root {
   --bg: #f7f7f5;
@@ -34,20 +32,6 @@ th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-
 td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
 .note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
 
-.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
-.calc h3 { margin:0 0 12px; font-size:16px; }
-.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
-.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
-.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
-.calc button.secondary { background:#888; }
-.err { color:#c0392b; font-size:13px; margin-top:8px; }
-.restricted-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
-@media (max-width: 600px) {
-  body { padding:12px; }
-  .calc { padding:14px; max-width:100%; }
-  .calc input { font-size:16px !important; padding:10px !important; }
-  .calc button { width:100%; }
-}
 
 body.dark-mode {
   --bg: #0d0d0d;
@@ -89,6 +73,11 @@ body.learning-mode tr.learning-mode-only { display: table-row; }
 .beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
 body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
 
+.legal-content h2 { font-size:16px; margin:22px 0 8px; }
+.legal-content ul { padding-left:20px; }
+.legal-content li { margin-bottom:4px; }
+.legal-content hr { border:none; border-top:1px solid var(--card-border); margin:16px 0; }
+.legal-content em { display:block; font-size:12px; color:var(--text-faint); margin-top:20px; }
 </style>
 </head>
 <body>
@@ -144,96 +133,41 @@ function toggleLearningMode() {
   <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
 </div>
 
-<h1>Market Insights</h1>
-<p class="timestamp">Not yet public - restricted to a single account while data-licensing terms with Finnhub and FINRA are being confirmed.</p>
-
-<div class="calc" id="auth-panel">
-<h3 id="auth-title">Log In</h3>
-<label>Email</label>
-<input type="email" id="auth-email">
-<label>Password</label>
-<input type="password" id="auth-password">
-<button onclick="doLogin()">Log In</button>
-<div class="err" id="auth-error"></div>
+<div class="legal-content">
+<h1>Cancellation &amp; Refund Policy</h1>
+<p><strong>Winners Stock LLC</strong> ("Winners Stock," "we," "us," or "our")
+Operating Stock Digest at winnersstock.com (the "Service")</p>
+<p><strong>Effective Date:</strong> September 1, 2026
+<strong>Last Updated:</strong> September 1, 2026</p>
+<hr />
+<h2>1. Subscription Billing</h2>
+<p>Paid subscriptions to Stock Digest bill automatically on a recurring basis (e.g., monthly or annually, as selected at signup) until canceled. Your billing date is set from the date you first subscribe.</p>
+<h2>2. How to Cancel</h2>
+<p>You can cancel your subscription at any time by [DESCRIBE ACTUAL MECHANISM ONCE BUILT - e.g., "going to Account Settings and clicking Cancel Subscription"]. Cancellation takes effect at the end of your current billing period - you will keep access to paid features through the end of the period you already paid for, and you will not be charged again afterward.</p>
+<p>We do not require you to contact support to cancel; cancellation is self-service and available directly in your account, consistent with the same ease you used to subscribe.</p>
+<h2>3. Refunds</h2>
+<p>[CHOOSE ONE APPROACH AND DELETE THE OTHERS BEFORE PUBLISHING - PICK WHAT YOU ACTUALLY WANT TO OFFER:]</p>
+<p><strong>Option A - No refunds for partial periods:</strong>
+Subscription fees are non-refundable for the remainder of a billing period after cancellation. When you cancel, you retain access through the end of the period you already paid for; we do not provide prorated refunds for unused time within a billing period.</p>
+<p><strong>Option B - Money-back guarantee window:</strong>
+If you are not satisfied with your subscription, you may request a full refund within [X] days of your initial subscription charge by contacting support@winnersstock.com. Refund requests made after this window, or for renewal charges after the first billing cycle, are handled on a case-by-case basis at our discretion.</p>
+<p><strong>Option C - Prorated refund:</strong>
+If you cancel mid-billing-period, we will refund the unused portion of that period on a prorated basis.</p>
+<h2>4. Billing Errors and Duplicate Charges</h2>
+<p>If you believe you were charged in error or were billed more than once for the same period, contact us at support@winnersstock.com with your account email and the date of the charge. We will investigate and issue a correction or refund promptly where warranted.</p>
+<h2>5. Failed Payments</h2>
+<p>If a scheduled payment fails (e.g., an expired card), we will attempt to notify you and may retry the charge. If payment is not resolved within [X] days, your subscription may be downgraded to the free tier or suspended until payment is updated.</p>
+<h2>6. Price Changes</h2>
+<p>If we change subscription pricing, we will provide advance notice before the new price takes effect for existing subscribers. Continuing your subscription after that date constitutes acceptance of the new price. You may cancel before the new price takes effect if you do not agree to it.</p>
+<h2>7. Chargebacks</h2>
+<p>If you have a billing concern, we ask that you contact us first at support@winnersstock.com so we can resolve it directly - most issues can be handled faster this way than through a card dispute. Initiating a chargeback without first attempting to resolve the issue with us may result in suspension of your account while the dispute is investigated.</p>
+<h2>8. Contact</h2>
+<p>Questions about billing, cancellation, or refunds:</p>
+<p>Winners Stock LLC<br />
+support@winnersstock.com</p>
+<hr />
+<em>This document is a draft template and has not been reviewed by an attorney. The refund approach (Section 3) is a business decision you should make deliberately - whichever option you choose also needs to match what you actually configure in your payment processor's subscription settings. Please have this reviewed by a business attorney before publishing it live.</em>
 </div>
-
-<div id="restricted-view" style="display:none;">
-  <div class="restricted-banner">
-    You're logged in, but this account doesn't have access to this section. Market Insights is
-    restricted to a single account while licensing terms are confirmed with data providers.
-  </div>
-  <button class="secondary" onclick="doLogout()">Log Out</button>
-</div>
-
-<div id="allowed-view" style="display:none;">
-  <div class="calc">
-    <span id="welcome-msg"></span> &nbsp;
-    <button class="secondary" onclick="doLogout()" style="margin-top:0;">Log Out</button>
-  </div>
-  <div class="calc">
-    <h3>Under development</h3>
-    <p class="note">This section is reserved for AI-generated stock and bond market summaries.
-    It's intentionally empty right now - content will be added once Finnhub and FINRA have
-    confirmed what can be shared under their personal-use terms. This page itself is safe to use
-    in the meantime: it's just a login gate with nothing behind it yet.</p>
-  </div>
-</div>
-
-<script>
-// Same Firebase project as Property Manager - reused here only for its login system,
-// not for sharing any Property Manager data.
-var firebaseConfig = {
-  apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
-  authDomain: "property-manager-9455a.firebaseapp.com",
-  projectId: "property-manager-9455a",
-  storageBucket: "property-manager-9455a.firebasestorage.app",
-  messagingSenderId: "986237651798",
-  appId: "1:986237651798:web:f42e0af8fce40b180064f7"
-};
-firebase.initializeApp(firebaseConfig);
-var auth = firebase.auth();
-
-// Hard allowlist - only these specific accounts can see the "allowed-view" content below,
-// regardless of who else signs up for Property Manager on this same Firebase project.
-var ALLOWED_EMAILS = ["chambelon@aol.com"];
-
-function showError(elId, message) {
-  document.getElementById(elId).textContent = message;
-}
-
-function doLogin() {
-  var email = document.getElementById("auth-email").value.trim();
-  var password = document.getElementById("auth-password").value;
-  showError("auth-error", "");
-  auth.signInWithEmailAndPassword(email, password).catch(function(err) {
-    showError("auth-error", err.message);
-  });
-}
-
-function doLogout() {
-  auth.signOut();
-}
-
-auth.onAuthStateChanged(function(user) {
-  document.getElementById("auth-panel").style.display = "none";
-  document.getElementById("restricted-view").style.display = "none";
-  document.getElementById("allowed-view").style.display = "none";
-
-  if (!user) {
-    document.getElementById("auth-panel").style.display = "block";
-    return;
-  }
-
-  if (ALLOWED_EMAILS.indexOf(user.email) === -1) {
-    document.getElementById("restricted-view").style.display = "block";
-    return;
-  }
-
-  document.getElementById("allowed-view").style.display = "block";
-  document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
-});
-</script>
-
 
 <hr style="margin:32px 0 16px;border:none;border-top:1px solid var(--card-border);">
 <div style="font-size:12px;color:var(--text-faint);padding-bottom:20px;">
