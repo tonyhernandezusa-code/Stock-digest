@@ -631,6 +631,42 @@ function toggleTheme() {
 }
 """
 
+# Site-wide Learning Mode toggle, using the same shared-localStorage-key pattern as Dark Mode
+# above, so toggling it on any page carries over to every other page. Matches index.html's
+# inline implementation exactly (same button id, class names, and localStorage key) so state
+# stays in sync regardless of which page it was toggled on.
+LEARNING_MODE_CSS = """
+.learning-mode-only { display: none; }
+body.learning-mode .learning-mode-only { display: block; }
+tr.learning-mode-only { display: none; }
+body.learning-mode tr.learning-mode-only { display: table-row; }
+.beginner-box { background: #eef6f0; border:1px solid #cfe8d6; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+.beginner-box h3 { margin:0 0 8px; font-size:14px; }
+.beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
+body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
+"""
+
+LEARNING_MODE_BUTTON = '<button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>\n'
+
+LEARNING_MODE_JS = """
+(function() {
+  var savedLearning = localStorage.getItem('siteLearningMode');
+  if (savedLearning === 'on') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('learning-mode');
+      var btn = document.getElementById('learning-mode-toggle');
+      if (btn) btn.innerHTML = '&#127891; Learning Mode: On';
+    });
+  }
+})();
+function toggleLearningMode() {
+  var isOn = document.body.classList.toggle('learning-mode');
+  localStorage.setItem('siteLearningMode', isOn ? 'on' : 'off');
+  var btn = document.getElementById('learning-mode-toggle');
+  if (btn) btn.innerHTML = isOn ? '&#127891; Learning Mode: On' : '&#127891; Learning Mode: Off';
+}
+"""
+
 def compute_rsi(series, period=14):
     delta = series.diff()
     gain = delta.where(delta > 0, 0).rolling(period).mean()
@@ -2137,9 +2173,12 @@ realestate_html = f"""<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Real Estate Dashboard</title>
-<style>{PAGE_CSS}</style>
+<style>{PAGE_CSS}
+{LEARNING_MODE_CSS}
+</style>
 </head>
 <body>
+{LEARNING_MODE_BUTTON}<script>{LEARNING_MODE_JS}</script>
 {NAV_HTML}
 <h1>Real Estate Dashboard</h1>
 <p class="timestamp">Updated {timestamp}</p>
@@ -2238,10 +2277,12 @@ CALC_TEMPLATE = """<!DOCTYPE html>
 .unit-row .row-remove:hover { background:#f7cac5; }
 .unit-totals { background:#f0f6ec; border-radius:6px; padding:10px 12px; font-size:13px; margin:8px 0 16px; }
 __DARKMODE_CSS__
+__LEARNINGMODE_CSS__
 </style>
 </head>
 <body>
 __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>Financial Calculators</h1>
 <p class="timestamp">These calculators run in your browser - nothing is saved or sent anywhere.</p>
@@ -2398,6 +2439,16 @@ __STATE_TAX_OPTIONS__
 
 <div class="calc calc-panel" id="panel-cre">
 <h3>Real Estate Investment Loan Calculator (DSCR)</h3>
+<div class="beginner-box learning-mode-only">
+  <h3>&#127891; What This Calculator Does</h3>
+  <p style="font-size:13px;line-height:1.6;margin:0 0 8px;">This estimates whether a rental property's own income can cover its loan payment - the core question behind investment property financing (as opposed to a regular home mortgage, which is qualified on your personal income instead).</p>
+  <ul>
+    <li><strong>DSCR</strong> tells you how many times over the rental income covers the mortgage payment. Below 1.0 means the property doesn't pay for itself as structured.</li>
+    <li><strong>Cap Rate</strong> shows the return based on price alone, ignoring financing - useful for comparing properties regardless of how each one is financed.</li>
+    <li><strong>Cash-on-Cash Return</strong> shows the return on the actual cash you'd put in, factoring in the loan.</li>
+  </ul>
+  <p style="font-size:11px;color:#888;margin:8px 0 0;">This is an educational estimate, not a preapproval or investment recommendation.</p>
+</div>
 <label>Property type (auto-fills typical down payment, rate, amortization, and loan term below - all remain editable)</label>
 <select id="cre_type" onchange="applyCREDefaults()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
 <option value="res14" selected>1-4 units (residential investment loan)</option>
@@ -4397,6 +4448,9 @@ calculators_html = (CALC_TEMPLATE
                     .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                     .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
                     .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                    .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                    .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                    .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                     .replace("__STATE_TAX_JS_HELPER__", STATE_TAX_JS_HELPER)
                     .replace("__STATE_TAX_OPTIONS__", STATE_TAX_OPTIONS_HTML)
                     .replace("__PERSONAL_ITEMIZE_JS_HELPER__", PERSONAL_ITEMIZE_JS_HELPER))
@@ -4434,10 +4488,12 @@ SEARCH_TEMPLATE = """<!DOCTYPE html>
   .calc-tab-btn { flex:1 1 auto; text-align:center; font-size:12px; padding:10px 8px; }
 }
 __DARKMODE_CSS__
+__LEARNINGMODE_CSS__
 </style>
 </head>
 <body>
 __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>Property &amp; Foreclosure Search</h1>
 <p class="timestamp">Live lookups powered by ATTOM Data, via a Cloudflare Worker proxy.</p>
@@ -4772,7 +4828,10 @@ search_html = (SEARCH_TEMPLATE
                .replace("__NAV__", NAV_HTML)
                .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
-               .replace("__DARKMODE_JS__", DARK_MODE_JS))
+               .replace("__DARKMODE_JS__", DARK_MODE_JS)
+               .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+               .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+               .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
 
 # ------------------- PAGE 5: STOCK SEARCH -------------------
 
@@ -4804,10 +4863,12 @@ STOCKSEARCH_TEMPLATE = """<!DOCTYPE html>
   .calc button { width:100%; }
 }
 __DARKMODE_CSS__
+__LEARNINGMODE_CSS__
 </style>
 </head>
 <body>
 __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>Stock Search</h1>
 <p class="timestamp">Search any U.S. publicly traded company - live data via Finnhub, through a Cloudflare Worker proxy.</p>
@@ -5034,7 +5095,10 @@ stocksearch_html = (STOCKSEARCH_TEMPLATE
                      .replace("__NAV__", NAV_HTML)
                      .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                      .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
-                     .replace("__DARKMODE_JS__", DARK_MODE_JS))
+                     .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                     .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                     .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                     .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
 
 tickers_json = json.dumps(all_us_tickers)
 
@@ -5074,11 +5138,13 @@ PROPERTYMANAGER_TEMPLATE = """<!DOCTYPE html>
   .calc button { width:100%; }
 }
 __DARKMODE_CSS__
+__LEARNINGMODE_CSS__
 body.dark-mode .property-card { background: var(--card-bg); border-color: var(--card-border); color: var(--text); }
 </style>
 </head>
 <body>
 __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>Property Manager</h1>
 <p class="timestamp">Track your rental properties, units, rent, and expenses in one place.</p>
@@ -5152,6 +5218,16 @@ __NAV__
       <a href="#" id="back-to-properties" style="font-size:13px;color:#1f4e79;">&larr; Back to Properties</a>
       <h3 id="detail-address" style="margin-top:8px;"></h3>
       <div id="detail-summary" style="font-size:14px;"></div>
+      <div class="beginner-box learning-mode-only">
+        <h3>&#127891; What These Ratios Mean</h3>
+        <ul>
+          <li><strong>Cap Rate</strong> - the property's yearly income divided by its price, ignoring the loan entirely. Higher generally means more income relative to price, but often comes with more risk or a rougher market.</li>
+          <li><strong>DSCR (Debt Service Coverage Ratio)</strong> - how many times over the property's income covers the loan payment. Above 1.0 means it covers the payment; most commercial lenders want at least 1.20-1.25.</li>
+          <li><strong>Cash-on-Cash Return</strong> - the yearly cash flow divided by the actual cash you put in (down payment, closing costs). This accounts for the loan, unlike cap rate.</li>
+          <li><strong>GRM (Gross Rent Multiplier)</strong> - price divided by yearly rental income, before any expenses. A rough, quick comparison tool - lower generally means cheaper relative to rent.</li>
+        </ul>
+        <p style="font-size:11px;color:#888;margin:8px 0 0;">These are standard real estate investing metrics, not a recommendation to buy, hold, or sell this or any property.</p>
+      </div>
       <div id="key-ratios" style="font-size:14px;margin-top:10px;"></div>
       <label style="margin-top:14px;">Fixed Monthly Costs (taxes, insurance, etc. - allocated evenly per month)</label>
       <input type="number" id="fixed-monthly-costs" style="max-width:160px;">
@@ -8008,6 +8084,9 @@ propertymanager_html = (PROPERTYMANAGER_TEMPLATE
                         .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                         .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
                         .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                        .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                        .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                        .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                         .replace("__STATE_TAX_JS_HELPER__", STATE_TAX_JS_HELPER))
 
 # ------------------- PAGE 8: GLOSSARY -------------------
@@ -8034,10 +8113,12 @@ GLOSSARY_TEMPLATE = """<!DOCTYPE html>
 <title>Glossary - Stock Digest</title>
 <style>__CSS__
 __DARKMODE_CSS__
+__LEARNINGMODE_CSS__
 </style>
 </head>
 <body>
 __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>Glossary</h1>
 <p class="timestamp">Every indicator, index, and rate used across Stock Digest - what it is, what it measures, and who calculates it.</p>
@@ -8053,6 +8134,9 @@ glossary_html = (GLOSSARY_TEMPLATE
                   .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                   .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
                   .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                  .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                  .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                  .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                   .replace("__GLOSSARY_BODY__", glossary_body_html()))
 
 # ------------------- PAGE 9: FOR EDUCATORS & STUDENTS -------------------
@@ -8069,6 +8153,7 @@ EDUCATORS_TEMPLATE = """<!DOCTYPE html>
 <title>For Educators &amp; Students - Stock Digest</title>
 <style>__CSS__
 __DARKMODE_CSS__
+__LEARNINGMODE_CSS__
 .edu-section { background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:16px 18px; margin-bottom:16px; }
 .edu-section h2 { margin:0 0 8px; font-size:16px; color:var(--text); }
 .edu-section p { font-size:13px; line-height:1.6; color:var(--text); margin:0 0 10px; }
@@ -8078,6 +8163,7 @@ __DARKMODE_CSS__
 </head>
 <body>
 __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>For Business Educators &amp; Students</h1>
 <p class="timestamp">Stock Digest is free to explore, and we're glad to have it used in the classroom.</p>
@@ -8115,6 +8201,9 @@ educators_html = (EDUCATORS_TEMPLATE
                    .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                    .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
                    .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                   .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                   .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                   .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                    .replace("__EDUCATOR_EMAIL__", EDUCATOR_CONTACT_EMAIL))
 
 with open("index.html", "w") as f:
@@ -8170,10 +8259,12 @@ INSIGHTS_TEMPLATE = """<!DOCTYPE html>
   .calc button { width:100%; }
 }
 __DARKMODE_CSS__
+__LEARNINGMODE_CSS__
 </style>
 </head>
 <body>
 __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>Market Insights</h1>
 <p class="timestamp">Not yet public - restricted to a single account while data-licensing terms with Finnhub and FINRA are being confirmed.</p>
@@ -8273,7 +8364,10 @@ insights_html = (INSIGHTS_TEMPLATE
                   .replace("__NAV__", NAV_HTML)
                   .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                   .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
-                  .replace("__DARKMODE_JS__", DARK_MODE_JS))
+                  .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                  .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                  .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                  .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
 
 with open("insights.html", "w") as f:
     f.write(insights_html)
