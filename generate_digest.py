@@ -1599,11 +1599,11 @@ def sector_divergence_html(data):
     for s in sorted(data["sectors"], key=lambda x: x["divergence"], reverse=True):
         div = s["divergence"]
         if div > 15:
-            label, color = "Momentum running ahead of macro", "#c0392b"
+            label, color = "Sentiment running ahead of fundamentals", "#c0392b"
         elif div < -15:
-            label, color = "Lagging what macro would suggest", "#1a8a3d"
+            label, color = "Lagging what fundamentals would suggest", "#1a8a3d"
         else:
-            label, color = "Roughly in line with macro backdrop", "#666"
+            label, color = "Roughly in line with fundamentals", "#666"
         rows += f"""
     <tr>
       <td style="font-weight:600;">{s['name']} ({s['ticker']})</td>
@@ -1614,15 +1614,16 @@ def sector_divergence_html(data):
       <td style="color:{color};">{label}</td>
     </tr>"""
     return f"""
-<h2>Sector Momentum vs. Macro Divergence</h2>
-<p class="note">Compares each sector's actual 20-trading-day performance (Momentum Score) against what the same window's move in the 10-Year Treasury yield ({data['rate_chg']:+.2f}pt), WTI crude oil ({data['oil_pct']:+.1f}%), the VIX ({data['vix_chg']:+.1f}pt), and CPI inflation ({data['cpi_chg']:+.2f}% MoM) would suggest (Macro Fit Score), using a transparent, illustrative set of sector sensitivity weights - not a statistically fitted model. SPY's own 20-day return was {data['spy_return']:+.1f}%, used as the broad-market baseline for Momentum Score. A large positive Divergence means the sector has moved further than these macro factors alone would explain; a large negative Divergence means the opposite; near zero means the move looks broadly consistent with the macro backdrop. This is an educational, informational tool illustrating one way to think about sector moves - not a prediction, a recommendation, or personalized investment advice.</p>
+<h2>Fundamentals vs. Sentiment Gauge (by Sector)</h2>
+<p class="note">Compares each sector's actual 20-trading-day performance (Momentum Score) against what the same window's move in the 10-Year Treasury yield ({data['rate_chg']:+.2f}pt), WTI crude oil ({data['oil_pct']:+.1f}%), the VIX ({data['vix_chg']:+.1f}pt), and CPI inflation ({data['cpi_chg']:+.2f}% MoM) would suggest (Fundamentals - Macro Fit Score), using a transparent, illustrative set of sector sensitivity weights - not a statistically fitted model. SPY's own 20-day return was {data['spy_return']:+.1f}%, used as the broad-market baseline for Momentum Score. A large positive Sentiment (Divergence) means the sector has moved further than fundamentals alone would explain; a large negative Sentiment (Divergence) means the opposite; near zero means the move looks broadly consistent with fundamentals. This is an educational, informational tool illustrating one way to think about sector moves - not a prediction, a recommendation, or personalized investment advice.</p>
 <div class="table-wrap">
 <table>
-<tr><th>Sector</th><th style="text-align:right;">20-Day Return</th><th style="text-align:right;" title="Sector's 20-day return relative to SPY, scaled to roughly -50..+50">Momentum Score</th><th style="text-align:right;" title="What the macro backdrop alone would suggest, scaled to roughly -50..+50">Macro Fit Score</th><th style="text-align:right;" title="Momentum Score minus Macro Fit Score">Divergence</th><th>Read</th></tr>
+<tr><th>Sector</th><th style="text-align:right;">20-Day Return</th><th style="text-align:right;" title="Sector's 20-day return relative to SPY, scaled to roughly -50..+50">Momentum Score</th><th style="text-align:right;" title="What the macro/fundamental backdrop alone would suggest, scaled to roughly -50..+50">Fundamentals (Macro Fit Score)</th><th style="text-align:right;" title="Momentum Score minus Fundamentals (Macro Fit Score)">Sentiment (Divergence)</th><th>Read</th></tr>
 {rows}
 </table>
 </div>
 """
+
 
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
 sector_divergence_data = compute_sector_divergence()
