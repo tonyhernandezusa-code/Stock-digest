@@ -503,6 +503,27 @@ DEFINITIONS = {
     "Jakarta Composite (Indonesia)": "Indonesia's benchmark index tracking all common shares on the Indonesia Stock Exchange.\nTracks the broad health of Indonesia's public equity market.\nCalculated and maintained by the Indonesia Stock Exchange.",
     "NZX 50 (New Zealand)": "New Zealand's benchmark index of the 50 largest companies on the NZX exchange.\nTracks the health of New Zealand's largest public companies.\nCalculated and maintained by NZX Limited.",
     "JSE Top 40 (South Africa)": "South Africa's benchmark index of the 40 largest companies on the Johannesburg Stock Exchange.\nTracks the health of South Africa's largest public companies, heavily weighted toward mining and resources.\nCalculated and maintained by the JSE, in partnership with FTSE Russell.",
+    "S&P 500 Futures (E-mini)": "A futures contract tracking the S&P 500 index, tradable nearly 24 hours a day.\nSince it trades outside normal stock market hours, it shows where traders expect the S&P 500 to open - a preview of sentiment before the cash market opens.\nTraded on the CME (Chicago Mercantile Exchange).",
+    "Dow Futures (E-mini)": "A futures contract tracking the Dow Jones Industrial Average, tradable nearly 24 hours a day.\nSince it trades outside normal stock market hours, it shows where traders expect the Dow to open.\nTraded on the CBOT (Chicago Board of Trade), part of CME Group.",
+    "Nasdaq-100 Futures (E-mini)": "A futures contract tracking the Nasdaq-100 index, tradable nearly 24 hours a day.\nSince it trades outside normal stock market hours, it shows where traders expect tech-heavy Nasdaq-100 stocks to open.\nTraded on the CME (Chicago Mercantile Exchange).",
+    "Russell 2000 Futures (E-mini)": "A futures contract tracking the Russell 2000 small-cap index, tradable nearly 24 hours a day.\nSince it trades outside normal stock market hours, it shows where traders expect small-cap stocks to open.\nTraded on the ICE (Intercontinental Exchange).",
+    "Nikkei 225 Futures": "A futures contract tracking Japan's Nikkei 225 index.\nSince Japanese markets open while US markets are closed, this gives US investors an overnight read on how Japanese equities are trading.\nTraded on the Osaka Exchange, CME, and SGX (Singapore Exchange), depending on the contract.",
+    "Oil (Brent)": "Brent crude oil, price per barrel.\nThe primary international benchmark for oil prices (as opposed to WTI, the US benchmark) - most oil outside the Americas is priced off Brent.\nPriced and traded on ICE (Intercontinental Exchange).",
+    "Natural Gas": "Natural gas, price per million British thermal units (MMBtu).\nA key input cost for heating, electricity generation, and industrial use - prices swing heavily with weather and storage levels.\nPriced and traded on the NYMEX exchange, operated by CME Group.",
+    "Heating Oil": "Heating oil, price per gallon.\nA refined petroleum product used for home heating and as a proxy for diesel/distillate fuel costs.\nPriced and traded on the NYMEX exchange, operated by CME Group.",
+    "RBOB Gasoline": "RBOB (Reformulated Blendstock for Oxygenate Blending) gasoline, price per gallon.\nThe wholesale gasoline benchmark used to price fuel before retail markup and taxes - a leading indicator for pump prices.\nPriced and traded on the NYMEX exchange, operated by CME Group.",
+    "Platinum": "Platinum, price per troy ounce.\nUsed heavily in catalytic converters and jewelry, so it responds to both industrial (especially auto) demand and precious-metal investment demand.\nPriced and traded on the NYMEX exchange, operated by CME Group.",
+    "Palladium": "Palladium, price per troy ounce.\nUsed primarily in catalytic converters for gasoline engines, making it closely tied to auto production and emissions regulations.\nPriced and traded on the NYMEX exchange, operated by CME Group.",
+    "Corn": "Corn, price per bushel.\nA major agricultural commodity used for food, animal feed, and ethanol - prices are sensitive to weather, planting reports, and biofuel demand.\nPriced and traded on the CBOT (Chicago Board of Trade), part of CME Group.",
+    "Wheat": "Wheat, price per bushel.\nA staple food-grain commodity; prices are sensitive to global harvests and geopolitical disruptions in major growing regions.\nPriced and traded on the CBOT (Chicago Board of Trade), part of CME Group.",
+    "Soybeans": "Soybeans, price per bushel.\nA major crop used for animal feed, cooking oil, and food products; US-China trade relations have historically been a significant price driver.\nPriced and traded on the CBOT (Chicago Board of Trade), part of CME Group.",
+    "Soybean Oil": "Soybean oil, price per pound.\nA processed soybean product used in cooking oil and, increasingly, biodiesel production.\nPriced and traded on the CBOT (Chicago Board of Trade), part of CME Group.",
+    "Coffee": "Coffee (Arabica), price per pound.\nA tropical soft commodity heavily influenced by weather in major growing regions like Brazil and Vietnam.\nPriced and traded on ICE (Intercontinental Exchange).",
+    "Cotton": "Cotton, price per pound.\nA key input for the textile industry, sensitive to both agricultural conditions and global apparel demand.\nPriced and traded on ICE (Intercontinental Exchange).",
+    "Sugar": "Sugar, price per pound.\nA soft commodity used in food and, in some countries, ethanol production; supply is concentrated among a handful of major producing nations.\nPriced and traded on ICE (Intercontinental Exchange).",
+    "Cocoa": "Cocoa, price per metric ton.\nThe raw input for chocolate production, with supply concentrated in a small number of West African countries, making it prone to sharp price swings.\nPriced and traded on ICE (Intercontinental Exchange).",
+    "Live Cattle": "Live cattle, price per pound.\nTracks prices for cattle ready for slaughter, a key input cost for the beef industry.\nPriced and traded on the CME (Chicago Mercantile Exchange).",
+    "Lean Hogs": "Lean hogs, price per pound.\nTracks prices for hogs ready for slaughter, a key input cost for the pork industry.\nPriced and traded on the CME (Chicago Mercantile Exchange).",
 }
 
 def def_for(name):
@@ -518,7 +539,8 @@ NAV_HTML = """
   <a href="search.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Search</a>
   <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
   <a href="propertymanager.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
-  <a href="insights.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
+  <a href="insights.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
+  <a href="glossary.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Glossary</a>
 </div>
 """
 
@@ -1599,6 +1621,11 @@ def fed_targets_table(rows):
         trend = ""
         if r["history_len"] > 0:
             trend = f"{r['months_above']} of last {r['history_len']} readings above, {r['months_below']} below"
+        if abs_dev <= 0.3:
+            meaning = f"{r['name']} is sitting right around the Fed's own target - not a source of policy pressure right now."
+        else:
+            direction = "above" if r["deviation"] > 0 else "below"
+            meaning = f"{r['name']} is running {direction} the Fed's target, which is the kind of gap the Fed factors into its rate decisions."
         body += f"""
     <tr>
       <td style="font-weight:600;border-bottom:1px dotted #999;cursor:help;" title="{def_for(r['name'])}">{r['name']}</td>
@@ -1607,6 +1634,9 @@ def fed_targets_table(rows):
       <td style="text-align:right;font-weight:600;color:{color};">{r['deviation']:+.1f}pt</td>
       <td style="color:{color};">{read}</td>
       <td style="font-size:11px;color:#888;">{trend}</td>
+    </tr>
+    <tr class="learning-mode-only">
+      <td colspan="6" style="font-size:12px;color:#555;background:#f7faf7;">&#127891; Meaning: {meaning}</td>
     </tr>"""
     return f"""
 <h2>Fed Policy Targets</h2>
@@ -1765,6 +1795,36 @@ def sector_divergence_html(data):
 """
 
 
+def beginner_summary_html(fed_rows, sector_data):
+    """Plain-English snapshot built entirely from data already computed elsewhere on this page
+    (Fed Policy Targets deviations, Sector Divergence). Deliberately descriptive only - states
+    where each reading sits relative to its target, never a prediction of what markets will do
+    next, and never a recommendation. Hidden unless Learning Mode is toggled on."""
+    bullets = []
+    for r in fed_rows:
+        dev = r["deviation"]
+        if abs(dev) <= 0.3:
+            bullets.append(f"{r['name']} is close to the Fed's target ({r['target']:.1f}%).")
+        else:
+            direction = "above" if dev > 0 else "below"
+            plural = "s" if abs(round(dev, 1)) != 1 else ""
+            bullets.append(f"{r['name']} is {abs(dev):.1f} point{plural} {direction} the Fed's target ({r['target']:.1f}%).")
+    if sector_data and sector_data.get("sectors"):
+        strongest = max(sector_data["sectors"], key=lambda s: s["divergence"])
+        weakest = min(sector_data["sectors"], key=lambda s: s["divergence"])
+        bullets.append(f"{strongest['name']} is trading furthest ahead of what its fundamentals alone would suggest today.")
+        bullets.append(f"{weakest['name']} is trading furthest behind what its fundamentals alone would suggest today.")
+    if not bullets:
+        return ""
+    items = "".join(f"<li>{b}</li>" for b in bullets)
+    return f"""
+<div class="beginner-box learning-mode-only">
+<h3>&#127891; Beginner Summary - Plain-English Snapshot</h3>
+<ul>{items}</ul>
+<p style="font-size:11px;color:#888;margin:8px 0 0;">These are plain-language descriptions of the data shown further down this page - not predictions of what will happen next, and not a recommendation to buy or sell anything. Turn off Learning Mode (top of page) to hide this and see just the raw data.</p>
+</div>
+"""
+
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
 sector_divergence_data = compute_sector_divergence()
 top_mover_html = f"{top_mover['ticker']} ({top_mover['pct']:+.2f}%)" if top_mover else "-"
@@ -1802,12 +1862,34 @@ body.dark-mode {{
   border-radius: 20px; cursor: pointer;
 }}
 .sparkline {{ display: block; margin-top: 6px; }}
+.learning-mode-only {{ display: none; }}
+body.learning-mode .learning-mode-only {{ display: block; }}
+tr.learning-mode-only {{ display: none; }}
+body.learning-mode tr.learning-mode-only {{ display: table-row; }}
+.beginner-box {{ background: #eef6f0; border:1px solid #cfe8d6; border-radius:10px; padding:14px 16px; margin-bottom:16px; }}
+.beginner-box h3 {{ margin:0 0 8px; font-size:14px; }}
+.beginner-box ul {{ margin:0; padding-left:18px; font-size:13px; line-height:1.6; }}
 </style>
 </head>
 <body>
 <button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
 <button id="chart-mode-toggle" onclick="toggleAllSparklineType()">&#128202; View as Bars</button>
+<button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>
 <script>
+(function() {{
+  var savedLearning = localStorage.getItem('siteLearningMode');
+  if (savedLearning === 'on') {{
+    document.addEventListener('DOMContentLoaded', function() {{
+      document.body.classList.add('learning-mode');
+      document.getElementById('learning-mode-toggle').innerHTML = '&#127891; Learning Mode: On';
+    }});
+  }}
+}})();
+function toggleLearningMode() {{
+  var isOn = document.body.classList.toggle('learning-mode');
+  localStorage.setItem('siteLearningMode', isOn ? 'on' : 'off');
+  document.getElementById('learning-mode-toggle').innerHTML = isOn ? '&#127891; Learning Mode: On' : '&#127891; Learning Mode: Off';
+}}
 (function() {{
   var saved = localStorage.getItem('siteDarkMode');
   if (saved === 'dark') {{
@@ -1939,6 +2021,8 @@ function showAIInsight(btn) {{
 {NAV_HTML}
 <h1>Daily Stock Digest</h1>
 <p class="timestamp">Updated {timestamp}</p>
+
+{beginner_summary_html(fed_targets_rows, sector_divergence_data)}
 
 {render_market_alert_section(_stock_score_data, _stock_history, "Stock Market Alert")}
 
@@ -7909,6 +7993,51 @@ propertymanager_html = (PROPERTYMANAGER_TEMPLATE
                         .replace("__DARKMODE_JS__", DARK_MODE_JS)
                         .replace("__STATE_TAX_JS_HELPER__", STATE_TAX_JS_HELPER))
 
+# ------------------- PAGE 8: GLOSSARY -------------------
+
+def glossary_body_html():
+    """Builds the full glossary from DEFINITIONS, alphabetized, each term shown with its full
+    three-part definition (what it is / what it measures / who calculates it)."""
+    items = ""
+    for name in sorted(DEFINITIONS.keys(), key=str.lower):
+        parts = DEFINITIONS[name].split("\n")
+        paras = "".join(f"<p style='margin:2px 0;'>{html_escape_mod.escape(p)}</p>" for p in parts)
+        items += f"""
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">{html_escape_mod.escape(name)}</p>
+  {paras}
+</div>"""
+    return items
+
+GLOSSARY_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossary - Stock Digest</title>
+<style>__CSS__
+__DARKMODE_CSS__
+</style>
+</head>
+<body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__NAV__
+<h1>Glossary</h1>
+<p class="timestamp">Every indicator, index, and rate used across Stock Digest - what it is, what it measures, and who calculates it.</p>
+<div class="row" style="flex-wrap:wrap;">
+__GLOSSARY_BODY__
+</div>
+</body>
+</html>"""
+
+glossary_html = (GLOSSARY_TEMPLATE
+                  .replace("__CSS__", PAGE_CSS)
+                  .replace("__NAV__", NAV_HTML)
+                  .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                  .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                  .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                  .replace("__GLOSSARY_BODY__", glossary_body_html()))
+
 with open("index.html", "w") as f:
     f.write(stocks_html)
 
@@ -7929,6 +8058,9 @@ with open("tickers.json", "w") as f:
 
 with open("propertymanager.html", "w") as f:
     f.write(propertymanager_html)
+
+with open("glossary.html", "w") as f:
+    f.write(glossary_html)
 
 # ------------------- PAGE 7: MARKET INSIGHTS (LOGIN-GATED, PERSONAL USE ONLY) -------------------
 
