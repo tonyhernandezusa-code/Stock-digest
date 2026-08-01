@@ -8703,7 +8703,7 @@ function renderLegend() {
 }
 
 Promise.all([
-  fetch("https://unpkg.com/us-atlas@3/counties-albers-10m.json").then(function(r) { return r.json(); }),
+  fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-albers-10m.json").then(function(r) { return r.json(); }),
 ]).then(function(results) {
   var us = results[0];
   var counties = topojson.feature(us, us.objects.counties);
