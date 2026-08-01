@@ -262,6 +262,18 @@ function toggleTheme() {
         <input type="number" step="0.01" id="d-exitcaprate" placeholder="e.g. 6" style="max-width:160px;">
         <label>Selling Costs (% of sale price) - broker commission, closing costs, etc.</label>
         <input type="number" step="0.1" id="d-sellingcosts" placeholder="e.g. 6" style="max-width:160px;">
+        <label style="margin-top:14px;font-weight:600;">Tax Savings Estimator (optional - enables an estimated income tax savings figure below)</label>
+        <label>Annual Property Tax ($)</label>
+        <input type="number" id="d-proptax" style="max-width:160px;">
+        <label>Building Value (% of Purchase Price) - land isn't depreciable; ~70-80% building is a common rule of thumb, editable based on your appraisal/tax assessor split</label>
+        <input type="number" id="d-bldgpct" placeholder="e.g. 80" step="1" min="0" max="100" style="max-width:160px;">
+        <label>Your Federal Marginal Tax Bracket (%)</label>
+        <select id="d-fedbracket" style="max-width:160px;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+        <option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+        <option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+        <option value="37">37%</option>
+        </select>
+        <span style="font-size:11px;color:#888;display:block;max-width:400px;margin-top:4px;">State income tax rate is estimated automatically from the property's State field above. Not tax advice - consult a CPA.</span>
         <button onclick="saveFinancingDetails()">Save Financing Details</button>
         <span id="financing-save-status" style="margin-left:10px;font-size:13px;"></span>
       </div>
@@ -1382,6 +1394,9 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-closingcosts").value = data.closingCostsPct || "";
     document.getElementById("d-exitcaprate").value = data.exitCapRate || "";
     document.getElementById("d-sellingcosts").value = data.sellingCostsPct || "";
+    document.getElementById("d-proptax").value = data.annualPropertyTax || "";
+    document.getElementById("d-bldgpct").value = data.buildingValuePct || "";
+    document.getElementById("d-fedbracket").value = data.federalTaxBracket || "24";
     restoreManagementFeeUI();
     renderKeyRatios();
   });
@@ -1968,7 +1983,10 @@ function saveFinancingDetails() {
     expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0,
     closingCostsPct: parseFloat(document.getElementById("d-closingcosts").value) || 0,
     exitCapRate: parseFloat(document.getElementById("d-exitcaprate").value) || 0,
-    sellingCostsPct: parseFloat(document.getElementById("d-sellingcosts").value) || 0
+    sellingCostsPct: parseFloat(document.getElementById("d-sellingcosts").value) || 0,
+    annualPropertyTax: parseFloat(document.getElementById("d-proptax").value) || 0,
+    buildingValuePct: parseFloat(document.getElementById("d-bldgpct").value) || 0,
+    federalTaxBracket: parseFloat(document.getElementById("d-fedbracket").value) || 0
   };
   var statusEl = document.getElementById("financing-save-status");
   statusEl.textContent = "Saving...";
@@ -1983,6 +2001,18 @@ function saveFinancingDetails() {
     statusEl.textContent = "Error saving: " + err.message;
     statusEl.style.color = "#c0392b";
   });
+}
+
+
+// Top marginal state individual income tax rates (2025, Tax Foundation) - illustration only.
+var STATE_TOP_MARGINAL_RATE = {"AL":5.0,"AK":0,"AZ":2.5,"AR":3.9,"CA":13.3,"CO":4.4,"CT":6.99,"DE":6.6,"FL":0,"GA":5.39,"HI":11.0,"ID":5.695,"IL":4.95,"IN":3.0,"IA":3.8,"KS":5.58,"KY":4.0,"LA":3.0,"ME":7.15,"MD":5.75,"MA":5.0,"MI":4.25,"MN":9.85,"MS":4.4,"MO":4.7,"MT":5.9,"NE":5.2,"NV":0,"NH":0,"NJ":10.75,"NM":5.9,"NY":10.9,"NC":4.25,"ND":2.5,"OH":3.5,"OK":4.75,"OR":9.9,"PA":3.07,"RI":5.99,"SC":6.2,"SD":0,"TN":0,"TX":0,"UT":4.55,"VT":8.75,"VA":5.75,"WA":0,"WV":4.82,"WI":7.65,"WY":0,"DC":10.75};
+var STATE_NAME_TO_ABBR = {"ALABAMA":"AL","ALASKA":"AK","ARIZONA":"AZ","ARKANSAS":"AR","CALIFORNIA":"CA","COLORADO":"CO","CONNECTICUT":"CT","DELAWARE":"DE","FLORIDA":"FL","GEORGIA":"GA","HAWAII":"HI","IDAHO":"ID","ILLINOIS":"IL","INDIANA":"IN","IOWA":"IA","KANSAS":"KS","KENTUCKY":"KY","LOUISIANA":"LA","MAINE":"ME","MARYLAND":"MD","MASSACHUSETTS":"MA","MICHIGAN":"MI","MINNESOTA":"MN","MISSISSIPPI":"MS","MISSOURI":"MO","MONTANA":"MT","NEBRASKA":"NE","NEVADA":"NV","NEW HAMPSHIRE":"NH","NEW JERSEY":"NJ","NEW MEXICO":"NM","NEW YORK":"NY","NORTH CAROLINA":"NC","NORTH DAKOTA":"ND","OHIO":"OH","OKLAHOMA":"OK","OREGON":"OR","PENNSYLVANIA":"PA","RHODE ISLAND":"RI","SOUTH CAROLINA":"SC","SOUTH DAKOTA":"SD","TENNESSEE":"TN","TEXAS":"TX","UTAH":"UT","VERMONT":"VT","VIRGINIA":"VA","WASHINGTON":"WA","WEST VIRGINIA":"WV","WISCONSIN":"WI","WYOMING":"WY","WASHINGTON DC":"DC","D.C.":"DC","DISTRICT OF COLUMBIA":"DC"};
+function getStateTopMarginalRate(stateInput) {
+  var s = (stateInput || "").trim().toUpperCase();
+  if (!s) return null;
+  if (STATE_TOP_MARGINAL_RATE.hasOwnProperty(s)) return STATE_TOP_MARGINAL_RATE[s];
+  if (STATE_NAME_TO_ABBR.hasOwnProperty(s)) return STATE_TOP_MARGINAL_RATE[STATE_NAME_TO_ABBR[s]];
+  return null;
 }
 
 function renderKeyRatios() {
@@ -2081,6 +2111,39 @@ function renderKeyRatios() {
       "</div>";
   } else {
     html += "</div>";
+  }
+
+  // --- Estimated income tax savings (depreciation + mortgage interest + property tax) ---
+  var annualPropertyTaxForSavings = currentPropertyData.annualPropertyTax || 0;
+  var buildingValuePct = currentPropertyData.buildingValuePct || 0;
+  var federalTaxBracket = currentPropertyData.federalTaxBracket || 0;
+  var stateRatePctForSavings = getStateTopMarginalRate(currentPropertyData.state) || 0;
+  if (buildingValuePct > 0 && (federalTaxBracket > 0 || stateRatePctForSavings > 0)) {
+    var depreciationLife = (currentPropertyData.units || 1) >= 5 ? 39 : 27.5;
+    var buildingValue = purchasePrice * (buildingValuePct / 100);
+    var annualDepreciation = buildingValue / depreciationLife;
+
+    var annualInterestForSavings = 0;
+    if (loanAmount > 0) {
+      var balanceStartOfYear = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, Math.max(0, monthsElapsed - 12));
+      var balanceEndOfYear = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsed);
+      var principalReductionForSavings = balanceStartOfYear - balanceEndOfYear;
+      annualInterestForSavings = Math.max(0, annualDebtService - principalReductionForSavings);
+    }
+
+    var totalTaxDeductions = annualDepreciation + annualInterestForSavings + annualPropertyTaxForSavings;
+    var combinedRatePctForSavings = federalTaxBracket + stateRatePctForSavings;
+    var estTaxSavings = totalTaxDeductions * (combinedRatePctForSavings / 100);
+
+    html += "<div style='margin-top:10px;padding:10px;background:#eef6f0;border-radius:6px;font-size:13px;'>" +
+      "<strong>Estimated Annual Income Tax Savings:</strong> $" + estTaxSavings.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr" +
+      " ($" + (estTaxSavings/12).toLocaleString(undefined, {maximumFractionDigits: 0}) + "/mo)<br>" +
+      "<span style='font-size:11px;color:#888;'>Depreciation (" + depreciationLife + "-yr, " + buildingValuePct + "% building value of $" + purchasePrice.toLocaleString() + "): $" + annualDepreciation.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr &middot; " +
+      "Mortgage interest: $" + annualInterestForSavings.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr &middot; " +
+      "Property tax: $" + annualPropertyTaxForSavings.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr &middot; " +
+      "Combined rate (federal " + federalTaxBracket + "% + state " + stateRatePctForSavings.toFixed(2) + "%): " + combinedRatePctForSavings.toFixed(2) + "%<br>" +
+      "Estimate only, not tax advice. Assumes these losses are fully deductible against ordinary income - IRS passive activity loss rules (Section 469) can limit or defer this unless you qualify as a real estate professional or the property's income is low enough for the $25,000 active-participation allowance (phased out $100,000-$150,000 MAGI). Depreciation is generally recaptured (taxed up to 25% federal) when you sell. State rate is that state's top marginal individual rate (from the property's State field above), not an income-specific calculation, and excludes local/county taxes. Consult a CPA before relying on this for a purchase decision.</span>" +
+      "</div>";
   }
 
   // Lending-target comparison table - shows how the property's metrics stack up against
@@ -2944,6 +3007,25 @@ function generateIncomeStatementPDF() {
       ratioLines.push(
         "DSCR: " + dscr.toFixed(2) + (dscr < 1.25 ? " (below typical 1.25 lender minimum)" : "") +
         (cashOnCash !== null ? "     Cash-on-Cash Return: " + cashOnCash.toFixed(2) + "%" : "")
+      );
+    }
+    var annualPropertyTaxForPdf = currentPropertyData.annualPropertyTax || 0;
+    var buildingValuePctForPdf = currentPropertyData.buildingValuePct || 0;
+    var federalTaxBracketForPdf = currentPropertyData.federalTaxBracket || 0;
+    var stateRatePctForPdf = getStateTopMarginalRate(currentPropertyData.state) || 0;
+    if (buildingValuePctForPdf > 0 && (federalTaxBracketForPdf > 0 || stateRatePctForPdf > 0)) {
+      var depreciationLifeForPdf = (currentPropertyData.units || 1) >= 5 ? 39 : 27.5;
+      var annualDepreciationForPdf = purchasePrice * (buildingValuePctForPdf / 100) / depreciationLifeForPdf;
+      var annualInterestForPdf = 0;
+      if (loanAmount > 0) {
+        var balanceStartForPdf = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, Math.max(0, monthsElapsedForSelectedMonth - 12));
+        var balanceEndForPdf = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsedForSelectedMonth);
+        annualInterestForPdf = Math.max(0, (ytdMortgagePayments > 0 ? monthlyMortgagePayment * 12 : 0) - (balanceStartForPdf - balanceEndForPdf));
+      }
+      var estTaxSavingsForPdf = (annualDepreciationForPdf + annualInterestForPdf + annualPropertyTaxForPdf) * ((federalTaxBracketForPdf + stateRatePctForPdf) / 100);
+      ratioLines.push(
+        "Est. Annual Income Tax Savings: $" + estTaxSavingsForPdf.toLocaleString(undefined, {maximumFractionDigits: 0}) +
+        " (depreciation + mortgage interest + property tax x combined " + (federalTaxBracketForPdf + stateRatePctForPdf).toFixed(2) + "% rate - estimate only, not tax advice)"
       );
     }
     doc.text(ratioLines, 14, afterTableY + 7);
