@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Market Insights</title>
+<title>My Portfolio - Stock Digest</title>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <style>
 :root {
   --bg: #f7f7f5;
@@ -34,20 +35,6 @@ th { text-align:left; padding:8px 10px; background:var(--table-header-bg); font-
 td { padding:8px 10px; border-top:1px solid var(--table-row-border); font-size:13px; white-space:nowrap; color:var(--text); }
 .note { font-size:11px; color:var(--text-faint); margin:6px 0 0; }
 
-.calc { background:#fff; border-radius:10px; padding:18px; border:1px solid #e5e3dc; margin-bottom:20px; max-width:640px; }
-.calc h3 { margin:0 0 12px; font-size:16px; }
-.calc label { display:block; font-size:12px; color:#666; margin:10px 0 3px; }
-.calc input { width:100%; padding:8px; font-size:14px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box; }
-.calc button { margin-top:14px; padding:10px 18px; font-size:14px; font-weight:600; color:#fff; background:#1f4e79; border:none; border-radius:6px; cursor:pointer; }
-.calc button.secondary { background:#888; }
-.err { color:#c0392b; font-size:13px; margin-top:8px; }
-.restricted-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
-@media (max-width: 600px) {
-  body { padding:12px; }
-  .calc { padding:14px; max-width:100%; }
-  .calc input { font-size:16px !important; padding:10px !important; }
-  .calc button { width:100%; }
-}
 
 body.dark-mode {
   --bg: #0d0d0d;
@@ -89,6 +76,12 @@ body.learning-mode tr.learning-mode-only { display: table-row; }
 .beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
 body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
 
+.err { color:#c0392b; font-size:13px; margin-top:8px; }
+.calc button.secondary { background:#888; }
+.calc button.secondary:hover { background:#666; }
+.ticker-card { background:var(--card-bg); border:1px solid var(--card-border); border-radius:8px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.ticker-card .remove-btn { background:#fbe0dd; color:#c0392b; border:1px solid #f3c6c2; border-radius:6px; padding:6px 10px; font-size:11px; cursor:pointer; }
+.ticker-card .remove-btn:hover { background:#f7cac5; }
 </style>
 </head>
 <body>
@@ -144,8 +137,13 @@ function toggleLearningMode() {
   <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
 </div>
 
-<h1>Market Insights</h1>
-<p class="timestamp">Not yet public - restricted to a single account while data-licensing terms with Finnhub and FINRA are being confirmed.</p>
+<h1>My Portfolio</h1>
+<p class="timestamp">Track your own list of tickers - saved to your account, available wherever you log in.</p>
+
+<div class="beginner-box learning-mode-only">
+<h3>&#127891; What This Page Does</h3>
+<p style="font-size:13px;line-height:1.6;margin:0;">This is separate from the main Watchlist on the Stocks &amp; Rates page (which is fixed and the same for every visitor). Here, you create your own personal list of tickers, saved to your own account - log in from any device and it's there. Prices update live when you load the page, using the same data source as Stock Search.</p>
+</div>
 
 <div class="calc" id="auth-panel">
 <h3 id="auth-title">Log In</h3>
@@ -154,34 +152,32 @@ function toggleLearningMode() {
 <label>Password</label>
 <input type="password" id="auth-password">
 <button onclick="doLogin()">Log In</button>
+<button class="secondary" onclick="doSignup()">Create Account</button>
 <div class="err" id="auth-error"></div>
+<p class="note" style="margin-top:10px;">Uses the same account as Property Manager - if you already have one, log in with the same email and password here.</p>
 </div>
 
-<div id="restricted-view" style="display:none;">
-  <div class="restricted-banner">
-    You're logged in, but this account doesn't have access to this section. Market Insights is
-    restricted to a single account while licensing terms are confirmed with data providers.
-  </div>
-  <button class="secondary" onclick="doLogout()">Log Out</button>
-</div>
-
-<div id="allowed-view" style="display:none;">
+<div id="dashboard" style="display:none;">
   <div class="calc">
     <span id="welcome-msg"></span> &nbsp;
     <button class="secondary" onclick="doLogout()" style="margin-top:0;">Log Out</button>
   </div>
+
   <div class="calc">
-    <h3>Under development</h3>
-    <p class="note">This section is reserved for AI-generated stock and bond market summaries.
-    It's intentionally empty right now - content will be added once Finnhub and FINRA have
-    confirmed what can be shared under their personal-use terms. This page itself is safe to use
-    in the meantime: it's just a login gate with nothing behind it yet.</p>
+    <h3>Add a Ticker</h3>
+    <label>Stock or ETF symbol</label>
+    <input type="text" id="add-ticker-input" placeholder="e.g. AAPL" style="text-transform:uppercase;">
+    <button onclick="addTicker()">Add to My Portfolio</button>
+    <div class="err" id="add-ticker-error"></div>
   </div>
+
+  <div class="calc" id="portfolio-summary" style="display:none;"></div>
+
+  <h3>Your Tickers</h3>
+  <div id="portfolio-list"><p style="font-size:13px;color:#888;">No tickers yet - add one above.</p></div>
 </div>
 
 <script>
-// Same Firebase project as Property Manager - reused here only for its login system,
-// not for sharing any Property Manager data.
 var firebaseConfig = {
   apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
   authDomain: "property-manager-9455a.firebaseapp.com",
@@ -192,47 +188,153 @@ var firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
+var db = firebase.firestore();
 
-// Hard allowlist - only these specific accounts can see the "allowed-view" content below,
-// regardless of who else signs up for Property Manager on this same Firebase project.
-var ALLOWED_EMAILS = ["chambelon@aol.com"];
+// Reuses the same Finnhub Worker already deployed for Stock Search.
+var FINNHUB_WORKER_URL = "https://finnhub-proxy.tonyhernandezusa.workers.dev";
 
-function showError(elId, message) {
-  document.getElementById(elId).textContent = message;
+var currentUid = null;
+var portfolioUnsub = null;
+
+function showAddTickerError(message) {
+  document.getElementById("add-ticker-error").textContent = message;
+}
+
+function doSignup() {
+  var email = document.getElementById("auth-email").value.trim();
+  var password = document.getElementById("auth-password").value;
+  document.getElementById("auth-error").textContent = "";
+  auth.createUserWithEmailAndPassword(email, password).catch(function(err) {
+    document.getElementById("auth-error").textContent = err.message;
+  });
 }
 
 function doLogin() {
   var email = document.getElementById("auth-email").value.trim();
   var password = document.getElementById("auth-password").value;
-  showError("auth-error", "");
+  document.getElementById("auth-error").textContent = "";
   auth.signInWithEmailAndPassword(email, password).catch(function(err) {
-    showError("auth-error", err.message);
+    document.getElementById("auth-error").textContent = err.message;
   });
 }
 
 function doLogout() {
+  if (portfolioUnsub) { portfolioUnsub(); portfolioUnsub = null; }
   auth.signOut();
 }
 
 auth.onAuthStateChanged(function(user) {
-  document.getElementById("auth-panel").style.display = "none";
-  document.getElementById("restricted-view").style.display = "none";
-  document.getElementById("allowed-view").style.display = "none";
-
-  if (!user) {
+  if (user) {
+    currentUid = user.uid;
+    document.getElementById("auth-panel").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
+    loadPortfolio(user.uid);
+  } else {
+    currentUid = null;
+    if (portfolioUnsub) { portfolioUnsub(); portfolioUnsub = null; }
     document.getElementById("auth-panel").style.display = "block";
-    return;
+    document.getElementById("dashboard").style.display = "none";
   }
-
-  if (ALLOWED_EMAILS.indexOf(user.email) === -1) {
-    document.getElementById("restricted-view").style.display = "block";
-    return;
-  }
-
-  document.getElementById("allowed-view").style.display = "block";
-  document.getElementById("welcome-msg").textContent = "Logged in as " + user.email;
 });
-</script>
 
+function addTicker() {
+  var input = document.getElementById("add-ticker-input");
+  var ticker = input.value.trim().toUpperCase();
+  showAddTickerError("");
+  if (!ticker) { showAddTickerError("Enter a ticker symbol first."); return; }
+  if (!/^[A-Z.\-]{1,10}$/.test(ticker)) { showAddTickerError("That doesn't look like a valid ticker symbol."); return; }
+  db.collection("portfolios").doc(currentUid).set({
+    tickers: firebase.firestore.FieldValue.arrayUnion(ticker)
+  }, { merge: true }).then(function() {
+    input.value = "";
+  }).catch(function(err) {
+    showAddTickerError(err.message);
+  });
+}
+
+function removeTicker(ticker) {
+  db.collection("portfolios").doc(currentUid).set({
+    tickers: firebase.firestore.FieldValue.arrayRemove(ticker)
+  }, { merge: true });
+}
+
+function loadPortfolio(uid) {
+  if (portfolioUnsub) portfolioUnsub();
+  portfolioUnsub = db.collection("portfolios").doc(uid).onSnapshot(function(doc) {
+    var tickers = (doc.exists && doc.data().tickers) || [];
+    renderPortfolio(tickers);
+  });
+}
+
+function money(x) {
+  if (x === undefined || x === null || x === "") return "N/A";
+  return "$" + Number(x).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+async function fetchQuote(ticker) {
+  try {
+    var resp = await fetch(FINNHUB_WORKER_URL + "/stock-profile?symbol=" + encodeURIComponent(ticker));
+    var data = await resp.json();
+    if (data.error) return { ticker: ticker, error: data.error };
+    return { ticker: ticker, profile: data.profile || {}, quote: data.quote || {} };
+  } catch (e) {
+    return { ticker: ticker, error: "Could not fetch data for this ticker." };
+  }
+}
+
+async function renderPortfolio(tickers) {
+  var listEl = document.getElementById("portfolio-list");
+  var summaryEl = document.getElementById("portfolio-summary");
+  if (!tickers.length) {
+    listEl.innerHTML = "<p style='font-size:13px;color:#888;'>No tickers yet - add one above.</p>";
+    summaryEl.style.display = "none";
+    return;
+  }
+  listEl.innerHTML = "<p style='font-size:13px;color:#888;'>Loading live prices...</p>";
+
+  var results = await Promise.all(tickers.map(fetchQuote));
+
+  var cardsHtml = "";
+  var validChanges = [];
+  var sectorCounts = {};
+  results.forEach(function(r) {
+    if (r.error) {
+      cardsHtml += "<div class='ticker-card'><div><strong>" + r.ticker + "</strong><br><span style='font-size:12px;color:#c0392b;'>" + r.error + "</span></div>" +
+        "<button class='remove-btn' onclick=\"removeTicker('" + r.ticker + "')\">Remove</button></div>";
+      return;
+    }
+    var q = r.quote, p = r.profile;
+    var dp = q.dp;
+    var changeColor = (q.d || 0) >= 0 ? "#1a8a3d" : "#c0392b";
+    if (typeof dp === "number") validChanges.push(dp);
+    var sector = p.finnhubIndustry || "Unclassified";
+    sectorCounts[sector] = (sectorCounts[sector] || 0) + 1;
+    cardsHtml += "<div class='ticker-card'>" +
+      "<div><strong>" + r.ticker + "</strong> - " + (p.name || "") + "<br>" +
+      "<span style='font-size:12px;color:#666;'>" + sector + "</span></div>" +
+      "<div style='text-align:right;'><div style='font-size:16px;font-weight:700;'>" + money(q.c) + "</div>" +
+      "<div style='font-size:12px;font-weight:600;color:" + changeColor + ";'>" + (q.d >= 0 ? "+" : "") +
+      (q.d !== undefined ? q.d.toFixed(2) : "N/A") + " (" + (dp !== undefined ? dp.toFixed(2) : "N/A") + "%)</div></div>" +
+      "<button class='remove-btn' onclick=\"removeTicker('" + r.ticker + "')\">Remove</button></div>";
+  });
+  listEl.innerHTML = cardsHtml;
+
+  if (validChanges.length) {
+    var avgChange = validChanges.reduce(function(a, b) { return a + b; }, 0) / validChanges.length;
+    var avgColor = avgChange >= 0 ? "#1a8a3d" : "#c0392b";
+    var sectorLines = Object.keys(sectorCounts).sort(function(a, b) { return sectorCounts[b] - sectorCounts[a]; })
+      .map(function(s) { return s + ": " + sectorCounts[s] + " of " + results.length; }).join(" &middot; ");
+    summaryEl.style.display = "block";
+    summaryEl.innerHTML = "<h3>Portfolio Summary</h3>" +
+      "<p style='margin:4px 0;'>Average change today across your " + results.length + " ticker(s): " +
+      "<strong style='color:" + avgColor + ";'>" + (avgChange >= 0 ? "+" : "") + avgChange.toFixed(2) + "%</strong></p>" +
+      "<p style='font-size:12px;color:#666;margin:4px 0;'>By sector: " + sectorLines + "</p>" +
+      "<p class='note' style='margin-top:8px;'>A simple average across your holdings, not weighted by position size (this page doesn't track how many shares you own, only which tickers you follow).</p>";
+  } else {
+    summaryEl.style.display = "none";
+  }
+}
+</script>
 </body>
 </html>
