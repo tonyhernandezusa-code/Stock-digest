@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacy Policy - Stock Digest</title>
+<title>County Investment Map - Stock Digest</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson-client/3.1.0/topojson-client.min.js"></script>
 <style>
 :root {
   --bg: #f7f7f5;
@@ -73,11 +75,15 @@ body.learning-mode tr.learning-mode-only { display: table-row; }
 .beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
 body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
 
-.legal-content h2 { font-size:16px; margin:22px 0 8px; }
-.legal-content ul { padding-left:20px; }
-.legal-content li { margin-bottom:4px; }
-.legal-content hr { border:none; border-top:1px solid var(--card-border); margin:16px 0; }
-.legal-content em { display:block; font-size:12px; color:var(--text-faint); margin-top:20px; }
+#map-wrap { position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; }
+#county-map { width:100%; height:auto; }
+#county-map path.county { stroke:#fff; stroke-width:0.3; cursor:pointer; }
+#county-map path.county:hover { stroke:#111; stroke-width:1; }
+#county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
+#map-tooltip { position:absolute; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:10; max-width:220px; }
+#map-legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); margin-top:10px; }
+#map-legend .swatch { width:16px; height:12px; display:inline-block; }
+#map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
 </style>
 </head>
 <body>
@@ -134,83 +140,103 @@ function toggleLearningMode() {
   <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
 </div>
 
-<div class="legal-content">
-<h1>Privacy Policy</h1>
-<p><strong>Winners Stock LLC</strong> ("Winners Stock," "we," "us," or "our")
-Operating Stock Digest at winnersstock.com (the "Service")</p>
-<p><strong>Effective Date:</strong> September 1, 2026
-<strong>Last Updated:</strong> September 1, 2026</p>
-<hr />
-<h2>1. Overview</h2>
-<p>This Privacy Policy explains what information we collect, how we use it, and the choices you have. By using the Service, you agree to the collection and use of information as described here.</p>
-<h2>2. Information We Collect</h2>
-<h3>Information you provide directly</h3>
-<ul>
-<li><strong>Account information</strong>: email address and password (used to create and secure your account). Passwords are handled by our authentication provider (Firebase Authentication, operated by Google) and are never stored or visible to us in plain text.</li>
-<li><strong>Portfolio data</strong>: any stock or ETF tickers you choose to add to your personal portfolio.</li>
-<li><strong>Property Manager data</strong> (if applicable to your account): property addresses, financial details, and related records you choose to enter for your own use.</li>
-<li><strong>Payment information</strong>: if you subscribe to a paid tier, billing is handled directly by our payment processor. We do not receive or store your full credit card number on our own servers.</li>
-<li><strong>Communications</strong>: information you provide when you contact us for support (e.g., email content).</li>
-</ul>
-<h3>Information collected automatically</h3>
-<ul>
-<li>Basic usage data such as pages visited and general browser/device information, to the extent provided by standard web hosting and analytics tools.</li>
-<li>A local browser preference (e.g., dark mode or "Learning Mode" setting) stored in your browser's local storage. This is not transmitted to our servers and is specific to the browser/device you're using.</li>
-</ul>
-<h3>Information we do NOT collect</h3>
-<ul>
-<li>We do not collect your full payment card number, card verification code, or bank account number directly - these are handled by our third-party payment processor.</li>
-<li>We do not sell your personal information to third parties.</li>
-</ul>
-<h2>3. How We Use Your Information</h2>
-<p>We use the information we collect to:</p>
-<ul>
-<li>Create and maintain your account</li>
-<li>Provide the features you use (e.g., displaying your saved portfolio tickers, saving your property records)</li>
-<li>Process subscription payments and manage billing</li>
-<li>Respond to support requests</li>
-<li>Maintain the security and integrity of the Service</li>
-<li>Comply with legal obligations</li>
-</ul>
-<p>We do not use your portfolio holdings, property data, or other account content to generate targeted advertising, and we do not sell this information.</p>
-<h2>4. Third-Party Service Providers</h2>
-<p>We use the following categories of third-party providers to operate the Service. Each handles a defined, limited scope of data as part of providing their service to us:</p>
-<ul>
-<li><strong>Firebase (Google)</strong> - authentication and database storage for account and portfolio/property data</li>
-<li><strong>Payment processor</strong> [NAME ONCE FINALIZED - e.g., PayPal, North American Bancard/Payments Hub] - subscription billing</li>
-<li><strong>Market data providers</strong> (Yahoo Finance, Finnhub, FRED, and similar) - supply the market data displayed on the Service; we do not share your personal account information with these providers as part of displaying market data</li>
-<li><strong>Cloudflare</strong> - infrastructure used to securely relay certain data requests (e.g., live stock quote lookups) without exposing API credentials in your browser</li>
-</ul>
-<p>These providers have their own privacy policies governing how they handle data on our behalf.</p>
-<h2>5. Data Security</h2>
-<p>We use industry-standard providers (Firebase Authentication and Firestore) to store account and application data, with access restricted so that each user can only read or modify their own data. No method of electronic storage or transmission is 100% secure, and we cannot guarantee absolute security.</p>
-<h2>6. Data Retention</h2>
-<p>We retain your account information and associated data for as long as your account remains active. If you close your account, we will delete or anonymize your personal data within [RETENTION PERIOD, e.g., 30-90 days], except where we are required to retain certain records (e.g., billing records) for legal, tax, or accounting purposes.</p>
-<h2>7. Your Rights and Choices</h2>
-<p>Depending on your location, you may have rights to:</p>
-<ul>
-<li>Access the personal information we hold about you</li>
-<li>Request correction of inaccurate information</li>
-<li>Request deletion of your account and associated data</li>
-<li>Object to or restrict certain processing of your information</li>
-</ul>
-<p>To exercise any of these rights, contact us at support@winnersstock.com. We will respond within a reasonable time and in accordance with applicable law.</p>
-<p>If you are a California resident, you may have additional rights under the California Consumer Privacy Act (CCPA); if you are in the European Economic Area or UK, you may have additional rights under the GDPR/UK GDPR. [Confirm with counsel whether these apply based on where your users are located, and expand this section accordingly if so.]</p>
-<h2>8. Children's Privacy</h2>
-<p>The Service is not directed to children under 13 (or under 16 in jurisdictions where that is the relevant threshold), and we do not knowingly collect personal information from children. If you believe a child has provided us with personal information, contact us at support@winnersstock.com and we will take steps to delete it.</p>
-<h2>9. Cookies and Local Storage</h2>
-<p>We use browser local storage (not third-party tracking cookies) to remember display preferences such as dark mode and Learning Mode settings. This information stays on your device and is not transmitted to us.</p>
-<h2>10. Changes to This Policy</h2>
-<p>We may update this Privacy Policy from time to time. Material changes will be posted on this page with an updated "Last Updated" date. If changes are significant, we will make reasonable efforts to notify account holders (e.g., via email or an in-app notice).</p>
-<h2>11. Contact Us</h2>
-<p>Questions about this Privacy Policy or your personal information can be directed to:</p>
-<p>Winners Stock LLC<br />
-2037 NW 27th Avenue<br />
-Miami, Florida 33142<br />
-support@winnersstock.com</p>
-<hr />
-<em>This document is a draft template and has not been reviewed by an attorney. Data privacy law varies significantly by state and country (e.g., CCPA, GDPR, and other state privacy laws), and applicability depends on where your users are located. Please have this reviewed by a business attorney before publishing it live or relying on it for compliance.</em>
+<h1>County Investment Map</h1>
+<p class="timestamp">5-year population growth by U.S. county (2018-2023, Census ACS 5-Year Estimates).</p>
+
+<div class="beginner-box learning-mode-only">
+<h3>&#127891; What This Map Shows</h3>
+<p style="font-size:13px;line-height:1.6;margin:0;">Each county is colored by how much its population grew (green) or shrank (red) over the last 5 years of available Census data. Population growth is one input real estate investors watch because more people generally means more housing demand over time - but it's one factor among many, not a standalone signal.</p>
 </div>
+
+<div id="map-wrap">
+  <div id="map-loading">Loading county boundaries and data...</div>
+  <svg id="county-map" viewBox="0 0 975 610" style="display:none;"></svg>
+  <div id="map-tooltip"></div>
+</div>
+<div id="map-legend"></div>
+
+<p class="note" style="margin-top:14px;">
+<strong>Methodology:</strong> Population figures are from the Census Bureau's American Community Survey 5-Year Estimates, comparing the 2019-2023 vintage to the 2014-2018 vintage. Counties with no available data are shown in gray. This is one data layer of a planned multi-factor County Investment Map - additional layers (unemployment, income growth, home price appreciation, building permits) and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> Population growth alone does not indicate whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+</p>
+
+<script>
+var COUNTY_DATA = null;
+
+function fipsKey(id) {
+  return String(id).padStart(5, "0");
+}
+
+function colorForGrowth(pct) {
+  if (pct === null || pct === undefined || isNaN(pct)) return "#ccc";
+  var clamped = Math.max(-10, Math.min(20, pct));
+  var t = (clamped + 10) / 30; // 0 at -10%, 1 at +20%
+  return d3.interpolateRdYlGn(t);
+}
+
+function renderLegend() {
+  var stops = [-10, -5, 0, 5, 10, 15, 20];
+  var html = "No data:<span class='swatch' style='background:#ccc;'></span>&nbsp;&nbsp;";
+  stops.forEach(function(v) {
+    html += "<span class='swatch' style='background:" + colorForGrowth(v) + ";'></span>";
+  });
+  html += "<span style='margin-left:4px;'>-10% &rarr; +20% population growth</span>";
+  document.getElementById("map-legend").innerHTML = html;
+}
+
+Promise.all([
+  fetch("https://unpkg.com/us-atlas@3/counties-albers-10m.json").then(function(r) { return r.json(); }),
+]).then(function(results) {
+  var us = results[0];
+  var counties = topojson.feature(us, us.objects.counties);
+  var states = topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; });
+
+  document.getElementById("map-loading").style.display = "none";
+  var svg = document.getElementById("county-map");
+  svg.style.display = "block";
+
+  var d3svg = d3.select("#county-map");
+  var path = d3.geoPath();
+
+  d3svg.append("g")
+    .selectAll("path")
+    .data(counties.features)
+    .join("path")
+    .attr("class", "county")
+    .attr("d", path)
+    .attr("fill", function(d) {
+      if (!COUNTY_DATA) return "#ccc";
+      var rec = COUNTY_DATA[fipsKey(d.id)];
+      return rec ? colorForGrowth(rec.growth_pct) : "#ccc";
+    })
+    .on("mousemove", function(event, d) {
+      var tooltip = document.getElementById("map-tooltip");
+      var rec = COUNTY_DATA ? COUNTY_DATA[fipsKey(d.id)] : null;
+      if (!rec) {
+        tooltip.innerHTML = "No data available";
+      } else {
+        var growthText = (rec.growth_pct === null || rec.growth_pct === undefined) ? "N/A" : (rec.growth_pct > 0 ? "+" : "") + rec.growth_pct.toFixed(1) + "%";
+        tooltip.innerHTML = "<strong>" + rec.name + "</strong><br>Population: " + rec.pop.toLocaleString() + "<br>5-yr growth: " + growthText;
+      }
+      var wrapRect = document.getElementById("map-wrap").getBoundingClientRect();
+      tooltip.style.left = (event.clientX - wrapRect.left + 14) + "px";
+      tooltip.style.top = (event.clientY - wrapRect.top + 10) + "px";
+      tooltip.style.display = "block";
+    })
+    .on("mouseleave", function() {
+      document.getElementById("map-tooltip").style.display = "none";
+    });
+
+  d3svg.append("path")
+    .datum(states)
+    .attr("class", "state-border")
+    .attr("d", path);
+
+  renderLegend();
+}).catch(function(err) {
+  document.getElementById("map-loading").textContent = "Could not load the map (county boundary data failed to load). Try refreshing the page.";
+  console.error("County map load error:", err);
+});
+</script>
 
 <hr style="margin:32px 0 16px;border:none;border-top:1px solid var(--card-border);">
 <div style="font-size:12px;color:var(--text-faint);padding-bottom:20px;">
