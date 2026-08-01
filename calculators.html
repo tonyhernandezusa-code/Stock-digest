@@ -209,6 +209,75 @@ function toggleTheme() {
 <label>Additional principal payment ($/month, optional) - extra amount applied directly to principal each month, on top of your regular payment</label>
 <input type="number" min="0" id="q_extra_principal" value="0">
 
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Estimated Income Tax Savings (Itemized Deductions)</h4>
+<label>Estimated annual property tax ($ - the portion of the combined figure above that is property tax, not insurance/HOA)</label><input type="number" id="q_proptax_annual" value="4800">
+<label>Filing status</label>
+<select id="q_filing" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="single" selected>Single</option><option value="mfj">Married Filing Jointly</option>
+<option value="mfs">Married Filing Separately</option><option value="hoh">Head of Household</option>
+</select>
+<label>Property state</label>
+<select id="q_state" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="AL">Alabama (5%)</option>
+<option value="AK">Alaska (0%)</option>
+<option value="AZ">Arizona (2.5%)</option>
+<option value="AR">Arkansas (3.9%)</option>
+<option value="CA">California (13.3%)</option>
+<option value="CO">Colorado (4.4%)</option>
+<option value="CT">Connecticut (6.99%)</option>
+<option value="DE">Delaware (6.6%)</option>
+<option value="FL" selected>Florida (0%)</option>
+<option value="GA">Georgia (5.39%)</option>
+<option value="HI">Hawaii (11%)</option>
+<option value="ID">Idaho (5.695%)</option>
+<option value="IL">Illinois (4.95%)</option>
+<option value="IN">Indiana (3%)</option>
+<option value="IA">Iowa (3.8%)</option>
+<option value="KS">Kansas (5.58%)</option>
+<option value="KY">Kentucky (4%)</option>
+<option value="LA">Louisiana (3%)</option>
+<option value="ME">Maine (7.15%)</option>
+<option value="MD">Maryland (5.75%)</option>
+<option value="MA">Massachusetts (5%)</option>
+<option value="MI">Michigan (4.25%)</option>
+<option value="MN">Minnesota (9.85%)</option>
+<option value="MS">Mississippi (4.4%)</option>
+<option value="MO">Missouri (4.7%)</option>
+<option value="MT">Montana (5.9%)</option>
+<option value="NE">Nebraska (5.2%)</option>
+<option value="NV">Nevada (0%)</option>
+<option value="NH">New Hampshire (0%)</option>
+<option value="NJ">New Jersey (10.75%)</option>
+<option value="NM">New Mexico (5.9%)</option>
+<option value="NY">New York (10.9%)</option>
+<option value="NC">North Carolina (4.25%)</option>
+<option value="ND">North Dakota (2.5%)</option>
+<option value="OH">Ohio (3.5%)</option>
+<option value="OK">Oklahoma (4.75%)</option>
+<option value="OR">Oregon (9.9%)</option>
+<option value="PA">Pennsylvania (3.07%)</option>
+<option value="RI">Rhode Island (5.99%)</option>
+<option value="SC">South Carolina (6.2%)</option>
+<option value="SD">South Dakota (0%)</option>
+<option value="TN">Tennessee (0%)</option>
+<option value="TX">Texas (0%)</option>
+<option value="UT">Utah (4.55%)</option>
+<option value="VT">Vermont (8.75%)</option>
+<option value="VA">Virginia (5.75%)</option>
+<option value="WA">Washington (0%)</option>
+<option value="WV">West Virginia (4.82%)</option>
+<option value="WI">Wisconsin (7.65%)</option>
+<option value="WY">Wyoming (0%)</option>
+<option value="DC">Washington DC (10.75%)</option>
+</select>
+<label>Your federal marginal tax bracket</label>
+<select id="q_fed_bracket" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+<option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+<option value="37">37%</option>
+</select>
+<label>Other itemized deductions ($/yr - state/local income tax paid, charitable gifts, medical expenses above threshold, etc., not counting this home's mortgage interest or property tax)</label><input type="number" id="q_other_itemized" value="0">
+
 <button onclick="calcQualify()">Calculate</button>
 <div class="result" id="q_result"></div>
 </div>
@@ -257,6 +326,74 @@ function toggleTheme() {
 <option value="17">Balloon at year 17</option><option value="18">Balloon at year 18</option>
 <option value="19">Balloon at year 19</option><option value="20">Balloon at year 20</option>
 </select>
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Estimated Income Tax Savings (Itemized Deductions)</h4>
+<label><input type="checkbox" id="m_pre2018" style="width:auto;display:inline-block;"> This loan originated before December 16, 2017 (grandfathered under the higher $1,000,000 acquisition debt cap, instead of $750,000)</label>
+<label>Filing status</label>
+<select id="m_filing" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="single" selected>Single</option><option value="mfj">Married Filing Jointly</option>
+<option value="mfs">Married Filing Separately</option><option value="hoh">Head of Household</option>
+</select>
+<label>Property state</label>
+<select id="m_state" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="AL">Alabama (5%)</option>
+<option value="AK">Alaska (0%)</option>
+<option value="AZ">Arizona (2.5%)</option>
+<option value="AR">Arkansas (3.9%)</option>
+<option value="CA">California (13.3%)</option>
+<option value="CO">Colorado (4.4%)</option>
+<option value="CT">Connecticut (6.99%)</option>
+<option value="DE">Delaware (6.6%)</option>
+<option value="FL" selected>Florida (0%)</option>
+<option value="GA">Georgia (5.39%)</option>
+<option value="HI">Hawaii (11%)</option>
+<option value="ID">Idaho (5.695%)</option>
+<option value="IL">Illinois (4.95%)</option>
+<option value="IN">Indiana (3%)</option>
+<option value="IA">Iowa (3.8%)</option>
+<option value="KS">Kansas (5.58%)</option>
+<option value="KY">Kentucky (4%)</option>
+<option value="LA">Louisiana (3%)</option>
+<option value="ME">Maine (7.15%)</option>
+<option value="MD">Maryland (5.75%)</option>
+<option value="MA">Massachusetts (5%)</option>
+<option value="MI">Michigan (4.25%)</option>
+<option value="MN">Minnesota (9.85%)</option>
+<option value="MS">Mississippi (4.4%)</option>
+<option value="MO">Missouri (4.7%)</option>
+<option value="MT">Montana (5.9%)</option>
+<option value="NE">Nebraska (5.2%)</option>
+<option value="NV">Nevada (0%)</option>
+<option value="NH">New Hampshire (0%)</option>
+<option value="NJ">New Jersey (10.75%)</option>
+<option value="NM">New Mexico (5.9%)</option>
+<option value="NY">New York (10.9%)</option>
+<option value="NC">North Carolina (4.25%)</option>
+<option value="ND">North Dakota (2.5%)</option>
+<option value="OH">Ohio (3.5%)</option>
+<option value="OK">Oklahoma (4.75%)</option>
+<option value="OR">Oregon (9.9%)</option>
+<option value="PA">Pennsylvania (3.07%)</option>
+<option value="RI">Rhode Island (5.99%)</option>
+<option value="SC">South Carolina (6.2%)</option>
+<option value="SD">South Dakota (0%)</option>
+<option value="TN">Tennessee (0%)</option>
+<option value="TX">Texas (0%)</option>
+<option value="UT">Utah (4.55%)</option>
+<option value="VT">Vermont (8.75%)</option>
+<option value="VA">Virginia (5.75%)</option>
+<option value="WA">Washington (0%)</option>
+<option value="WV">West Virginia (4.82%)</option>
+<option value="WI">Wisconsin (7.65%)</option>
+<option value="WY">Wyoming (0%)</option>
+<option value="DC">Washington DC (10.75%)</option>
+</select>
+<label>Your federal marginal tax bracket</label>
+<select id="m_fed_bracket" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+<option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+<option value="37">37%</option>
+</select>
+<label>Other itemized deductions ($/yr - state/local income tax paid, charitable gifts, medical expenses above threshold, etc., not counting this home's mortgage interest or property tax)</label><input type="number" id="m_other_itemized" value="0">
 <button onclick="calcMortgage()">Calculate</button>
 <div class="result" id="m_result"></div>
 <div class="chart-wrap"><canvas id="m_chart"></canvas></div>
@@ -579,6 +716,80 @@ function toggleTheme() {
   <div><label id="ls_maint_label">Monthly maintenance ($ - national average for this vehicle type, editable)</label><input type="number" id="ls_maint" value="100"></div>
   <button type="button" class="suggest-btn" onclick="applyLeaseDefaults()">Use Nat'l Avg</button>
 </div>
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Business-Use Tax Deduction (optional)</h4>
+<p class="chart-caption" style="text-align:left;margin:0 0 10px;">If this vehicle is leased for business use (client visits, deliveries, etc.), lease costs can be deducted as an ordinary business expense - not a personal itemized deduction, so no standard-deduction comparison or SALT cap applies. Pick one method; the IRS requires using the same method for the life of the lease.</p>
+<label>Business-use percentage of total miles driven (%)</label><input type="number" id="ls_business_pct" value="0" step="1" min="0" max="100">
+<label>Deduction method</label>
+<select id="ls_method" onchange="toggleLeaseMethodFields()" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="mileage" selected>Standard mileage rate</option>
+<option value="actual">Actual expense method (lease payment x business-use %)</option>
+</select>
+<div id="ls_mileage_fields">
+<label>Total annual miles driven (business + personal)</label><input type="number" id="ls_total_miles" value="12000">
+<label>IRS standard mileage rate ($/mile - 2025 rate was $0.70; 2026 is $0.725 through June, $0.76 from July 1 onward, editable)</label><input type="number" id="ls_mileage_rate" value="0.76" step="0.005">
+</div>
+<label>Your federal marginal tax bracket</label>
+<select id="ls_fed_bracket" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+<option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+<option value="37">37%</option>
+</select>
+<label>Property state (for state income tax rate)</label>
+<select id="ls_state" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="AL">Alabama (5%)</option>
+<option value="AK">Alaska (0%)</option>
+<option value="AZ">Arizona (2.5%)</option>
+<option value="AR">Arkansas (3.9%)</option>
+<option value="CA">California (13.3%)</option>
+<option value="CO">Colorado (4.4%)</option>
+<option value="CT">Connecticut (6.99%)</option>
+<option value="DE">Delaware (6.6%)</option>
+<option value="FL" selected>Florida (0%)</option>
+<option value="GA">Georgia (5.39%)</option>
+<option value="HI">Hawaii (11%)</option>
+<option value="ID">Idaho (5.695%)</option>
+<option value="IL">Illinois (4.95%)</option>
+<option value="IN">Indiana (3%)</option>
+<option value="IA">Iowa (3.8%)</option>
+<option value="KS">Kansas (5.58%)</option>
+<option value="KY">Kentucky (4%)</option>
+<option value="LA">Louisiana (3%)</option>
+<option value="ME">Maine (7.15%)</option>
+<option value="MD">Maryland (5.75%)</option>
+<option value="MA">Massachusetts (5%)</option>
+<option value="MI">Michigan (4.25%)</option>
+<option value="MN">Minnesota (9.85%)</option>
+<option value="MS">Mississippi (4.4%)</option>
+<option value="MO">Missouri (4.7%)</option>
+<option value="MT">Montana (5.9%)</option>
+<option value="NE">Nebraska (5.2%)</option>
+<option value="NV">Nevada (0%)</option>
+<option value="NH">New Hampshire (0%)</option>
+<option value="NJ">New Jersey (10.75%)</option>
+<option value="NM">New Mexico (5.9%)</option>
+<option value="NY">New York (10.9%)</option>
+<option value="NC">North Carolina (4.25%)</option>
+<option value="ND">North Dakota (2.5%)</option>
+<option value="OH">Ohio (3.5%)</option>
+<option value="OK">Oklahoma (4.75%)</option>
+<option value="OR">Oregon (9.9%)</option>
+<option value="PA">Pennsylvania (3.07%)</option>
+<option value="RI">Rhode Island (5.99%)</option>
+<option value="SC">South Carolina (6.2%)</option>
+<option value="SD">South Dakota (0%)</option>
+<option value="TN">Tennessee (0%)</option>
+<option value="TX">Texas (0%)</option>
+<option value="UT">Utah (4.55%)</option>
+<option value="VT">Vermont (8.75%)</option>
+<option value="VA">Virginia (5.75%)</option>
+<option value="WA">Washington (0%)</option>
+<option value="WV">West Virginia (4.82%)</option>
+<option value="WI">Wisconsin (7.65%)</option>
+<option value="WY">Wyoming (0%)</option>
+<option value="DC">Washington DC (10.75%)</option>
+</select>
+
 <button onclick="calcLease()">Calculate</button>
 <div class="result" id="ls_result"></div>
 <div class="chart-wrap"><canvas id="ls_chart"></canvas></div>
@@ -653,6 +864,79 @@ function toggleTheme() {
 <label>Registration / licensing fees ($/yr)</label><input type="number" id="bt_registration" value="150">
 <label>Your gross annual household income ($ - optional, for the "10% rule" affordability sanity check)</label><input type="number" id="bt_income" value="0">
 
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Estimated Income Tax Savings (Qualified Second Home)</h4>
+<p class="chart-caption" style="text-align:left;margin:0 0 10px;">A boat can be treated as a "second home" for mortgage interest deduction purposes only if it has sleeping, cooking, and toilet facilities, AND the loan is secured by the boat itself. Both must be true, or none of this interest is deductible.</p>
+<label><input type="checkbox" id="bt_hasfacilities" style="width:auto;display:inline-block;"> This boat has sleeping, cooking, and toilet facilities</label>
+<label><input type="checkbox" id="bt_loansecured" style="width:auto;display:inline-block;"> The loan is secured by the boat (not an unsecured personal loan)</label>
+<label><input type="checkbox" id="bt_pre2018" style="width:auto;display:inline-block;"> This loan originated before December 16, 2017 (grandfathered under the higher $1,000,000 acquisition debt cap, instead of $750,000)</label>
+<label>Annual personal property tax on the boat ($ - some states assess this; 0 if yours doesn't)</label><input type="number" id="bt_proptax" value="0">
+<label>Filing status</label>
+<select id="bt_filing" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="single" selected>Single</option><option value="mfj">Married Filing Jointly</option>
+<option value="mfs">Married Filing Separately</option><option value="hoh">Head of Household</option>
+</select>
+<label>Property state</label>
+<select id="bt_state" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="AL">Alabama (5%)</option>
+<option value="AK">Alaska (0%)</option>
+<option value="AZ">Arizona (2.5%)</option>
+<option value="AR">Arkansas (3.9%)</option>
+<option value="CA">California (13.3%)</option>
+<option value="CO">Colorado (4.4%)</option>
+<option value="CT">Connecticut (6.99%)</option>
+<option value="DE">Delaware (6.6%)</option>
+<option value="FL" selected>Florida (0%)</option>
+<option value="GA">Georgia (5.39%)</option>
+<option value="HI">Hawaii (11%)</option>
+<option value="ID">Idaho (5.695%)</option>
+<option value="IL">Illinois (4.95%)</option>
+<option value="IN">Indiana (3%)</option>
+<option value="IA">Iowa (3.8%)</option>
+<option value="KS">Kansas (5.58%)</option>
+<option value="KY">Kentucky (4%)</option>
+<option value="LA">Louisiana (3%)</option>
+<option value="ME">Maine (7.15%)</option>
+<option value="MD">Maryland (5.75%)</option>
+<option value="MA">Massachusetts (5%)</option>
+<option value="MI">Michigan (4.25%)</option>
+<option value="MN">Minnesota (9.85%)</option>
+<option value="MS">Mississippi (4.4%)</option>
+<option value="MO">Missouri (4.7%)</option>
+<option value="MT">Montana (5.9%)</option>
+<option value="NE">Nebraska (5.2%)</option>
+<option value="NV">Nevada (0%)</option>
+<option value="NH">New Hampshire (0%)</option>
+<option value="NJ">New Jersey (10.75%)</option>
+<option value="NM">New Mexico (5.9%)</option>
+<option value="NY">New York (10.9%)</option>
+<option value="NC">North Carolina (4.25%)</option>
+<option value="ND">North Dakota (2.5%)</option>
+<option value="OH">Ohio (3.5%)</option>
+<option value="OK">Oklahoma (4.75%)</option>
+<option value="OR">Oregon (9.9%)</option>
+<option value="PA">Pennsylvania (3.07%)</option>
+<option value="RI">Rhode Island (5.99%)</option>
+<option value="SC">South Carolina (6.2%)</option>
+<option value="SD">South Dakota (0%)</option>
+<option value="TN">Tennessee (0%)</option>
+<option value="TX">Texas (0%)</option>
+<option value="UT">Utah (4.55%)</option>
+<option value="VT">Vermont (8.75%)</option>
+<option value="VA">Virginia (5.75%)</option>
+<option value="WA">Washington (0%)</option>
+<option value="WV">West Virginia (4.82%)</option>
+<option value="WI">Wisconsin (7.65%)</option>
+<option value="WY">Wyoming (0%)</option>
+<option value="DC">Washington DC (10.75%)</option>
+</select>
+<label>Your federal marginal tax bracket</label>
+<select id="bt_fed_bracket" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+<option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+<option value="37">37%</option>
+</select>
+<label>Other itemized deductions ($/yr - state/local income tax paid, charitable gifts, medical expenses above threshold, primary home mortgage interest/property tax, etc.)</label><input type="number" id="bt_other_itemized" value="0">
+
 <button onclick="calcBoat()">Calculate</button>
 <div class="result" id="bt_result"></div>
 <div class="chart-wrap"><canvas id="bt_chart"></canvas></div>
@@ -717,6 +1001,79 @@ function toggleTheme() {
 <label>Roadside assistance / RV club membership ($/yr - e.g. Good Sam, Coach-Net)</label><input type="number" id="rv_roadside" value="120">
 <label>Registration / licensing fees ($/yr)</label><input type="number" id="rv_registration" value="200">
 <label>Your gross annual household income ($ - optional, for an affordability sanity check)</label><input type="number" id="rv_income" value="0">
+
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Estimated Income Tax Savings (Qualified Second Home)</h4>
+<p class="chart-caption" style="text-align:left;margin:0 0 10px;">An RV can be treated as a "second home" for mortgage interest deduction purposes only if it has sleeping, cooking, and toilet facilities, AND the loan is secured by the RV itself. Both must be true, or none of this interest is deductible.</p>
+<label><input type="checkbox" id="rv_hasfacilities" style="width:auto;display:inline-block;"> This RV has sleeping, cooking, and toilet facilities</label>
+<label><input type="checkbox" id="rv_loansecured" style="width:auto;display:inline-block;"> The loan is secured by the RV (not an unsecured personal loan)</label>
+<label><input type="checkbox" id="rv_pre2018" style="width:auto;display:inline-block;"> This loan originated before December 16, 2017 (grandfathered under the higher $1,000,000 acquisition debt cap, instead of $750,000)</label>
+<label>Annual personal property tax on the RV ($ - some states assess this; 0 if yours doesn't)</label><input type="number" id="rv_proptax" value="0">
+<label>Filing status</label>
+<select id="rv_filing" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="single" selected>Single</option><option value="mfj">Married Filing Jointly</option>
+<option value="mfs">Married Filing Separately</option><option value="hoh">Head of Household</option>
+</select>
+<label>Property state</label>
+<select id="rv_state" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="AL">Alabama (5%)</option>
+<option value="AK">Alaska (0%)</option>
+<option value="AZ">Arizona (2.5%)</option>
+<option value="AR">Arkansas (3.9%)</option>
+<option value="CA">California (13.3%)</option>
+<option value="CO">Colorado (4.4%)</option>
+<option value="CT">Connecticut (6.99%)</option>
+<option value="DE">Delaware (6.6%)</option>
+<option value="FL" selected>Florida (0%)</option>
+<option value="GA">Georgia (5.39%)</option>
+<option value="HI">Hawaii (11%)</option>
+<option value="ID">Idaho (5.695%)</option>
+<option value="IL">Illinois (4.95%)</option>
+<option value="IN">Indiana (3%)</option>
+<option value="IA">Iowa (3.8%)</option>
+<option value="KS">Kansas (5.58%)</option>
+<option value="KY">Kentucky (4%)</option>
+<option value="LA">Louisiana (3%)</option>
+<option value="ME">Maine (7.15%)</option>
+<option value="MD">Maryland (5.75%)</option>
+<option value="MA">Massachusetts (5%)</option>
+<option value="MI">Michigan (4.25%)</option>
+<option value="MN">Minnesota (9.85%)</option>
+<option value="MS">Mississippi (4.4%)</option>
+<option value="MO">Missouri (4.7%)</option>
+<option value="MT">Montana (5.9%)</option>
+<option value="NE">Nebraska (5.2%)</option>
+<option value="NV">Nevada (0%)</option>
+<option value="NH">New Hampshire (0%)</option>
+<option value="NJ">New Jersey (10.75%)</option>
+<option value="NM">New Mexico (5.9%)</option>
+<option value="NY">New York (10.9%)</option>
+<option value="NC">North Carolina (4.25%)</option>
+<option value="ND">North Dakota (2.5%)</option>
+<option value="OH">Ohio (3.5%)</option>
+<option value="OK">Oklahoma (4.75%)</option>
+<option value="OR">Oregon (9.9%)</option>
+<option value="PA">Pennsylvania (3.07%)</option>
+<option value="RI">Rhode Island (5.99%)</option>
+<option value="SC">South Carolina (6.2%)</option>
+<option value="SD">South Dakota (0%)</option>
+<option value="TN">Tennessee (0%)</option>
+<option value="TX">Texas (0%)</option>
+<option value="UT">Utah (4.55%)</option>
+<option value="VT">Vermont (8.75%)</option>
+<option value="VA">Virginia (5.75%)</option>
+<option value="WA">Washington (0%)</option>
+<option value="WV">West Virginia (4.82%)</option>
+<option value="WI">Wisconsin (7.65%)</option>
+<option value="WY">Wyoming (0%)</option>
+<option value="DC">Washington DC (10.75%)</option>
+</select>
+<label>Your federal marginal tax bracket</label>
+<select id="rv_fed_bracket" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+<option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+<option value="37">37%</option>
+</select>
+<label>Other itemized deductions ($/yr - state/local income tax paid, charitable gifts, medical expenses above threshold, primary home mortgage interest/property tax, etc.)</label><input type="number" id="rv_other_itemized" value="0">
 
 <button onclick="calcRV()">Calculate</button>
 <div class="result" id="rv_result"></div>
@@ -1176,6 +1533,51 @@ function simulateLoanWithExtras(loanAmount, initialRatePct, amortTermYears, inte
   };
 }
 
+
+var STANDARD_DEDUCTION_2025 = {single:15750, mfj:31500, mfs:15750, hoh:23625};
+var SALT_CAP_2025 = 40000;
+// Simple first-year interest estimate for a standard fixed-rate amortizing loan - used only for
+// the tax savings estimators below, not for the main payment calculations elsewhere on this page.
+function estimateFirstYearInterest(loanAmount, ratePct, termYears) {
+  if (!loanAmount || loanAmount <= 0 || !termYears || termYears <= 0) return 0;
+  var n = termYears * 12;
+  var monthlyRate = (ratePct || 0) / 100 / 12;
+  var pmt = calculateMonthlyPI(loanAmount, ratePct, termYears);
+  var balance = loanAmount;
+  var interestPaid = 0;
+  for (var i = 0; i < 12 && i < n; i++) {
+    var interestPortion = balance * monthlyRate;
+    interestPaid += interestPortion;
+    balance = Math.max(0, balance - (pmt - interestPortion));
+  }
+  return interestPaid;
+}
+function computeItemizedTaxSavings(o) {
+  var debtCap = o.isPre2018Loan ? 1000000 : 750000;
+  var deductibleInterest = (o.loanAmount > debtCap && o.loanAmount > 0) ? o.annualInterest * (debtCap / o.loanAmount) : o.annualInterest;
+  var deductiblePropertyTax = Math.min(o.annualPropertyTax || 0, SALT_CAP_2025);
+  var totalItemized = deductibleInterest + deductiblePropertyTax + (o.otherItemized || 0);
+  var standardDeduction = STANDARD_DEDUCTION_2025[o.filingStatus] || STANDARD_DEDUCTION_2025.single;
+  var itemizedBenefit = Math.max(0, totalItemized - standardDeduction);
+  var combinedRatePct = (o.fedRatePct || 0) + (o.stateRatePct || 0);
+  var taxSavings = itemizedBenefit * (combinedRatePct / 100);
+  return { deductibleInterest: deductibleInterest, deductiblePropertyTax: deductiblePropertyTax,
+    totalItemized: totalItemized, standardDeduction: standardDeduction,
+    itemizedBenefit: itemizedBenefit, combinedRatePct: combinedRatePct, taxSavings: taxSavings, debtCap: debtCap };
+}
+function itemizeSavingsHtml(r, o) {
+  return "<br><u>Estimated Income Tax Savings (Itemized Deductions)</u><br>" +
+    "&nbsp;&nbsp;Mortgage interest (capped at $" + r.debtCap.toLocaleString() + " acquisition debt): " + money(r.deductibleInterest) + "/yr<br>" +
+    "&nbsp;&nbsp;Property tax (SALT-capped at $40,000 combined with other state/local taxes): " + money(r.deductiblePropertyTax) + "/yr<br>" +
+    ((o.otherItemized || 0) > 0 ? "&nbsp;&nbsp;Other itemized deductions you entered: " + money(o.otherItemized) + "/yr<br>" : "") +
+    "&nbsp;&nbsp;Total itemized: " + money(r.totalItemized) + "/yr vs. standard deduction: " + money(r.standardDeduction) + "/yr<br>" +
+    (r.itemizedBenefit > 0 ?
+      "Amount itemizing beats the standard deduction by: <strong>" + money(r.itemizedBenefit) + "/yr</strong><br>" +
+      "Estimated tax savings from itemizing: <strong style='color:#1a8a3d;'>" + money(r.taxSavings) + "/yr</strong> (" + money(r.taxSavings/12) + "/mo)<br>"
+      : "<span style='color:#a5720b;'>Your itemized total (" + money(r.totalItemized) + ") doesn't exceed the standard deduction (" + money(r.standardDeduction) + "), so these deductions alone wouldn't reduce your taxes below the standard deduction - no additional tax savings shown.</span><br>") +
+    "<span style='font-size:11px;color:#888;'>Estimate only, not tax advice. Mortgage interest is only deductible if you itemize, and only on acquisition debt used to buy, build, or substantially improve the home (not cash-out refinance proceeds used for other purposes). The $40,000 SALT cap (2025) is shared across ALL state/local property AND income taxes combined, phases down for income above $500,000 MAGI, and is modeled here as a flat cap - if you have other state/local taxes, your real deductible room may be lower. The $750,000/$1,000,000 acquisition debt caps apply combined across your primary home and any second home/qualifying boat or RV. Consult a CPA before relying on this for a purchase decision.</span>";
+}
+
 function calcQualify() {
   var gm = ((+document.getElementById("q_inc1").value || 0) + (+document.getElementById("q_inc2").value || 0)) / 12;
   var debts = (+document.getElementById("q_debts").value || 0);
@@ -1289,6 +1691,22 @@ function calcQualify() {
   }
 
   html += "<span style='font-size:11px;color:#888;'>This is an estimate, not a preapproval. Lenders' 28/36 and 31/43 ratios do not actually count maintenance, but it is a real monthly cost - this calculator sets it aside first so the price you see is one you can genuinely afford to live in, not just qualify for. Lenders also weigh credit score, employment history, and cash reserves, and most qualify IO/ARM borrowers on the fully-amortizing or fully-indexed payment rather than the teaser payment shown here, specifically to guard against payment shock. The first number uses the classic 28/36 rule: housing under 28% of gross income, all debts under 36%.</span>";
+
+  if (illustrative) {
+    var annualPropertyTaxQ = +document.getElementById("q_proptax_annual").value || 0;
+    var filingQ = document.getElementById("q_filing").value;
+    var stateRatePctQ = getStateTopMarginalRate(document.getElementById("q_state").value) || 0;
+    var fedRatePctQ = +document.getElementById("q_fed_bracket").value || 0;
+    var otherItemizedQ = +document.getElementById("q_other_itemized").value || 0;
+    var annualInterestQ = estimateFirstYearInterest(illustrative.loan, ratePct, years);
+    var resultQ = computeItemizedTaxSavings({
+      loanAmount: illustrative.loan, isPre2018Loan: false, annualInterest: annualInterestQ,
+      annualPropertyTax: annualPropertyTaxQ, otherItemized: otherItemizedQ, filingStatus: filingQ,
+      fedRatePct: fedRatePctQ, stateRatePct: stateRatePctQ
+    });
+    html += itemizeSavingsHtml(resultQ, { otherItemized: otherItemizedQ });
+  }
+
   show("q_result", html);
 }
 function calcMortgage() {
@@ -1373,6 +1791,21 @@ function calcMortgage() {
       (extra > 0 ? "Make sure extra payments are marked APPLY TO PRINCIPAL - otherwise some lenders just credit them toward next month's payment, which saves you nothing." : "") +
       "</span><br>";
   }
+  var ratePctM = +document.getElementById("m_rate").value || 0;
+  var yearsM = +document.getElementById("m_years").value || 0;
+  var annualInterestM = estimateFirstYearInterest(loan, ratePctM, yearsM);
+  var isPre2018M = document.getElementById("m_pre2018").checked;
+  var filingM = document.getElementById("m_filing").value;
+  var stateRatePctM = getStateTopMarginalRate(document.getElementById("m_state").value) || 0;
+  var fedRatePctM = +document.getElementById("m_fed_bracket").value || 0;
+  var otherItemizedM = +document.getElementById("m_other_itemized").value || 0;
+  var resultM = computeItemizedTaxSavings({
+    loanAmount: loan, isPre2018Loan: isPre2018M, annualInterest: annualInterestM,
+    annualPropertyTax: tax_m * 12, otherItemized: otherItemizedM, filingStatus: filingM,
+    fedRatePct: fedRatePctM, stateRatePct: stateRatePctM
+  });
+  var taxSavingsHtmlM = itemizeSavingsHtml(resultM, { otherItemized: otherItemizedM });
+
   show("m_result",
     bw_line +
     "Total monthly payment: <strong>" + money(full) + "</strong><br>" +
@@ -1390,7 +1823,8 @@ function calcMortgage() {
     (comm_amt > 0 ? "&nbsp;&nbsp;Buyer's agent commission (" + comm_pct + "%): " + money(comm_amt) + "<br>" : "") +
     (closing_amt > 0 ? "&nbsp;&nbsp;Other closing costs (" + closing_pct + "%): " + money(closing_amt) + "<br>" : "") +
     (inspect_amt > 0 ? "&nbsp;&nbsp;Home inspection: " + money(inspect_amt) + "<br>" : "") +
-    "<span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra. With an interest-only second mortgage, the monthly payment never reduces its principal - the full amount remains due at payoff, sale, or refinance. Buyer-agent commission is negotiable and cannot usually be rolled into the loan - though sellers often agree to cover it, so ask. Every dollar paid in commission is a dollar unavailable for your down payment.</span>");
+    "<span style='font-size:11px;color:#888;'>Taxes, insurance, and HOA are estimates and usually rise over time. PMI (required below 20% down) is extra. With an interest-only second mortgage, the monthly payment never reduces its principal - the full amount remains due at payoff, sale, or refinance. Buyer-agent commission is negotiable and cannot usually be rolled into the loan - though sellers often agree to cover it, so ask. Every dollar paid in commission is a dollar unavailable for your down payment.</span>" +
+    taxSavingsHtmlM);
 
   var chartLabels = ["Principal & Interest"];
   var chartValues = [pmt];
@@ -1810,6 +2244,10 @@ function applyLeaseDefaults() {
   document.getElementById("ls_maint").value = vd.maint;
   document.getElementById("ls_fuel_label").textContent = "Monthly " + vd.fuelLabel.toLowerCase() + " cost ($ - national average for this vehicle type, editable)";
 }
+function toggleLeaseMethodFields() {
+  var method = document.getElementById("ls_method").value;
+  document.getElementById("ls_mileage_fields").style.display = method === "mileage" ? "block" : "none";
+}
 function calcLease() {
   var msrp = +document.getElementById("ls_msrp").value || 0;
   var capCost = +document.getElementById("ls_capcost").value || 0;
@@ -1860,6 +2298,36 @@ function calcLease() {
 
   var trueMonthlyCost = totalPayment + fuel_m + maint_m;
 
+  var businessPct = (+document.getElementById("ls_business_pct").value || 0) / 100;
+  var businessHtml = "";
+  if (businessPct > 0) {
+    var method = document.getElementById("ls_method").value;
+    var fedRatePctLs = +document.getElementById("ls_fed_bracket").value || 0;
+    var stateRatePctLs = getStateTopMarginalRate(document.getElementById("ls_state").value) || 0;
+    var combinedRateLs = fedRatePctLs + stateRatePctLs;
+    var annualDeduction = 0;
+    var methodNote = "";
+    if (method === "mileage") {
+      var totalMiles = +document.getElementById("ls_total_miles").value || 0;
+      var mileageRate = +document.getElementById("ls_mileage_rate").value || 0;
+      var businessMiles = totalMiles * businessPct;
+      annualDeduction = businessMiles * mileageRate;
+      methodNote = "&nbsp;&nbsp;Business miles (" + (businessPct*100).toFixed(0) + "% of " + totalMiles.toLocaleString() + " total miles): " + Math.round(businessMiles).toLocaleString() + " mi &times; " + money(mileageRate) + "/mi = " + money(annualDeduction) + "/yr<br>";
+    } else {
+      var annualLeaseAndDriving = (totalPayment + fuel_m + maint_m) * 12;
+      annualDeduction = annualLeaseAndDriving * businessPct;
+      methodNote = "&nbsp;&nbsp;Annual lease payment + fuel + maintenance (" + money(annualLeaseAndDriving) + ") &times; " + (businessPct*100).toFixed(0) + "% business use = " + money(annualDeduction) + "/yr<br>" +
+        "<span style='font-size:11px;color:#888;'>Actual expense method: if this is a "luxury" lease above IRS fair-market-value thresholds, a lease inclusion amount slightly reduces this deduction - not modeled here.</span><br>";
+    }
+    var businessTaxSavings = annualDeduction * (combinedRateLs / 100);
+    businessHtml = "<br><u>Estimated Business-Use Tax Deduction</u><br>" +
+      methodNote +
+      "Estimated annual deduction: <strong>" + money(annualDeduction) + "</strong><br>" +
+      "Combined marginal rate (federal " + fedRatePctLs + "% + state " + stateRatePctLs.toFixed(2) + "%): " + combinedRateLs.toFixed(2) + "%<br>" +
+      "Estimated tax savings: <strong style='color:#1a8a3d;'>" + money(businessTaxSavings) + "/yr</strong> (" + money(businessTaxSavings/12) + "/mo)<br>" +
+      "<span style='font-size:11px;color:#888;'>Estimate only, not tax advice. This is an ordinary business expense deduction (Schedule C or pass-through via K-1), not a personal itemized deduction - no standard-deduction comparison or SALT cap applies. You must use the same method (standard mileage or actual expense) for the entire lease term. Keep a mileage log or expense records to substantiate business use. Consult a CPA before relying on this for a decision.</span>";
+  }
+
   show("ls_result",
     "Residual value: <strong>" + money(residualValue) + "</strong> (" + (residualPct*100).toFixed(1) + "% of " + money(msrp) + " MSRP)<br>" +
     "Adjusted capitalized cost: " + money(adjustedCapCost) + "<br>" +
@@ -1883,7 +2351,8 @@ function calcLease() {
     "Approximate buyout price if you purchase at lease end: residual (" + money(residualValue) + ") plus any purchase-option fee your contract specifies<br>" +
     "<br><u>Estimated True Monthly Cost of Driving</u><br>" +
     "Lease payment + fuel/electricity + maintenance: <strong>" + money(trueMonthlyCost) + "</strong><br>" +
-    "<span style='font-size:11px;color:#888;'>This is a standard lease payment estimate (depreciation + rent charge + tax), the same formula lenders use. Actual dealer quotes can vary based on lender-specific fees, regional taxes taxed on the full cap cost instead of the payment, and manufacturer-subsidized (subvented) money factors or residuals that beat the market rate. Always get the money factor and residual in writing before signing - a low advertised payment can hide a high money factor offset by a large down payment.</span>");
+    "<span style='font-size:11px;color:#888;'>This is a standard lease payment estimate (depreciation + rent charge + tax), the same formula lenders use. Actual dealer quotes can vary based on lender-specific fees, regional taxes taxed on the full cap cost instead of the payment, and manufacturer-subsidized (subvented) money factors or residuals that beat the market rate. Always get the money factor and residual in writing before signing - a low advertised payment can hide a high money factor offset by a large down payment.</span>" +
+    businessHtml);
 
   var chartLabels = ["Depreciation Fee", "Rent Charge (Finance Fee)"];
   var chartValues = [deprFee, rentCharge];
@@ -1971,6 +2440,29 @@ function calcBoat() {
     incomeNote = "<br><span style='font-size:11px;color:#888;'>All-in annual boating cost is " + pctOfIncome.toFixed(1) + "% of your household income. The commonly cited affordability guideline is to keep total boating costs under roughly 10% of gross household income.</span>";
   }
 
+  var hasFacilitiesBt = document.getElementById("bt_hasfacilities").checked;
+  var loanSecuredBt = document.getElementById("bt_loansecured").checked;
+  var taxSavingsHtmlBt = "";
+  if (hasFacilitiesBt && loanSecuredBt) {
+    var ratePctBt = +document.getElementById("bt_rate").value || 0;
+    var yearsBt = +document.getElementById("bt_years").value || 0;
+    var annualInterestBt = estimateFirstYearInterest(loan, ratePctBt, yearsBt);
+    var annualPropertyTaxBt = +document.getElementById("bt_proptax").value || 0;
+    var isPre2018Bt = document.getElementById("bt_pre2018").checked;
+    var filingBt = document.getElementById("bt_filing").value;
+    var stateRatePctBt = getStateTopMarginalRate(document.getElementById("bt_state").value) || 0;
+    var fedRatePctBt = +document.getElementById("bt_fed_bracket").value || 0;
+    var otherItemizedBt = +document.getElementById("bt_other_itemized").value || 0;
+    var resultBt = computeItemizedTaxSavings({
+      loanAmount: loan, isPre2018Loan: isPre2018Bt, annualInterest: annualInterestBt,
+      annualPropertyTax: annualPropertyTaxBt, otherItemized: otherItemizedBt, filingStatus: filingBt,
+      fedRatePct: fedRatePctBt, stateRatePct: stateRatePctBt
+    });
+    taxSavingsHtmlBt = itemizeSavingsHtml(resultBt, { otherItemized: otherItemizedBt });
+  } else {
+    taxSavingsHtmlBt = "<br><span style='font-size:11px;color:#a5720b;'>No tax savings shown: to deduct boat loan interest as a qualified second home, the boat needs sleeping, cooking, and toilet facilities AND the loan must be secured by the boat. Check both boxes above if they apply.</span>";
+  }
+
   show("bt_result",
     "Monthly loan payment: <strong>" + money(pmt) + "</strong><br>" +
     "Loan amount: " + money(loan) + "<br>" +
@@ -1994,7 +2486,8 @@ function calcBoat() {
     "&nbsp;&nbsp;Registration: " + money(registration_m) + "<br>" +
     "&nbsp;&nbsp;Depreciation (non-cash, for reference): " + money(deprec_m) + "<br>" +
     "<br>Annual all-in cost: <strong>" + money(annualCost) + "</strong>" + incomeNote +
-    "<br><br><span style='font-size:11px;color:#888;'>Industry rule of thumb: total boating costs commonly run 2-3x the loan payment alone once dockage, insurance, maintenance, and fuel are added - this is normal, not a sign something's wrong with your numbers. The 10% maintenance rule and 1-2% insurance rule are broad averages; actual costs vary a lot by boat age, engine type, and how hard the boat is used. This is an estimate, not a substitute for actual quotes from your marina, insurer, and mechanic.</span>");
+    "<br><br><span style='font-size:11px;color:#888;'>Industry rule of thumb: total boating costs commonly run 2-3x the loan payment alone once dockage, insurance, maintenance, and fuel are added - this is normal, not a sign something's wrong with your numbers. The 10% maintenance rule and 1-2% insurance rule are broad averages; actual costs vary a lot by boat age, engine type, and how hard the boat is used. This is an estimate, not a substitute for actual quotes from your marina, insurer, and mechanic.</span>" +
+    taxSavingsHtmlBt);
 
   var chartLabels = ["Loan Payment", "Dockage/Storage", "Insurance", "Maintenance"];
   var chartValues = [pmt, dockage_m, insurance_m, maint_m];
@@ -2093,6 +2586,29 @@ function calcRV() {
     incomeNote = "<br><span style='font-size:11px;color:#888;'>All-in annual RV cost is " + pctOfIncome.toFixed(1) + "% of your household income. A common budgeting guideline is to keep total recreational-vehicle costs under roughly 10-15% of gross household income.</span>";
   }
 
+  var hasFacilitiesRv = document.getElementById("rv_hasfacilities").checked;
+  var loanSecuredRv = document.getElementById("rv_loansecured").checked;
+  var taxSavingsHtmlRv = "";
+  if (hasFacilitiesRv && loanSecuredRv) {
+    var ratePctRv = +document.getElementById("rv_rate").value || 0;
+    var yearsRv = +document.getElementById("rv_years").value || 0;
+    var annualInterestRv = estimateFirstYearInterest(loan, ratePctRv, yearsRv);
+    var annualPropertyTaxRv = +document.getElementById("rv_proptax").value || 0;
+    var isPre2018Rv = document.getElementById("rv_pre2018").checked;
+    var filingRv = document.getElementById("rv_filing").value;
+    var stateRatePctRv = getStateTopMarginalRate(document.getElementById("rv_state").value) || 0;
+    var fedRatePctRv = +document.getElementById("rv_fed_bracket").value || 0;
+    var otherItemizedRv = +document.getElementById("rv_other_itemized").value || 0;
+    var resultRv = computeItemizedTaxSavings({
+      loanAmount: loan, isPre2018Loan: isPre2018Rv, annualInterest: annualInterestRv,
+      annualPropertyTax: annualPropertyTaxRv, otherItemized: otherItemizedRv, filingStatus: filingRv,
+      fedRatePct: fedRatePctRv, stateRatePct: stateRatePctRv
+    });
+    taxSavingsHtmlRv = itemizeSavingsHtml(resultRv, { otherItemized: otherItemizedRv });
+  } else {
+    taxSavingsHtmlRv = "<br><span style='font-size:11px;color:#a5720b;'>No tax savings shown: to deduct RV loan interest as a qualified second home, the RV needs sleeping, cooking, and toilet facilities AND the loan must be secured by the RV. Check both boxes above if they apply.</span>";
+  }
+
   show("rv_result",
     "Monthly loan payment: <strong>" + money(pmt) + "</strong><br>" +
     "Loan amount: " + money(loan) + "<br>" +
@@ -2115,7 +2631,8 @@ function calcRV() {
     "&nbsp;&nbsp;Registration: " + money(registration_m) + "<br>" +
     "&nbsp;&nbsp;Depreciation (non-cash, for reference): " + money(deprec_m) + "<br>" +
     "<br>Annual all-in cost: <strong>" + money(annualCost) + "</strong>" + incomeNote +
-    "<br><br><span style='font-size:11px;color:#888;'>New RVs commonly lose 20-30% of value in the first year alone, more than most cars or boats - this calculator uses a blended annual rate rather than that steeper first-year hit, so treat year one as likely worse than shown. Insurance, maintenance, and depreciation percentages are broad industry averages and vary a lot by specific make, model, age, and condition. This is an estimate, not a substitute for actual quotes from your dealer, insurer, and RV service center.</span>");
+    "<br><br><span style='font-size:11px;color:#888;'>New RVs commonly lose 20-30% of value in the first year alone, more than most cars or boats - this calculator uses a blended annual rate rather than that steeper first-year hit, so treat year one as likely worse than shown. Insurance, maintenance, and depreciation percentages are broad industry averages and vary a lot by specific make, model, age, and condition. This is an estimate, not a substitute for actual quotes from your dealer, insurer, and RV service center.</span>" +
+    taxSavingsHtmlRv);
 
   var chartLabels = ["Loan Payment"];
   var chartValues = [pmt];
