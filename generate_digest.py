@@ -156,6 +156,57 @@ BANK_RATES = [
     ("Capital One 360 (Savings)", "3.00%"),
 ]
 
+# Top marginal state individual income tax rates (2025, Tax Foundation) - used only to give a
+# rough illustration of income tax savings from real estate deductions in the Tax Savings
+# Estimator on the Calculators and Property Manager pages. This is each state's TOP marginal
+# rate; actual liability depends on total income, filing status, and state-specific rules
+# (local/county taxes, surtaxes, and phaseouts are not included). Washington taxes capital
+# gains only (not rental income), so it's listed as 0 here. Not tax advice.
+STATE_TOP_MARGINAL_RATES = [
+    ("AL", "Alabama", 5.00), ("AK", "Alaska", 0), ("AZ", "Arizona", 2.50), ("AR", "Arkansas", 3.90),
+    ("CA", "California", 13.30), ("CO", "Colorado", 4.40), ("CT", "Connecticut", 6.99),
+    ("DE", "Delaware", 6.60), ("FL", "Florida", 0), ("GA", "Georgia", 5.39), ("HI", "Hawaii", 11.00),
+    ("ID", "Idaho", 5.695), ("IL", "Illinois", 4.95), ("IN", "Indiana", 3.00), ("IA", "Iowa", 3.80),
+    ("KS", "Kansas", 5.58), ("KY", "Kentucky", 4.00), ("LA", "Louisiana", 3.00), ("ME", "Maine", 7.15),
+    ("MD", "Maryland", 5.75), ("MA", "Massachusetts", 5.00), ("MI", "Michigan", 4.25),
+    ("MN", "Minnesota", 9.85), ("MS", "Mississippi", 4.40), ("MO", "Missouri", 4.70),
+    ("MT", "Montana", 5.90), ("NE", "Nebraska", 5.20), ("NV", "Nevada", 0),
+    ("NH", "New Hampshire", 0), ("NJ", "New Jersey", 10.75), ("NM", "New Mexico", 5.90),
+    ("NY", "New York", 10.90), ("NC", "North Carolina", 4.25), ("ND", "North Dakota", 2.50),
+    ("OH", "Ohio", 3.50), ("OK", "Oklahoma", 4.75), ("OR", "Oregon", 9.90),
+    ("PA", "Pennsylvania", 3.07), ("RI", "Rhode Island", 5.99), ("SC", "South Carolina", 6.20),
+    ("SD", "South Dakota", 0), ("TN", "Tennessee", 0), ("TX", "Texas", 0), ("UT", "Utah", 4.55),
+    ("VT", "Vermont", 8.75), ("VA", "Virginia", 5.75), ("WA", "Washington", 0),
+    ("WV", "West Virginia", 4.82), ("WI", "Wisconsin", 7.65), ("WY", "Wyoming", 0),
+    ("DC", "Washington DC", 10.75),
+]
+
+STATE_TAX_JS_TABLE = "{" + ",".join(
+    '"{}":{}'.format(code, rate) for code, name, rate in STATE_TOP_MARGINAL_RATES
+) + "}"
+
+STATE_TAX_OPTIONS_HTML = "\n".join(
+    '<option value="{}"{}>{} ({}%)</option>'.format(code, ' selected' if code == "FL" else '', name, ("%g" % rate))
+    for code, name, rate in STATE_TOP_MARGINAL_RATES
+)
+
+STATE_NAME_TO_ABBR_JS = "{" + ",".join(
+    '"{}":"{}"'.format(name.upper(), code) for code, name, rate in STATE_TOP_MARGINAL_RATES
+) + ',"D.C.":"DC","DISTRICT OF COLUMBIA":"DC"}'
+
+STATE_TAX_JS_HELPER = """
+// Top marginal state individual income tax rates (2025, Tax Foundation) - illustration only.
+var STATE_TOP_MARGINAL_RATE = __STATE_TAX_TABLE__;
+var STATE_NAME_TO_ABBR = __STATE_NAME_TO_ABBR__;
+function getStateTopMarginalRate(stateInput) {
+  var s = (stateInput || "").trim().toUpperCase();
+  if (!s) return null;
+  if (STATE_TOP_MARGINAL_RATE.hasOwnProperty(s)) return STATE_TOP_MARGINAL_RATE[s];
+  if (STATE_NAME_TO_ABBR.hasOwnProperty(s)) return STATE_TOP_MARGINAL_RATE[STATE_NAME_TO_ABBR[s]];
+  return null;
+}
+""".replace("__STATE_TAX_TABLE__", STATE_TAX_JS_TABLE).replace("__STATE_NAME_TO_ABBR__", STATE_NAME_TO_ABBR_JS)
+
 # Major world currencies vs USD - Federal Reserve H.10 daily rates via FRED.
 # This is the complete set of individual currency pairs FRED publishes (23) - confirmed directly
 # against FRED's own H.10 release page. (FRED's "26" total also includes 3 broad trade-weighted
@@ -1888,6 +1939,18 @@ __NAV__
   <button type="button" class="suggest-btn" onclick="recommendCREMaint()">Use Nat'l Avg</button>
 </div>
 <label>Other monthly expenses ($ - utilities, HOA, etc. if landlord-paid, 0 if tenant pays all)</label><input type="number" id="cre_other" value="0">
+<h4 style="margin:16px 0 4px;font-size:13px;color:#666;">Estimated Income Tax Savings</h4>
+<label>Property state (used to estimate state income tax savings, below)</label>
+<select id="cre_state" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+__STATE_TAX_OPTIONS__
+</select>
+<label>Your federal marginal tax bracket</label>
+<select id="cre_fed_bracket" style="width:100%;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+<option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+<option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+<option value="37">37%</option>
+</select>
+<label>Building value (% of purchase price - land isn't depreciable; ~70-80% building is a common rule of thumb, editable based on your appraisal/tax assessor split)</label><input type="number" id="cre_bldg_pct" value="80" step="1" min="0" max="100">
 <button onclick="calcCRE()">Calculate</button>
 <div class="result" id="cre_result"></div>
 <div class="chart-wrap"><canvas id="cre_chart"></canvas></div>
@@ -2418,6 +2481,7 @@ function calculateMonthlyPI(loanAmount, annualRatePct, termYears) {
   return loanAmount * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 }
 
+__STATE_TAX_JS_HELPER__
 function calcCRE() {
   var propType = document.getElementById("cre_type").value;
   var totalUnits = +document.getElementById("cre_total_units_hidden").value || 0;
@@ -2502,6 +2566,34 @@ function calcCRE() {
                  dscr >= 1.0 ? "Covers the debt payment, but below many lenders' comfort threshold (1.20-1.25+) - a bigger down payment, lower rate, or higher rent may be needed to qualify." :
                  "Below 1.0 means the property's income does not cover the debt payment as structured - most commercial lenders will not approve this loan without changes.";
 
+  // --- Estimated income tax savings (depreciation + mortgage interest + property tax) ---
+  var bldgPct = (+document.getElementById("cre_bldg_pct").value || 0) / 100;
+  var fedRatePct = +document.getElementById("cre_fed_bracket").value || 0;
+  var stateAbbr = document.getElementById("cre_state").value;
+  var stateRatePct = getStateTopMarginalRate(stateAbbr) || 0;
+  var depreciationLife = propType === "comm5" ? 39 : 27.5;
+  var buildingValue = price * bldgPct;
+  var annualDepreciation = buildingValue / depreciationLife;
+
+  var startingBalance = currentYearIndex === 0 ? loan : ((simYears[currentYearIndex - 1] || {}).endingBalance != null ? simYears[currentYearIndex - 1].endingBalance : loan);
+  var principalReduction = startingBalance - currentYear.endingBalance;
+  var annualInterest = Math.max(0, annualDebtService - principalReduction);
+  var annualPropertyTaxDeduction = tax_m * 12;
+
+  var totalTaxDeductions = annualDepreciation + annualInterest + annualPropertyTaxDeduction;
+  var combinedRatePct = fedRatePct + stateRatePct;
+  var estTaxSavings = totalTaxDeductions * (combinedRatePct / 100);
+
+  var taxSavingsHtml =
+    "<br><u>Estimated Annual Income Tax Savings</u><br>" +
+    "&nbsp;&nbsp;Depreciation (" + depreciationLife + "-yr, " + (bldgPct*100).toFixed(0) + "% building value of " + money(price) + "): " + money(annualDepreciation) + "/yr<br>" +
+    "&nbsp;&nbsp;Mortgage interest (year " + (currentYearIndex + 1) + " of the loan): " + money(annualInterest) + "/yr<br>" +
+    "&nbsp;&nbsp;Property taxes: " + money(annualPropertyTaxDeduction) + "/yr<br>" +
+    "&nbsp;&nbsp;Total deductions: <strong>" + money(totalTaxDeductions) + "/yr</strong><br>" +
+    "&nbsp;&nbsp;Combined marginal rate (federal " + fedRatePct + "% + state " + stateRatePct.toFixed(2) + "%): " + combinedRatePct.toFixed(2) + "%<br>" +
+    "Estimated tax savings: <strong style='color:#1a8a3d;'>" + money(estTaxSavings) + "/yr</strong> (" + money(estTaxSavings/12) + "/mo)<br>" +
+    "<span style='font-size:11px;color:#888;'>Estimate only, not tax advice. Assumes these losses are fully deductible against ordinary income - the IRS passive activity loss rules (Section 469) can limit or defer this for investors who aren't real estate professionals and don't actively manage the property, unless the loss qualifies for the $25,000 active-participation allowance (phased out between $100,000-$150,000 MAGI). Depreciation reduces your cost basis and is generally recaptured (taxed up to 25% federal) when you sell. State rate shown is each state's top marginal individual rate, not an income-specific calculation, and excludes local/county taxes. Consult a CPA before relying on this for a purchase decision.</span>";
+
   show("cre_result",
     "Loan amount: <strong>" + money(loan) + "</strong> (" + (downPct*100).toFixed(1) + "% down = " + money(down) + ")<br>" +
     "Monthly P&amp;I payment: " + money(pmt) + " (amortized over " + amortYears + " yrs)<br>" +
@@ -2522,7 +2614,8 @@ function calcCRE() {
     "<br>Cash needed to close: <strong>" + money(cash_to_close) + "</strong> (" + money(down) + " down + " + money(closing_amt) + " closing costs)<br>" +
     "<span style='font-size:11px;color:#888;'>DSCR = annual NOI &divide; annual debt service; most DSCR/commercial lenders want 1.20-1.25 or higher. Cap rate = NOI &divide; purchase price, useful for comparing properties independent of financing. Cash-on-cash = annual pre-tax cash flow &divide; cash invested, the return on your actual out-of-pocket money. " +
     (propType === "res14" ? "For a 1-4 unit property financed with a conventional loan, lenders typically qualify you on your personal income/DTI rather than the property's DSCR alone - DSCR here is still a useful cash-flow health check, and it's the primary metric if you instead use a dedicated DSCR-loan program. " : "For a 5+ unit commercial property, DSCR is usually the primary underwriting metric lenders use to size the loan, rather than your personal income. ") +
-    "Underwriting conventions vary by lender, property type, and market - treat these as estimates, not a preapproval.</span>");
+    "Underwriting conventions vary by lender, property type, and market - treat these as estimates, not a preapproval.</span>" +
+    taxSavingsHtml);
 
   var chartLabels = ["Debt Service (P&I)", "Property Taxes", "Insurance", "Management", "Maintenance/Reserves", "Vacancy Loss"];
   var chartValues = [pmt, tax_m, ins_m, mgmt_fee_m, maint_m, vacancy_loss_m];
@@ -3612,7 +3705,9 @@ calculators_html = (CALC_TEMPLATE
                     .replace("__NAV__", NAV_HTML)
                     .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                     .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
-                    .replace("__DARKMODE_JS__", DARK_MODE_JS))
+                    .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                    .replace("__STATE_TAX_JS_HELPER__", STATE_TAX_JS_HELPER)
+                    .replace("__STATE_TAX_OPTIONS__", STATE_TAX_OPTIONS_HTML))
 
 # ------------------- PAGE 4: PROPERTY / FORECLOSURE SEARCH -------------------
 
@@ -4432,6 +4527,18 @@ __NAV__
         <input type="number" step="0.01" id="d-exitcaprate" placeholder="e.g. 6" style="max-width:160px;">
         <label>Selling Costs (% of sale price) - broker commission, closing costs, etc.</label>
         <input type="number" step="0.1" id="d-sellingcosts" placeholder="e.g. 6" style="max-width:160px;">
+        <label style="margin-top:14px;font-weight:600;">Tax Savings Estimator (optional - enables an estimated income tax savings figure below)</label>
+        <label>Annual Property Tax ($)</label>
+        <input type="number" id="d-proptax" style="max-width:160px;">
+        <label>Building Value (% of Purchase Price) - land isn't depreciable; ~70-80% building is a common rule of thumb, editable based on your appraisal/tax assessor split</label>
+        <input type="number" id="d-bldgpct" placeholder="e.g. 80" step="1" min="0" max="100" style="max-width:160px;">
+        <label>Your Federal Marginal Tax Bracket (%)</label>
+        <select id="d-fedbracket" style="max-width:160px;padding:8px;font-size:14px;border:1px solid #ccc;border-radius:6px;box-sizing:border-box;">
+        <option value="10">10%</option><option value="12">12%</option><option value="22">22%</option>
+        <option value="24" selected>24%</option><option value="32">32%</option><option value="35">35%</option>
+        <option value="37">37%</option>
+        </select>
+        <span style="font-size:11px;color:#888;display:block;max-width:400px;margin-top:4px;">State income tax rate is estimated automatically from the property's State field above. Not tax advice - consult a CPA.</span>
         <button onclick="saveFinancingDetails()">Save Financing Details</button>
         <span id="financing-save-status" style="margin-left:10px;font-size:13px;"></span>
       </div>
@@ -5552,6 +5659,9 @@ function openPropertyDetail(propertyId, address) {
     document.getElementById("d-closingcosts").value = data.closingCostsPct || "";
     document.getElementById("d-exitcaprate").value = data.exitCapRate || "";
     document.getElementById("d-sellingcosts").value = data.sellingCostsPct || "";
+    document.getElementById("d-proptax").value = data.annualPropertyTax || "";
+    document.getElementById("d-bldgpct").value = data.buildingValuePct || "";
+    document.getElementById("d-fedbracket").value = data.federalTaxBracket || "24";
     restoreManagementFeeUI();
     renderKeyRatios();
   });
@@ -6138,7 +6248,10 @@ function saveFinancingDetails() {
     expenseGrowthRate: parseFloat(document.getElementById("d-expensegrowth").value) || 0,
     closingCostsPct: parseFloat(document.getElementById("d-closingcosts").value) || 0,
     exitCapRate: parseFloat(document.getElementById("d-exitcaprate").value) || 0,
-    sellingCostsPct: parseFloat(document.getElementById("d-sellingcosts").value) || 0
+    sellingCostsPct: parseFloat(document.getElementById("d-sellingcosts").value) || 0,
+    annualPropertyTax: parseFloat(document.getElementById("d-proptax").value) || 0,
+    buildingValuePct: parseFloat(document.getElementById("d-bldgpct").value) || 0,
+    federalTaxBracket: parseFloat(document.getElementById("d-fedbracket").value) || 0
   };
   var statusEl = document.getElementById("financing-save-status");
   statusEl.textContent = "Saving...";
@@ -6155,6 +6268,7 @@ function saveFinancingDetails() {
   });
 }
 
+__STATE_TAX_JS_HELPER__
 function renderKeyRatios() {
   var el = document.getElementById("key-ratios");
   var purchasePrice = currentPropertyData.purchasePrice;
@@ -6251,6 +6365,39 @@ function renderKeyRatios() {
       "</div>";
   } else {
     html += "</div>";
+  }
+
+  // --- Estimated income tax savings (depreciation + mortgage interest + property tax) ---
+  var annualPropertyTaxForSavings = currentPropertyData.annualPropertyTax || 0;
+  var buildingValuePct = currentPropertyData.buildingValuePct || 0;
+  var federalTaxBracket = currentPropertyData.federalTaxBracket || 0;
+  var stateRatePctForSavings = getStateTopMarginalRate(currentPropertyData.state) || 0;
+  if (buildingValuePct > 0 && (federalTaxBracket > 0 || stateRatePctForSavings > 0)) {
+    var depreciationLife = (currentPropertyData.units || 1) >= 5 ? 39 : 27.5;
+    var buildingValue = purchasePrice * (buildingValuePct / 100);
+    var annualDepreciation = buildingValue / depreciationLife;
+
+    var annualInterestForSavings = 0;
+    if (loanAmount > 0) {
+      var balanceStartOfYear = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, Math.max(0, monthsElapsed - 12));
+      var balanceEndOfYear = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsed);
+      var principalReductionForSavings = balanceStartOfYear - balanceEndOfYear;
+      annualInterestForSavings = Math.max(0, annualDebtService - principalReductionForSavings);
+    }
+
+    var totalTaxDeductions = annualDepreciation + annualInterestForSavings + annualPropertyTaxForSavings;
+    var combinedRatePctForSavings = federalTaxBracket + stateRatePctForSavings;
+    var estTaxSavings = totalTaxDeductions * (combinedRatePctForSavings / 100);
+
+    html += "<div style='margin-top:10px;padding:10px;background:#eef6f0;border-radius:6px;font-size:13px;'>" +
+      "<strong>Estimated Annual Income Tax Savings:</strong> $" + estTaxSavings.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr" +
+      " ($" + (estTaxSavings/12).toLocaleString(undefined, {maximumFractionDigits: 0}) + "/mo)<br>" +
+      "<span style='font-size:11px;color:#888;'>Depreciation (" + depreciationLife + "-yr, " + buildingValuePct + "% building value of $" + purchasePrice.toLocaleString() + "): $" + annualDepreciation.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr &middot; " +
+      "Mortgage interest: $" + annualInterestForSavings.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr &middot; " +
+      "Property tax: $" + annualPropertyTaxForSavings.toLocaleString(undefined, {maximumFractionDigits: 0}) + "/yr &middot; " +
+      "Combined rate (federal " + federalTaxBracket + "% + state " + stateRatePctForSavings.toFixed(2) + "%): " + combinedRatePctForSavings.toFixed(2) + "%<br>" +
+      "Estimate only, not tax advice. Assumes these losses are fully deductible against ordinary income - IRS passive activity loss rules (Section 469) can limit or defer this unless you qualify as a real estate professional or the property's income is low enough for the $25,000 active-participation allowance (phased out $100,000-$150,000 MAGI). Depreciation is generally recaptured (taxed up to 25% federal) when you sell. State rate is that state's top marginal individual rate (from the property's State field above), not an income-specific calculation, and excludes local/county taxes. Consult a CPA before relying on this for a purchase decision.</span>" +
+      "</div>";
   }
 
   // Lending-target comparison table - shows how the property's metrics stack up against
@@ -7116,6 +7263,25 @@ function generateIncomeStatementPDF() {
         (cashOnCash !== null ? "     Cash-on-Cash Return: " + cashOnCash.toFixed(2) + "%" : "")
       );
     }
+    var annualPropertyTaxForPdf = currentPropertyData.annualPropertyTax || 0;
+    var buildingValuePctForPdf = currentPropertyData.buildingValuePct || 0;
+    var federalTaxBracketForPdf = currentPropertyData.federalTaxBracket || 0;
+    var stateRatePctForPdf = getStateTopMarginalRate(currentPropertyData.state) || 0;
+    if (buildingValuePctForPdf > 0 && (federalTaxBracketForPdf > 0 || stateRatePctForPdf > 0)) {
+      var depreciationLifeForPdf = (currentPropertyData.units || 1) >= 5 ? 39 : 27.5;
+      var annualDepreciationForPdf = purchasePrice * (buildingValuePctForPdf / 100) / depreciationLifeForPdf;
+      var annualInterestForPdf = 0;
+      if (loanAmount > 0) {
+        var balanceStartForPdf = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, Math.max(0, monthsElapsedForSelectedMonth - 12));
+        var balanceEndForPdf = calculateRemainingBalanceWithIO(loanAmount, interestRate, loanTermYears, interestOnlyYears, monthsElapsedForSelectedMonth);
+        annualInterestForPdf = Math.max(0, (ytdMortgagePayments > 0 ? monthlyMortgagePayment * 12 : 0) - (balanceStartForPdf - balanceEndForPdf));
+      }
+      var estTaxSavingsForPdf = (annualDepreciationForPdf + annualInterestForPdf + annualPropertyTaxForPdf) * ((federalTaxBracketForPdf + stateRatePctForPdf) / 100);
+      ratioLines.push(
+        "Est. Annual Income Tax Savings: $" + estTaxSavingsForPdf.toLocaleString(undefined, {maximumFractionDigits: 0}) +
+        " (depreciation + mortgage interest + property tax x combined " + (federalTaxBracketForPdf + stateRatePctForPdf).toFixed(2) + "% rate - estimate only, not tax advice)"
+      );
+    }
     doc.text(ratioLines, 14, afterTableY + 7);
     afterTableY += 7 + (ratioLines.length * 5) + 8;
   }
@@ -7149,7 +7315,8 @@ propertymanager_html = (PROPERTYMANAGER_TEMPLATE
                         .replace("__NAV__", NAV_HTML)
                         .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
                         .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
-                        .replace("__DARKMODE_JS__", DARK_MODE_JS))
+                        .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                        .replace("__STATE_TAX_JS_HELPER__", STATE_TAX_JS_HELPER))
 
 with open("index.html", "w") as f:
     f.write(stocks_html)
