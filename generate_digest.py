@@ -98,6 +98,45 @@ COMMODITIES = [
     ("Lean Hogs", "HE=F"),
 ]
 
+# Sector SPDR ETFs used for the Sector Momentum vs. Macro Divergence gauge (see
+# compute_sector_divergence() below for methodology).
+SECTOR_ETFS = [
+    ("Technology", "XLK"),
+    ("Financials", "XLF"),
+    ("Energy", "XLE"),
+    ("Industrials", "XLI"),
+    ("Consumer Staples", "XLP"),
+    ("Consumer Discretionary", "XLY"),
+    ("Utilities", "XLU"),
+    ("Healthcare", "XLV"),
+    ("Materials", "XLB"),
+    ("Real Estate", "XLRE"),
+    ("Communication Services", "XLC"),
+]
+
+# Illustrative sector sensitivity weights (-1.0 to +1.0) to four macro factors, used by
+# compute_sector_divergence() to build a "Macro Fit Score" for each sector. These reflect
+# commonly cited, textbook sector characteristics (e.g. REITs/utilities are rate-sensitive,
+# energy tracks oil, staples/utilities are defensive during volatility spikes) - they are a
+# transparent, editable set of assumptions, NOT statistically fitted to historical data, and
+# are disclosed as such wherever this gauge is displayed.
+#   rate:  sensitivity to a rise in the 10-Year Treasury yield (negative = hurt by rising rates)
+#   oil:   sensitivity to a rise in WTI crude oil prices
+#   vix:   sensitivity to a rise in the VIX (negative = sells off in risk-off; positive = defensive)
+#   infl:  sensitivity to a rise in CPI month-over-month inflation
+SECTOR_MACRO_SENSITIVITIES = {
+    "XLK":  {"rate": -1.0, "oil": -0.2, "vix": -0.8, "infl": -0.5},
+    "XLF":  {"rate": +0.8, "oil":  0.0, "vix": -0.4, "infl": -0.2},
+    "XLE":  {"rate": -0.2, "oil": +1.0, "vix": -0.2, "infl": +0.3},
+    "XLI":  {"rate": -0.3, "oil": +0.3, "vix": -0.5, "infl": -0.2},
+    "XLP":  {"rate": -0.1, "oil": -0.1, "vix": +0.6, "infl": -0.3},
+    "XLY":  {"rate": -0.6, "oil": -0.3, "vix": -0.6, "infl": -0.5},
+    "XLU":  {"rate": -0.7, "oil": -0.1, "vix": +0.5, "infl": -0.2},
+    "XLV":  {"rate": -0.2, "oil":  0.0, "vix": +0.4, "infl": -0.1},
+    "XLB":  {"rate": -0.3, "oil": +0.4, "vix": -0.4, "infl": +0.2},
+    "XLRE": {"rate": -0.9, "oil":  0.0, "vix": -0.3, "infl": -0.2},
+    "XLC":  {"rate": -0.6, "oil": -0.1, "vix": -0.6, "infl": -0.3},
+}
 CRYPTO = [
     ("Bitcoin", "BTC-USD"),
     ("Ethereum", "ETH-USD"),
@@ -993,6 +1032,103 @@ def fetch_fred_mom(series_id):
     return {"display": f"{mom_now:+.1f}% MoM", "num": mom_now, "num_6mo": mom_6mo,
             "date": obs[0]["date"], "history": history}
 
+def fetch_fred_recent_change(series_id, days_back=30):
+    """Point change in a FRED series over roughly the last N calendar days (used for the 10-Year
+    Treasury yield change feeding the Sector Divergence gauge). Returns None on any failure."""
+    start = (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    obs = fetch_fred(series_id, limit=60, sort_order="asc", observation_start=start)
+    if not obs or len(obs) < 2:
+        return None
+    return obs[-1]["value"] - obs[0]["value"]
+
+def fetch_etf_return(ticker, trading_days=20):
+    """Percent return of an ETF/index over the last N trading days. Returns None on failure."""
+    try:
+        data = yf.download(ticker, period="2mo", interval="1d", progress=False, auto_adjust=True)
+        if data.empty or len(data) < trading_days + 1:
+            return None
+        close = data['Close']
+        latest = close.iloc[-1].item()
+        past = close.iloc[-(trading_days + 1)].item()
+        if past == 0:
+            return None
+        return (latest - past) / past * 100
+    except Exception:
+        return None
+
+def fetch_vix_change(trading_days=20):
+    """Point change (not %) in the VIX over the last N trading days. Returns None on failure."""
+    try:
+        data = yf.download("^VIX", period="2mo", interval="1d", progress=False, auto_adjust=True)
+        if data.empty or len(data) < trading_days + 1:
+            return None
+        close = data['Close']
+        return close.iloc[-1].item() - close.iloc[-(trading_days + 1)].item()
+    except Exception:
+        return None
+
+def compute_sector_divergence():
+    """Sector Momentum vs. Macro Divergence gauge.
+
+    For each sector SPDR ETF, compares:
+      - Momentum Score: the ETF's 20-trading-day return relative to SPY's 20-trading-day return
+        (positive = the sector is outperforming the broad market; negative = underperforming),
+        scaled to roughly -50..+50.
+      - Macro Fit Score: what that same ~1-month window in rates, oil, VIX, and inflation would
+        suggest for the sector, using the illustrative SECTOR_MACRO_SENSITIVITIES weights above,
+        also scaled to roughly -50..+50.
+      - Divergence = Momentum Score - Macro Fit Score. A large positive divergence means the
+        sector has moved further than the macro backdrop alone would explain (momentum/sentiment
+        running ahead of fundamentals); a large negative divergence means the opposite. Near zero
+        means the sector's move looks broadly consistent with the macro backdrop.
+
+    All inputs are free, real data (yfinance price history + FRED). Returns None if any of the
+    four macro inputs fails to fetch (whole gauge is skipped rather than shown with a gap), or a
+    dict with the macro readings and a list of per-sector results.
+    """
+    spy_return = fetch_etf_return("SPY", 20)
+    oil_pct = fetch_etf_return("CL=F", 20)
+    vix_chg = fetch_vix_change(20)
+    rate_chg = fetch_fred_recent_change("DGS10", 30)
+    cpi_mom = fetch_fred_mom("CPIAUCSL")
+    cpi_chg = cpi_mom["num"] if cpi_mom else None
+
+    if spy_return is None or oil_pct is None or vix_chg is None or rate_chg is None or cpi_chg is None:
+        print("Warning: sector divergence gauge skipped - one or more macro inputs failed to fetch "
+              f"(spy_return={spy_return}, oil_pct={oil_pct}, vix_chg={vix_chg}, rate_chg={rate_chg}, cpi_chg={cpi_chg})")
+        return None
+
+    # Normalize each macro delta to a -1..+1 signal before applying sector weights.
+    rate_signal = max(-1, min(1, rate_chg / 0.25))
+    oil_signal = max(-1, min(1, oil_pct / 10))
+    vix_signal = max(-1, min(1, vix_chg / 5))
+    infl_signal = max(-1, min(1, cpi_chg / 0.5))
+
+    sectors = []
+    for name, ticker in SECTOR_ETFS:
+        sector_return = fetch_etf_return(ticker, 20)
+        weights = SECTOR_MACRO_SENSITIVITIES.get(ticker)
+        if sector_return is None or not weights:
+            continue
+        momentum_score = max(-50, min(50, (sector_return - spy_return) * 5))
+        weight_sum = sum(abs(w) for w in weights.values()) or 1
+        macro_raw = (weights["rate"] * rate_signal + weights["oil"] * oil_signal +
+                     weights["vix"] * vix_signal + weights["infl"] * infl_signal)
+        macro_score = max(-50, min(50, 50 * macro_raw / weight_sum))
+        divergence = momentum_score - macro_score
+        sectors.append({
+            "name": name, "ticker": ticker, "sector_return": sector_return,
+            "momentum_score": momentum_score, "macro_score": macro_score, "divergence": divergence,
+        })
+
+    if not sectors:
+        return None
+
+    return {
+        "spy_return": spy_return, "oil_pct": oil_pct, "vix_chg": vix_chg,
+        "rate_chg": rate_chg, "cpi_chg": cpi_chg, "sectors": sectors,
+    }
+
 def fetch_payrolls():
     """Monthly change in nonfarm payrolls now vs 6 months ago (PAYEMS in thousands)."""
     obs = fetch_fred("PAYEMS", limit=8)
@@ -1456,7 +1592,40 @@ def tricounty_foreclosure_rows(items):
     </tr>"""
     return out
 
+def sector_divergence_html(data):
+    if not data:
+        return ""
+    rows = ""
+    for s in sorted(data["sectors"], key=lambda x: x["divergence"], reverse=True):
+        div = s["divergence"]
+        if div > 15:
+            label, color = "Momentum running ahead of macro", "#c0392b"
+        elif div < -15:
+            label, color = "Lagging what macro would suggest", "#1a8a3d"
+        else:
+            label, color = "Roughly in line with macro backdrop", "#666"
+        rows += f"""
+    <tr>
+      <td style="font-weight:600;">{s['name']} ({s['ticker']})</td>
+      <td style="text-align:right;">{s['sector_return']:+.1f}%</td>
+      <td style="text-align:right;">{s['momentum_score']:+.0f}</td>
+      <td style="text-align:right;">{s['macro_score']:+.0f}</td>
+      <td style="text-align:right;font-weight:600;color:{color};">{div:+.0f}</td>
+      <td style="color:{color};">{label}</td>
+    </tr>"""
+    return f"""
+<h2>Sector Momentum vs. Macro Divergence</h2>
+<p class="note">Compares each sector's actual 20-trading-day performance (Momentum Score) against what the same window's move in the 10-Year Treasury yield ({data['rate_chg']:+.2f}pt), WTI crude oil ({data['oil_pct']:+.1f}%), the VIX ({data['vix_chg']:+.1f}pt), and CPI inflation ({data['cpi_chg']:+.2f}% MoM) would suggest (Macro Fit Score), using a transparent, illustrative set of sector sensitivity weights - not a statistically fitted model. SPY's own 20-day return was {data['spy_return']:+.1f}%, used as the broad-market baseline for Momentum Score. A large positive Divergence means the sector has moved further than these macro factors alone would explain; a large negative Divergence means the opposite; near zero means the move looks broadly consistent with the macro backdrop. This is an educational, informational tool illustrating one way to think about sector moves - not a prediction, a recommendation, or personalized investment advice.</p>
+<div class="table-wrap">
+<table>
+<tr><th>Sector</th><th style="text-align:right;">20-Day Return</th><th style="text-align:right;" title="Sector's 20-day return relative to SPY, scaled to roughly -50..+50">Momentum Score</th><th style="text-align:right;" title="What the macro backdrop alone would suggest, scaled to roughly -50..+50">Macro Fit Score</th><th style="text-align:right;" title="Momentum Score minus Macro Fit Score">Divergence</th><th>Read</th></tr>
+{rows}
+</table>
+</div>
+"""
+
 timestamp = datetime.now().strftime('%Y-%m-%d %H:%M UTC')
+sector_divergence_data = compute_sector_divergence()
 top_mover_html = f"{top_mover['ticker']} ({top_mover['pct']:+.2f}%)" if top_mover else "-"
 
 # ------------------- PAGE 1: STOCKS -------------------
@@ -1665,6 +1834,8 @@ function showAIInsight(btn) {{
 
 <h2>Commodities</h2>
 <div class="row">{simple_cards(commodity_rows)}</div>
+
+{sector_divergence_html(sector_divergence_data)}
 
 <h2>Cryptocurrency</h2>
 <div class="row">{simple_cards(crypto_rows)}</div>
