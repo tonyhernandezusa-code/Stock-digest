@@ -63,6 +63,16 @@ body.dark-mode th { background: var(--table-header-bg); color: var(--text); }
 body.dark-mode td { color: var(--text); border-color: var(--table-row-border); }
 body.dark-mode .suggest-btn { background: #1a2f42; color: #9cc4e0; border-color: #2a4258; }
 
+
+.learning-mode-only { display: none; }
+body.learning-mode .learning-mode-only { display: block; }
+tr.learning-mode-only { display: none; }
+body.learning-mode tr.learning-mode-only { display: table-row; }
+.beginner-box { background: #eef6f0; border:1px solid #cfe8d6; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+.beginner-box h3 { margin:0 0 8px; font-size:14px; }
+.beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
+body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
+
 </style>
 </head>
 <body>
@@ -85,6 +95,25 @@ function toggleTheme() {
   if (btn) btn.innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
 }
 </script>
+<button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>
+<script>
+(function() {
+  var savedLearning = localStorage.getItem('siteLearningMode');
+  if (savedLearning === 'on') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('learning-mode');
+      var btn = document.getElementById('learning-mode-toggle');
+      if (btn) btn.innerHTML = '&#127891; Learning Mode: On';
+    });
+  }
+})();
+function toggleLearningMode() {
+  var isOn = document.body.classList.toggle('learning-mode');
+  localStorage.setItem('siteLearningMode', isOn ? 'on' : 'off');
+  var btn = document.getElementById('learning-mode-toggle');
+  if (btn) btn.innerHTML = isOn ? '&#127891; Learning Mode: On' : '&#127891; Learning Mode: Off';
+}
+</script>
 
 <div style="margin-bottom:16px;">
   <a href="index.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stocks &amp; Rates</a>
@@ -103,6 +132,14 @@ function toggleTheme() {
 <div class="row" style="flex-wrap:wrap;">
 
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">1-Year Treasury</p>
+  <p style='margin:2px 0;'>Yield on a US government bond maturing in 1 year.</p><p style='margin:2px 0;'>Reflects market expectations for Fed policy over the coming year.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">10-Year Treasury</p>
+  <p style='margin:2px 0;'>Yield on a US government bond maturing in 10 years.</p><p style='margin:2px 0;'>The benchmark long-term rate that heavily influences mortgage rates and stock valuations.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">10-Yr minus 2-Yr Spread</p>
   <p style='margin:2px 0;'>The 10-year Treasury yield minus the 2-year Treasury yield.</p><p style='margin:2px 0;'>A negative (inverted) spread has historically preceded US recessions, since it means short-term rates exceed long-term rates.</p><p style='margin:2px 0;'>Calculated from Treasury yields tracked by the Federal Reserve (H.15 release).</p>
 </div>
@@ -115,8 +152,20 @@ function toggleTheme() {
   <p style='margin:2px 0;'>The yield on a 10-year US government bond.</p><p style='margin:2px 0;'>It&#x27;s the benchmark long-term interest rate that drives mortgage rates and stock valuations across the economy.</p><p style='margin:2px 0;'>Yields are set by Treasury auctions and tracked daily by the Federal Reserve (H.15 release).</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">2-Year Treasury</p>
+  <p style='margin:2px 0;'>Yield on a US government bond maturing in 2 years.</p><p style='margin:2px 0;'>A widely watched gauge of near/medium-term Fed policy expectations.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">2-Yr Treasury</p>
   <p style='margin:2px 0;'>The yield on a 2-year US government bond.</p><p style='margin:2px 0;'>It reflects where bond markets expect the Fed to set interest rate policy over the next couple of years.</p><p style='margin:2px 0;'>Yields are set by Treasury auctions and tracked daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">3-Month Treasury</p>
+  <p style='margin:2px 0;'>Yield on a US government bond maturing in 3 months.</p><p style='margin:2px 0;'>Reflects near-term interest rate expectations and is closely tied to the Fed&#x27;s current policy rate.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">30-Year Treasury</p>
+  <p style='margin:2px 0;'>Yield on a US government bond maturing in 30 years.</p><p style='margin:2px 0;'>The longest-dated widely tracked Treasury yield, reflecting very long-term growth and inflation expectations.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve (H.15 release).</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">30-Yr Mortgage</p>
@@ -125,6 +174,18 @@ function toggleTheme() {
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">30-Yr Mortgage Rate</p>
   <p style='margin:2px 0;'>The average interest rate on a 30-year fixed-rate US home loan.</p><p style='margin:2px 0;'>It measures the typical borrowing cost for a conventional home purchase.</p><p style='margin:2px 0;'>Published weekly by Freddie Mac&#x27;s Primary Mortgage Market Survey.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">5-Year Treasury</p>
+  <p style='margin:2px 0;'>Yield on a US government bond maturing in 5 years.</p><p style='margin:2px 0;'>Bridges short-term policy expectations and longer-term growth/inflation expectations.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve (H.15 release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Aaa Corporate Bond Yield</p>
+  <p style='margin:2px 0;'>The average yield on US corporate bonds rated Aaa by Moody&#x27;s - the highest possible credit rating, indicating the lowest default risk among corporate borrowers.</p><p style='margin:2px 0;'>A benchmark for the cheapest corporate borrowing costs available.</p><p style='margin:2px 0;'>Calculated by Moody&#x27;s; tracked via the Federal Reserve&#x27;s FRED database.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Aaa Spread over 10-Yr Treasury</p>
+  <p style='margin:2px 0;'>The extra yield Aaa-rated corporate bonds pay over the 10-Year Treasury.</p><p style='margin:2px 0;'>Measures the minimum credit risk premium investors demand even for the safest corporate borrowers.</p><p style='margin:2px 0;'>Calculated from Moody&#x27;s and Federal Reserve data, tracked via FRED.</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">AEX (Netherlands)</p>
@@ -139,12 +200,48 @@ function toggleTheme() {
   <p style='margin:2px 0;'>Austria&#x27;s benchmark index tracking the largest companies on the Vienna Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of Austria&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Wiener Börse (the Vienna Stock Exchange).</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Australian Dollar</p>
+  <p style='margin:2px 0;'>The official currency of Australia.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Avalanche</p>
+  <p style='margin:2px 0;'>A blockchain platform designed for fast transaction finality and high throughput, used for decentralized finance and custom blockchain deployments.</p><p style='margin:2px 0;'>Its native token (AVAX) is used to pay network fees.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Baa Corporate Bond Yield</p>
+  <p style='margin:2px 0;'>The average yield on US corporate bonds rated Baa by Moody&#x27;s - the lowest investment-grade rating, one step above &#x27;junk&#x27; status.</p><p style='margin:2px 0;'>Widely used as a gauge of borrowing costs for more moderately-rated companies.</p><p style='margin:2px 0;'>Calculated by Moody&#x27;s; tracked via the Federal Reserve&#x27;s FRED database.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Baa Spread over 10-Yr Treasury</p>
+  <p style='margin:2px 0;'>The extra yield Baa-rated corporate bonds pay over the 10-Year Treasury.</p><p style='margin:2px 0;'>A widely watched gauge of overall corporate credit risk appetite - a widening spread often signals rising recession or default fears.</p><p style='margin:2px 0;'>Calculated from Moody&#x27;s and Federal Reserve data, tracked via FRED.</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">BEL 20 (Belgium)</p>
   <p style='margin:2px 0;'>Belgium&#x27;s benchmark index of the 20 largest companies on Euronext Brussels.</p><p style='margin:2px 0;'>Tracks the health of Belgium&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Euronext.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Bitcoin</p>
+  <p style='margin:2px 0;'>The original and largest cryptocurrency by market value.</p><p style='margin:2px 0;'>A decentralized digital currency not issued by any government or central bank, often described as &#x27;digital gold&#x27; due to its capped 21 million coin supply.</p><p style='margin:2px 0;'>Tracked via public blockchain data; price shown here reflects trading on major exchanges via Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Bitcoin Cash</p>
+  <p style='margin:2px 0;'>A cryptocurrency created in 2017 when a group of Bitcoin developers disagreed over how to scale the network and split off (&#x27;forked&#x27;) their own blockchain with larger block sizes.</p><p style='margin:2px 0;'>Designed as a more payments-focused alternative to Bitcoin.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">BNB</p>
+  <p style='margin:2px 0;'>The native token of the Binance exchange and its associated blockchain.</p><p style='margin:2px 0;'>Used to pay reduced trading fees on Binance and as the &#x27;gas&#x27; token for transactions on the BNB Chain blockchain.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Bovespa (Brazil)</p>
   <p style='margin:2px 0;'>Brazil&#x27;s benchmark index tracking the most actively traded stocks on B3, Brazil&#x27;s main exchange.</p><p style='margin:2px 0;'>Tracks the health of Brazil&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by B3 S.A.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Brazilian Real</p>
+  <p style='margin:2px 0;'>The official currency of Brazil.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">British Pound</p>
+  <p style='margin:2px 0;'>The official currency of the United Kingdom.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Building Permits (annualized)</p>
@@ -153,6 +250,22 @@ function toggleTheme() {
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">CAC 40 (France)</p>
   <p style='margin:2px 0;'>France&#x27;s benchmark index of the 40 largest companies listed on Euronext Paris.</p><p style='margin:2px 0;'>Tracks the health of France&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by Euronext.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Canadian Dollar</p>
+  <p style='margin:2px 0;'>The official currency of Canada.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Cardano</p>
+  <p style='margin:2px 0;'>A blockchain platform for smart contracts and decentralized applications, notable for its academic, peer-reviewed approach to development.</p><p style='margin:2px 0;'>Its native token (ADA) is used to pay transaction fees on the network.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Chainlink</p>
+  <p style='margin:2px 0;'>A network that supplies external, real-world data (like asset prices) to blockchains, which can&#x27;t natively access outside information on their own.</p><p style='margin:2px 0;'>Its native token (LINK) is used to pay for these data services.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Chinese Yuan</p>
+  <p style='margin:2px 0;'>The official currency of mainland China, also called the renminbi.</p><p style='margin:2px 0;'>Its exchange rate is managed within a band set by China&#x27;s central bank, rather than freely floating like most other currencies on this page.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Cocoa</p>
@@ -187,8 +300,24 @@ function toggleTheme() {
   <p style='margin:2px 0;'>The Consumer Price Index, year-over-year change.</p><p style='margin:2px 0;'>It measures how much prices consumers actually pay for a broad basket of goods and services rose over the past 12 months - the most widely cited inflation gauge, and the one compared here to the Fed&#x27;s 2% target.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Bureau of Labor Statistics (BLS).</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Credit Card Balances</p>
+  <p style='margin:2px 0;'>Total outstanding credit card debt held by US consumers.</p><p style='margin:2px 0;'>A subset of total consumer credit specifically covering revolving debt, which typically carries the highest average interest rates.</p><p style='margin:2px 0;'>Calculated and published by the Federal Reserve, tracked via FRED.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Credit Card Delinquency Rate</p>
+  <p style='margin:2px 0;'>The share of credit card balances 30+ days past due.</p><p style='margin:2px 0;'>A leading indicator of consumer financial stress - rising delinquencies often precede pullbacks in consumer spending or tighter lending standards.</p><p style='margin:2px 0;'>Calculated and published quarterly by the Federal Reserve.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Danish Krone</p>
+  <p style='margin:2px 0;'>The official currency of Denmark, pegged to the Euro within a narrow band as part of the European Exchange Rate Mechanism.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">DAX (Germany)</p>
   <p style='margin:2px 0;'>Germany&#x27;s blue-chip index of 40 major companies listed on the Frankfurt Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of Germany&#x27;s largest public companies - Europe&#x27;s biggest economy.</p><p style='margin:2px 0;'>Calculated and maintained by Deutsche Börse (via its STOXX subsidiary).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Dogecoin</p>
+  <p style='margin:2px 0;'>Originally created in 2013 as a joke based on the &#x27;Doge&#x27; internet meme.</p><p style='margin:2px 0;'>It has since become one of the largest cryptocurrencies by market value despite having no specific technical purpose beyond simple payments.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Dow Futures (E-mini)</p>
@@ -201,6 +330,14 @@ function toggleTheme() {
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Effective Fed Funds Rate</p>
   <p style='margin:2px 0;'>The actual (as opposed to targeted) overnight rate banks charge each other for reserves.</p><p style='margin:2px 0;'>It shows where the Fed Funds rate is really trading within the FOMC&#x27;s announced target range, compared here to the Fed&#x27;s own longer-run &#x27;neutral rate&#x27; estimate.</p><p style='margin:2px 0;'>Calculated and published daily by the Federal Reserve Bank of New York.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Ethereum</p>
+  <p style='margin:2px 0;'>The second-largest cryptocurrency by market value.</p><p style='margin:2px 0;'>Unlike Bitcoin, its blockchain runs programmable &#x27;smart contracts,&#x27; making it the base layer for most decentralized finance (DeFi) applications.</p><p style='margin:2px 0;'>Tracked via public blockchain data; price shown here reflects trading on major exchanges via Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Euro</p>
+  <p style='margin:2px 0;'>The official currency of the eurozone - the 20 European Union member states that have adopted it, including Germany, France, Italy, and Spain.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Euro Stoxx 50</p>
@@ -235,12 +372,20 @@ function toggleTheme() {
   <p style='margin:2px 0;'>The extra yield &#x27;junk&#x27; (below-investment-grade) corporate bonds pay over comparable Treasuries.</p><p style='margin:2px 0;'>It measures how much extra compensation investors demand for credit risk; under ~3.5% is calm, 5%+ signals building stress, 8%+ is crisis territory.</p><p style='margin:2px 0;'>Calculated by ICE Data Indices and published via the Federal Reserve&#x27;s FRED database.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Hong Kong Dollar</p>
+  <p style='margin:2px 0;'>The official currency of Hong Kong, which operates under a currency board system pegging it to the US dollar within a tight band.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Housing Starts (annualized)</p>
   <p style='margin:2px 0;'>New homes that began construction, expressed as an annualized pace in thousands of units.</p><p style='margin:2px 0;'>It&#x27;s a direct read on homebuilder activity and confidence.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Census Bureau, jointly with HUD.</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">IBEX 35 (Spain)</p>
   <p style='margin:2px 0;'>Spain&#x27;s benchmark index of the 35 most liquid stocks on the Madrid exchange.</p><p style='margin:2px 0;'>Tracks the health of Spain&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by BME (Bolsas y Mercados Españoles), part of SIX Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Indian Rupee</p>
+  <p style='margin:2px 0;'>The official currency of India.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">IPC (Mexico)</p>
@@ -259,6 +404,10 @@ function toggleTheme() {
   <p style='margin:2px 0;'>Indonesia&#x27;s benchmark index tracking all common shares on the Indonesia Stock Exchange.</p><p style='margin:2px 0;'>Tracks the broad health of Indonesia&#x27;s public equity market.</p><p style='margin:2px 0;'>Calculated and maintained by the Indonesia Stock Exchange.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Japanese Yen</p>
+  <p style='margin:2px 0;'>The official currency of Japan.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">JSE Top 40 (South Africa)</p>
   <p style='margin:2px 0;'>South Africa&#x27;s benchmark index of the 40 largest companies on the Johannesburg Stock Exchange.</p><p style='margin:2px 0;'>Tracks the health of South Africa&#x27;s largest public companies, heavily weighted toward mining and resources.</p><p style='margin:2px 0;'>Calculated and maintained by the JSE, in partnership with FTSE Russell.</p>
 </div>
@@ -275,12 +424,28 @@ function toggleTheme() {
   <p style='margin:2px 0;'>Lean hogs, price per pound.</p><p style='margin:2px 0;'>Tracks prices for hogs ready for slaughter, a key input cost for the pork industry.</p><p style='margin:2px 0;'>Priced and traded on the CME (Chicago Mercantile Exchange).</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Litecoin</p>
+  <p style='margin:2px 0;'>One of the earliest Bitcoin-derived cryptocurrencies, created in 2011 with faster block times and a larger total coin supply than Bitcoin.</p><p style='margin:2px 0;'>Often described as &#x27;silver to Bitcoin&#x27;s gold.&#x27;</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Live Cattle</p>
   <p style='margin:2px 0;'>Live cattle, price per pound.</p><p style='margin:2px 0;'>Tracks prices for cattle ready for slaughter, a key input cost for the beef industry.</p><p style='margin:2px 0;'>Priced and traded on the CME (Chicago Mercantile Exchange).</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Malaysian Ringgit</p>
+  <p style='margin:2px 0;'>The official currency of Malaysia.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Mexican Peso</p>
+  <p style='margin:2px 0;'>The official currency of Mexico.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Mortgage Delinquency Rate</p>
   <p style='margin:2px 0;'>The share of single-family mortgages 30+ days past due on payments.</p><p style='margin:2px 0;'>Rising delinquencies are an early-warning sign that can lead to foreclosures down the line.</p><p style='margin:2px 0;'>Reported by the Mortgage Bankers Association (MBA) and tracked via the Federal Reserve&#x27;s FRED database.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Mortgage Delinquency Rate (Consumer)</p>
+  <p style='margin:2px 0;'>The share of single-family mortgages 30+ days past due, shown here alongside other consumer debt metrics rather than the housing-specific section.</p><p style='margin:2px 0;'>Same underlying data as the Mortgage Delinquency Rate shown elsewhere on this site.</p><p style='margin:2px 0;'>Calculated and published by the Federal Reserve, tracked via FRED.</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nasdaq</p>
@@ -323,6 +488,10 @@ function toggleTheme() {
   <p style='margin:2px 0;'>Newly built single-family homes sold, annualized in thousands of units.</p><p style='margin:2px 0;'>Measures actual buyer demand for new construction, as opposed to starts/permits which measure builder activity.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Census Bureau, jointly with HUD.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">New Zealand Dollar</p>
+  <p style='margin:2px 0;'>The official currency of New Zealand.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nifty 50 (India)</p>
   <p style='margin:2px 0;'>India&#x27;s other major benchmark index, tracking the 50 largest companies on the National Stock Exchange of India.</p><p style='margin:2px 0;'>Plays a similar role to the Sensex, but on a different exchange with a different constituent list.</p><p style='margin:2px 0;'>Calculated and maintained by NSE Indices Limited.</p>
 </div>
@@ -337,6 +506,10 @@ function toggleTheme() {
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Nonfarm Payrolls</p>
   <p style='margin:2px 0;'>The change in US jobs last month, excluding farm work.</p><p style='margin:2px 0;'>It&#x27;s the headline monthly measure of hiring or layoffs across the economy.</p><p style='margin:2px 0;'>Calculated and published monthly by the U.S. Bureau of Labor Statistics (BLS), as part of the Employment Situation report.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Norwegian Krone</p>
+  <p style='margin:2px 0;'>The official currency of Norway.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">NZX 50 (New Zealand)</p>
@@ -369,6 +542,10 @@ function toggleTheme() {
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Platinum</p>
   <p style='margin:2px 0;'>Platinum, price per troy ounce.</p><p style='margin:2px 0;'>Used heavily in catalytic converters and jewelry, so it responds to both industrial (especially auto) demand and precious-metal investment demand.</p><p style='margin:2px 0;'>Priced and traded on the NYMEX exchange, operated by CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Polkadot</p>
+  <p style='margin:2px 0;'>A blockchain platform designed to let multiple separate blockchains (&#x27;parachains&#x27;) communicate and share security with one another.</p><p style='margin:2px 0;'>Its native token (DOT) is used for network governance and securing parachain slots.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">PPI (Producer Prices)</p>
@@ -419,12 +596,32 @@ function toggleTheme() {
   <p style='margin:2px 0;'>Tracks all stocks listed on the Shanghai Stock Exchange.</p><p style='margin:2px 0;'>The broadest widely cited gauge of mainland Chinese equities.</p><p style='margin:2px 0;'>Calculated and maintained by the Shanghai Stock Exchange.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Shiba Inu</p>
+  <p style='margin:2px 0;'>A token created in 2020 as a Dogecoin-inspired &#x27;meme coin,&#x27; with no specific technical purpose.</p><p style='margin:2px 0;'>Its price has historically been driven largely by social media attention and speculative trading rather than underlying utility.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Silver</p>
   <p style='margin:2px 0;'>Silver, price per troy ounce.</p><p style='margin:2px 0;'>Part precious metal (safe-haven demand) and part industrial metal (electronics, solar), so it responds to both investment demand and manufacturing activity.</p><p style='margin:2px 0;'>Priced and traded on the COMEX exchange, operated by CME Group.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Singapore Dollar</p>
+  <p style='margin:2px 0;'>The official currency of Singapore.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">SMI (Switzerland)</p>
   <p style='margin:2px 0;'>Switzerland&#x27;s benchmark index of its 20 largest, most liquid stocks.</p><p style='margin:2px 0;'>Tracks the health of Switzerland&#x27;s largest public companies.</p><p style='margin:2px 0;'>Calculated and maintained by SIX Swiss Exchange.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Solana</p>
+  <p style='margin:2px 0;'>A blockchain designed for high transaction speed and low fees, positioning itself as an alternative to Ethereum for decentralized applications.</p><p style='margin:2px 0;'>Its native token (SOL) is used to pay transaction fees on the network.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">South African Rand</p>
+  <p style='margin:2px 0;'>The official currency of South Africa.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">South Korean Won</p>
+  <p style='margin:2px 0;'>The official currency of South Korea.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Soybean Oil</p>
@@ -435,6 +632,18 @@ function toggleTheme() {
   <p style='margin:2px 0;'>Soybeans, price per bushel.</p><p style='margin:2px 0;'>A major crop used for animal feed, cooking oil, and food products; US-China trade relations have historically been a significant price driver.</p><p style='margin:2px 0;'>Priced and traded on the CBOT (Chicago Board of Trade), part of CME Group.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Sri Lankan Rupee</p>
+  <p style='margin:2px 0;'>The official currency of Sri Lanka.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">State Home Price Index (FHFA)</p>
+  <p style='margin:2px 0;'>The percent change in home prices over the past year for a given US state.</p><p style='margin:2px 0;'>Measures regional housing market strength using repeat sales and refinance data on the same homes over time, rather than raw median sale prices (which can be skewed by what happened to be sold that period).</p><p style='margin:2px 0;'>Calculated and published quarterly by the Federal Housing Finance Agency (FHFA).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Stellar</p>
+  <p style='margin:2px 0;'>A blockchain platform designed for fast, low-cost cross-border payments and asset transfers, with a particular focus on connecting financial institutions in developing markets.</p><p style='margin:2px 0;'>Its native token is XLM (Lumens).</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Straits Times (Singapore)</p>
   <p style='margin:2px 0;'>Singapore&#x27;s benchmark index of the 30 largest companies on the Singapore Exchange.</p><p style='margin:2px 0;'>Tracks the health of Singapore&#x27;s largest public companies, a major regional financial hub.</p><p style='margin:2px 0;'>Calculated and maintained by the Singapore Exchange (SGX) in partnership with FTSE Russell.</p>
 </div>
@@ -443,12 +652,40 @@ function toggleTheme() {
   <p style='margin:2px 0;'>Sugar, price per pound.</p><p style='margin:2px 0;'>A soft commodity used in food and, in some countries, ethanol production; supply is concentrated among a handful of major producing nations.</p><p style='margin:2px 0;'>Priced and traded on ICE (Intercontinental Exchange).</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Swedish Krona</p>
+  <p style='margin:2px 0;'>The official currency of Sweden.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Swiss Franc</p>
+  <p style='margin:2px 0;'>The official currency of Switzerland, often sought as a safe-haven currency during periods of global market stress.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Taiwan Dollar</p>
+  <p style='margin:2px 0;'>The official currency of Taiwan.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Taiwan Weighted</p>
   <p style='margin:2px 0;'>Taiwan&#x27;s benchmark index tracking all listed common shares on the Taiwan Stock Exchange.</p><p style='margin:2px 0;'>Heavily weighted toward semiconductor manufacturers, making it a closely watched gauge for the global chip supply chain.</p><p style='margin:2px 0;'>Calculated and maintained by the Taiwan Stock Exchange.</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Tether</p>
+  <p style='margin:2px 0;'>A &#x27;stablecoin&#x27; designed to hold a constant value of $1 USD, issued by Tether Limited.</p><p style='margin:2px 0;'>Backed by reserves the company says it holds in cash and cash equivalents; used mainly as a stable trading pair on crypto exchanges rather than as a speculative investment.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Thai Baht</p>
+  <p style='margin:2px 0;'>The official currency of Thailand.</p><p style='margin:2px 0;'>Exchange rate shown here is against the US dollar.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Top mover</p>
   <p style='margin:2px 0;'>The stock in your watchlist with the largest price move today.</p><p style='margin:2px 0;'>Measures today&#x27;s percentage change, up or down, across everything you&#x27;re tracking.</p><p style='margin:2px 0;'>Calculated directly from live market price data, not a published economic series.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Total Consumer Credit (non-mortgage)</p>
+  <p style='margin:2px 0;'>Total outstanding consumer credit, revolving (credit cards) and non-revolving (auto loans, student loans), excluding home mortgages.</p><p style='margin:2px 0;'>Measures how much US households owe outside of housing debt - a gauge of consumer borrowing and financial stress.</p><p style='margin:2px 0;'>Calculated and published monthly by the Federal Reserve (G.19 Consumer Credit release).</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">TRON</p>
+  <p style='margin:2px 0;'>A blockchain platform focused on content-sharing and decentralized applications, also widely used as a low-fee network for transferring stablecoins like Tether.</p><p style='margin:2px 0;'>Its native token is TRX.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
 </div>
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">TSX Composite (Canada)</p>
@@ -463,6 +700,14 @@ function toggleTheme() {
   <p style='margin:2px 0;'>The US Dollar Index.</p><p style='margin:2px 0;'>Measures the strength of the US dollar against a basket of major foreign currencies; a strong dollar tends to pressure multinational earnings and commodity prices.</p><p style='margin:2px 0;'>Calculated and maintained by ICE (Intercontinental Exchange).</p>
 </div>
 <div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">USD Coin</p>
+  <p style='margin:2px 0;'>A &#x27;stablecoin&#x27; designed to hold a constant value of $1 USD, issued by Circle.</p><p style='margin:2px 0;'>Backed by cash and short-term US Treasury holdings, with regular attestations of its reserves; used mainly as a stable trading pair rather than a speculative investment.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Venezuelan Bolivar</p>
+  <p style='margin:2px 0;'>The official currency of Venezuela, which has experienced extreme hyperinflation in recent years.</p><p style='margin:2px 0;'>This makes historical comparisons of its exchange rate of limited use.</p><p style='margin:2px 0;'>Published daily by the Federal Reserve (H.10 foreign exchange release).</p>
+</div>
+<div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">VIX (Volatility)</p>
   <p style='margin:2px 0;'>The CBOE Volatility Index, the market&#x27;s &#x27;fear gauge.&#x27;</p><p style='margin:2px 0;'>It measures the options market&#x27;s expectation of S&amp;P 500 volatility over the next 30 days; under 15 is calm, over 25 is fearful, over 35 is panic-level.</p><p style='margin:2px 0;'>Calculated and published in real time by Cboe Global Markets.</p>
 </div>
@@ -473,6 +718,10 @@ function toggleTheme() {
 <div class="card" style="min-width:260px;">
   <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">Wheat</p>
   <p style='margin:2px 0;'>Wheat, price per bushel.</p><p style='margin:2px 0;'>A staple food-grain commodity; prices are sensitive to global harvests and geopolitical disruptions in major growing regions.</p><p style='margin:2px 0;'>Priced and traded on the CBOT (Chicago Board of Trade), part of CME Group.</p>
+</div>
+<div class="card" style="min-width:260px;">
+  <p class="label" style="font-size:14px;font-weight:600;color:var(--text);">XRP</p>
+  <p style='margin:2px 0;'>The native token of the XRP Ledger, a blockchain created by Ripple Labs designed for fast, low-cost cross-border payments.</p><p style='margin:2px 0;'>Its price and use have been closely tied to Ripple&#x27;s ongoing relationships with banks and payment providers.</p><p style='margin:2px 0;'>Price tracked via major exchanges through Yahoo Finance.</p>
 </div>
 </div>
 </body>

@@ -79,6 +79,16 @@ body.dark-mode th { background: var(--table-header-bg); color: var(--text); }
 body.dark-mode td { color: var(--text); border-color: var(--table-row-border); }
 body.dark-mode .suggest-btn { background: #1a2f42; color: #9cc4e0; border-color: #2a4258; }
 
+
+.learning-mode-only { display: none; }
+body.learning-mode .learning-mode-only { display: block; }
+tr.learning-mode-only { display: none; }
+body.learning-mode tr.learning-mode-only { display: table-row; }
+.beginner-box { background: #eef6f0; border:1px solid #cfe8d6; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+.beginner-box h3 { margin:0 0 8px; font-size:14px; }
+.beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
+body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
+
 </style>
 </head>
 <body>
@@ -99,6 +109,25 @@ function toggleTheme() {
   localStorage.setItem('siteDarkMode', isDark ? 'dark' : 'light');
   var btn = document.getElementById('theme-toggle');
   if (btn) btn.innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}
+</script>
+<button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>
+<script>
+(function() {
+  var savedLearning = localStorage.getItem('siteLearningMode');
+  if (savedLearning === 'on') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('learning-mode');
+      var btn = document.getElementById('learning-mode-toggle');
+      if (btn) btn.innerHTML = '&#127891; Learning Mode: On';
+    });
+  }
+})();
+function toggleLearningMode() {
+  var isOn = document.body.classList.toggle('learning-mode');
+  localStorage.setItem('siteLearningMode', isOn ? 'on' : 'off');
+  var btn = document.getElementById('learning-mode-toggle');
+  if (btn) btn.innerHTML = isOn ? '&#127891; Learning Mode: On' : '&#127891; Learning Mode: Off';
 }
 </script>
 

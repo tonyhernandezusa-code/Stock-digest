@@ -89,6 +89,16 @@ body.dark-mode th { background: var(--table-header-bg); color: var(--text); }
 body.dark-mode td { color: var(--text); border-color: var(--table-row-border); }
 body.dark-mode .suggest-btn { background: #1a2f42; color: #9cc4e0; border-color: #2a4258; }
 
+
+.learning-mode-only { display: none; }
+body.learning-mode .learning-mode-only { display: block; }
+tr.learning-mode-only { display: none; }
+body.learning-mode tr.learning-mode-only { display: table-row; }
+.beginner-box { background: #eef6f0; border:1px solid #cfe8d6; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+.beginner-box h3 { margin:0 0 8px; font-size:14px; }
+.beginner-box ul { margin:0; padding-left:18px; font-size:13px; line-height:1.6; }
+body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
+
 body.dark-mode .property-card { background: var(--card-bg); border-color: var(--card-border); color: var(--text); }
 </style>
 </head>
@@ -110,6 +120,25 @@ function toggleTheme() {
   localStorage.setItem('siteDarkMode', isDark ? 'dark' : 'light');
   var btn = document.getElementById('theme-toggle');
   if (btn) btn.innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
+}
+</script>
+<button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>
+<script>
+(function() {
+  var savedLearning = localStorage.getItem('siteLearningMode');
+  if (savedLearning === 'on') {
+    document.addEventListener('DOMContentLoaded', function() {
+      document.body.classList.add('learning-mode');
+      var btn = document.getElementById('learning-mode-toggle');
+      if (btn) btn.innerHTML = '&#127891; Learning Mode: On';
+    });
+  }
+})();
+function toggleLearningMode() {
+  var isOn = document.body.classList.toggle('learning-mode');
+  localStorage.setItem('siteLearningMode', isOn ? 'on' : 'off');
+  var btn = document.getElementById('learning-mode-toggle');
+  if (btn) btn.innerHTML = isOn ? '&#127891; Learning Mode: On' : '&#127891; Learning Mode: Off';
 }
 </script>
 
@@ -197,6 +226,16 @@ function toggleTheme() {
       <a href="#" id="back-to-properties" style="font-size:13px;color:#1f4e79;">&larr; Back to Properties</a>
       <h3 id="detail-address" style="margin-top:8px;"></h3>
       <div id="detail-summary" style="font-size:14px;"></div>
+      <div class="beginner-box learning-mode-only">
+        <h3>&#127891; What These Ratios Mean</h3>
+        <ul>
+          <li><strong>Cap Rate</strong> - the property's yearly income divided by its price, ignoring the loan entirely. Higher generally means more income relative to price, but often comes with more risk or a rougher market.</li>
+          <li><strong>DSCR (Debt Service Coverage Ratio)</strong> - how many times over the property's income covers the loan payment. Above 1.0 means it covers the payment; most commercial lenders want at least 1.20-1.25.</li>
+          <li><strong>Cash-on-Cash Return</strong> - the yearly cash flow divided by the actual cash you put in (down payment, closing costs). This accounts for the loan, unlike cap rate.</li>
+          <li><strong>GRM (Gross Rent Multiplier)</strong> - price divided by yearly rental income, before any expenses. A rough, quick comparison tool - lower generally means cheaper relative to rent.</li>
+        </ul>
+        <p style="font-size:11px;color:#888;margin:8px 0 0;">These are standard real estate investing metrics, not a recommendation to buy, hold, or sell this or any property.</p>
+      </div>
       <div id="key-ratios" style="font-size:14px;margin-top:10px;"></div>
       <label style="margin-top:14px;">Fixed Monthly Costs (taxes, insurance, etc. - allocated evenly per month)</label>
       <input type="number" id="fixed-monthly-costs" style="max-width:160px;">
