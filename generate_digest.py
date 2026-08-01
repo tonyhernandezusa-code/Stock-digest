@@ -906,7 +906,9 @@ def gauge_svg(score, width=320, height=90):
 
 def alert_history_chart_svg(history, days, width=280, height=60):
     """Small line chart of the score history over the last N days - used for the
-    daily/weekly/monthly/yearly views, each just a different slice of the same history file."""
+    daily/weekly/monthly/yearly views, each just a different slice of the same history file.
+    Labels the first and last score values directly on the line, and returns a date-range
+    caption underneath so the chart isn't just a shape with no numbers attached to it."""
     recent = history[-days:] if len(history) > days else history
     values = [h["score"] for h in recent]
     if len(values) < 2:
@@ -919,10 +921,24 @@ def alert_history_chart_svg(history, days, width=280, height=60):
     def y_for(v):
         return round(height - 2 - ((v - lo) / span) * (height - 4), 1) if span else round(height / 2, 1)
     points = " ".join(f"{x_for(i)},{y_for(v)}" for i, v in enumerate(values))
-    color = "#1a8a3d" if values[-1] > values[0] else "#c0392b" if values[-1] < values[0] else "#999"
-    return (f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">'
-            f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
-            f'</svg>')
+    start_val, end_val = values[0], values[-1]
+    color = "#1a8a3d" if end_val > start_val else "#c0392b" if end_val < start_val else "#999"
+    start_y, end_y = y_for(start_val), y_for(end_val)
+    # Flip label above/below the point depending on where it sits, so text doesn't run off the edge.
+    start_label_y = start_y - 6 if start_y > 12 else start_y + 14
+    end_label_y = end_y - 6 if end_y > 12 else end_y + 14
+    start_date = recent[0]["date"]
+    end_date = recent[-1]["date"]
+    svg = (f'<svg width="{width}" height="{height}" viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg">'
+           f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+           f'<circle cx="{x_for(0)}" cy="{start_y}" r="2.5" fill="#999"/>'
+           f'<text x="{x_for(0)}" y="{start_label_y}" font-size="10" fill="#888" text-anchor="start">{start_val:+d}</text>'
+           f'<circle cx="{x_for(n - 1)}" cy="{end_y}" r="2.5" fill="{color}"/>'
+           f'<text x="{x_for(n - 1)}" y="{end_label_y}" font-size="10" fill="{color}" font-weight="600" text-anchor="end">{end_val:+d}</text>'
+           f'</svg>')
+    return (f'<div>{svg}'
+            f'<p style="font-size:10px;color:#999;margin:2px 0 0;">{start_date} &rarr; {end_date}</p>'
+            f'</div>')
 
 def render_market_alert_section(score_data, history, title):
     """Builds the full HTML block for a market alert gauge: the gauge itself, score, explanation,
