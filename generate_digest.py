@@ -181,6 +181,23 @@ MANUAL_ECON = [
     ("ISM Manufacturing PMI", "53.3", "Jun 2026"),
 ]
 
+# Federal Reserve longer-run policy targets, used by the Fed Policy Targets gauge below.
+# Inflation targets are the Fed's official, fixed policy goal (2% since the January 2012
+# statement, reaffirmed since). Unemployment, GDP growth, and the federal funds rate are NOT
+# fixed targets - they are the MEDIAN of individual FOMC members' own quarterly forecasts,
+# published in the Summary of Economic Projections (SEP), and they move release to release
+# (e.g. the longer-run GDP growth projection moved from 1.8% to 2.0% in the June 2026 SEP).
+# Ask Claude to "update my Fed targets" after each new SEP release (~8x/year, alongside FOMC
+# meetings) - source: federalreserve.gov/monetarypolicy/fomcprojtabl.htm
+FED_TARGETS_ASOF = "June 2026 SEP"
+FED_LONGER_RUN_TARGETS = {
+    "cpi_inflation": 2.0,        # Official FOMC longer-run inflation goal (fixed policy target)
+    "core_pce_inflation": 2.0,   # Same goal in PCE terms - the Fed's preferred inflation gauge
+    "unemployment": 4.2,         # FOMC SEP longer-run median projection
+    "gdp_growth": 2.0,           # FOMC SEP longer-run median projection
+    "fed_funds_neutral": 3.0,    # FOMC SEP longer-run median projection (the "neutral rate")
+}
+
 # Rates from NerdWallet as of July 14, 2026 - verify before relying on them
 BANK_RATES = [
     ("Forbright Bank (Savings)", "Up to 4.15%*"),
@@ -1015,6 +1032,23 @@ def fetch_fred_yoy(series_id):
     return {"display": f"{yoy_now:+.1f}% YoY", "num": yoy_now, "num_6mo": yoy_6mo,
             "date": obs[0]["date"], "history": history}
 
+def fetch_fred_yoy_quarterly(series_id):
+    """Same as fetch_fred_yoy but for quarterly series (e.g. real GDP) - compares each quarter
+    to the same quarter a year earlier (4 quarters back instead of 12 months back)."""
+    obs = fetch_fred(series_id, limit=9)
+    if not obs or len(obs) < 5:
+        return None
+    yoy_now = (obs[0]["value"] - obs[4]["value"]) / obs[4]["value"] * 100
+    yoy_1q_ago = None
+    if len(obs) >= 6:
+        yoy_1q_ago = (obs[1]["value"] - obs[5]["value"]) / obs[5]["value"] * 100
+    history = []
+    max_i = min(len(obs) - 5, 3)
+    for i in range(max_i, -1, -1):
+        history.append((obs[i]["value"] - obs[i + 4]["value"]) / obs[i + 4]["value"] * 100)
+    return {"display": f"{yoy_now:+.1f}% YoY", "num": yoy_now, "num_6mo": yoy_1q_ago,
+            "date": obs[0]["date"], "history": history}
+
 def fetch_fred_mom(series_id):
     """Month-over-month % change now, what it was 6 months ago, and a rolling history in between."""
     obs = fetch_fred(series_id, limit=8)
@@ -1234,6 +1268,41 @@ if retail:
 for name, value, asof in MANUAL_ECON:
     econ_rows.append({"name": f"{name} (manual)", "display": value, "date": asof,
                       "num": None, "num_6mo": None})
+
+core_pce = fetch_fred_yoy("PCEPILFE")
+unemployment = fetch_fred_rate("UNRATE")
+gdp_growth = fetch_fred_yoy_quarterly("GDPC1")
+_fed_funds_row = next((r for r in rate_rows if r["name"] == "Fed Funds Rate"), None)
+
+def compute_fed_targets():
+    """Builds the Fed Policy Targets table: for each indicator, the actual reading, the Fed's
+    longer-run target/projection, the deviation, and how many of the last few readings were
+    above vs. below that target. Colors reflect distance from target only (not a judgment of
+    whether above or below is "good," since that depends on the indicator and the Fed's dual
+    mandate, not a simple direction). Skips any indicator whose data fetch failed."""
+    rows = []
+    specs = [
+        ("CPI Inflation (YoY)", cpi, FED_LONGER_RUN_TARGETS["cpi_inflation"], "num", "history"),
+        ("Core PCE Inflation (YoY)", core_pce, FED_LONGER_RUN_TARGETS["core_pce_inflation"], "num", "history"),
+        ("Unemployment Rate", unemployment, FED_LONGER_RUN_TARGETS["unemployment"], "value", "history"),
+        ("Real GDP Growth (YoY)", gdp_growth, FED_LONGER_RUN_TARGETS["gdp_growth"], "num", "history"),
+        ("Effective Fed Funds Rate", _fed_funds_row, FED_LONGER_RUN_TARGETS["fed_funds_neutral"], "value", "history"),
+    ]
+    for name, source, target, value_key, hist_key in specs:
+        if not source or source.get(value_key) is None:
+            continue
+        actual = source[value_key]
+        deviation = actual - target
+        history = source.get(hist_key) or []
+        above = sum(1 for v in history if v > target)
+        below = sum(1 for v in history if v < target)
+        rows.append({
+            "name": name, "actual": actual, "target": target, "deviation": deviation,
+            "months_above": above, "months_below": below, "history_len": len(history),
+        })
+    return rows
+
+fed_targets_rows = compute_fed_targets()
 
 re_national_rows = []
 for name, series_id, unit in RE_NATIONAL:
@@ -1478,6 +1547,41 @@ def econ_cards(items):
       {insight}
     </div>"""
     return out
+
+def fed_targets_table(rows):
+    if not rows:
+        return ""
+    body = ""
+    for r in rows:
+        abs_dev = abs(r["deviation"])
+        if abs_dev <= 0.3:
+            read, color = "At target", "#1a8a3d"
+        elif abs_dev <= 1.0:
+            read, color = "Moderate gap", "#a5720b"
+        else:
+            read, color = "Large gap", "#c0392b"
+        trend = ""
+        if r["history_len"] > 0:
+            trend = f"{r['months_above']} of last {r['history_len']} readings above, {r['months_below']} below"
+        body += f"""
+    <tr>
+      <td style="font-weight:600;">{r['name']}</td>
+      <td style="text-align:right;">{r['actual']:.1f}%</td>
+      <td style="text-align:right;">{r['target']:.1f}%</td>
+      <td style="text-align:right;font-weight:600;color:{color};">{r['deviation']:+.1f}pt</td>
+      <td style="color:{color};">{read}</td>
+      <td style="font-size:11px;color:#888;">{trend}</td>
+    </tr>"""
+    return f"""
+<h2>Fed Policy Targets</h2>
+<p class="note">Compares each indicator's latest reading to the Federal Reserve's own longer-run target or projection ({FED_TARGETS_ASOF}). Inflation targets (CPI, Core PCE) are the Fed's official, fixed 2% policy goal. Unemployment, GDP growth, and the federal funds "neutral rate" are NOT fixed targets - they're the median of individual FOMC members' own quarterly forecasts (the Summary of Economic Projections), and they move release to release; the color reflects distance from target only, not a judgment that above or below is "good," since that depends on the indicator and the Fed's mandate. This is an educational, informational tool - not a prediction, a recommendation, or personalized investment advice.</p>
+<div class="table-wrap">
+<table>
+<tr><th>Indicator</th><th style="text-align:right;">Actual</th><th style="text-align:right;">Fed Target</th><th style="text-align:right;">Deviation</th><th>Read</th><th>Recent Trend</th></tr>
+{body}
+</table>
+</div>
+"""
 
 def bond_cards(items):
     out = ""
@@ -1825,6 +1929,8 @@ function showAIInsight(btn) {{
 <h2>Economic Indicators</h2>
 <div class="row">{econ_cards(econ_rows)}</div>
 <p class="note">CPI and PPI shown as year-over-year change. Retail sales month-over-month. PMI above 50 = manufacturing expansion (entered manually from ISM's monthly release). "6 mo ago" compares each reading to the same measure six months earlier.</p>
+
+{fed_targets_table(fed_targets_rows)}
 
 <h2>Market Indexes</h2>
 <div class="row">{simple_cards(index_rows, dollar=False)}</div>
