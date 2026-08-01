@@ -601,6 +601,16 @@ NAV_HTML = """
 </div>
 """
 
+FOOTER_HTML = """
+<hr style="margin:32px 0 16px;border:none;border-top:1px solid var(--card-border);">
+<div style="font-size:12px;color:var(--text-faint);padding-bottom:20px;">
+  <a href="terms.html" style="margin-right:14px;color:var(--text-faint);text-decoration:underline;">Terms of Service</a>
+  <a href="privacy.html" style="margin-right:14px;color:var(--text-faint);text-decoration:underline;">Privacy Policy</a>
+  <a href="refund-policy.html" style="color:var(--text-faint);text-decoration:underline;">Cancellation &amp; Refund Policy</a>
+  <p style="margin:8px 0 0;">&copy; 2026 Winners Stock LLC. Stock Digest is provided for informational and educational purposes only and is not financial, investment, legal, or tax advice.</p>
+</div>
+"""
+
 PAGE_CSS = """
 :root {
   --bg: #f7f7f5;
@@ -2218,8 +2228,10 @@ function showAIInsight(btn) {{
 </div>
 <p class="note">Hover a ticker for its latest headlines; click it to open the full Yahoo Finance page with current news. Volume highlighted in blue when today's volume is at least 2x the 3-month average. P/E and Div Yld are blank for ETFs and non-dividend payers.</p>
 
+__FOOTER__
 </body>
 </html>"""
+stocks_html = stocks_html.replace("__FOOTER__", FOOTER_HTML)
 
 # ------------------- PAGE 2: REAL ESTATE -------------------
 
@@ -2268,8 +2280,10 @@ realestate_html = f"""<!DOCTYPE html>
 </table>
 <p class="note">"Filings" = properties with a foreclosure filing during the quarter. "Rate" is 1-in-X housing units (lower X = worse); Miami-Dade's county-specific rate wasn't broken out in the source used and is shown as n/a rather than estimated. No free API exists for county-level foreclosure data (ATTOM's underlying data is licensed) - this table is refreshed manually each quarter from ATTOM's public reports. Ask Claude to "update my tri-county foreclosure data" to refresh it.</p>
 
+__FOOTER__
 </body>
 </html>"""
+realestate_html = realestate_html.replace("__FOOTER__", FOOTER_HTML)
 
 # ------------------- PAGE 3: CALCULATORS -------------------
 
@@ -4495,6 +4509,7 @@ function calcRV() {
 }
 </script>
 
+__FOOTER__
 </body>
 </html>"""
 
@@ -4507,6 +4522,7 @@ calculators_html = (CALC_TEMPLATE
                     .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                     .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
                     .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                    .replace("__FOOTER__", FOOTER_HTML)
                     .replace("__STATE_TAX_JS_HELPER__", STATE_TAX_JS_HELPER)
                     .replace("__STATE_TAX_OPTIONS__", STATE_TAX_OPTIONS_HTML)
                     .replace("__PERSONAL_ITEMIZE_JS_HELPER__", PERSONAL_ITEMIZE_JS_HELPER))
@@ -4876,6 +4892,7 @@ async function searchForeclosures() {
 }
 </script>
 
+__FOOTER__
 </body>
 </html>"""
 
@@ -4887,7 +4904,8 @@ search_html = (SEARCH_TEMPLATE
                .replace("__DARKMODE_JS__", DARK_MODE_JS)
                .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
-               .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
+               .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+               .replace("__FOOTER__", FOOTER_HTML))
 
 # ------------------- PAGE 5: STOCK SEARCH -------------------
 
@@ -5143,6 +5161,7 @@ async function getAiSummary(symbol) {
 }
 </script>
 
+__FOOTER__
 </body>
 </html>"""
 
@@ -5154,7 +5173,8 @@ stocksearch_html = (STOCKSEARCH_TEMPLATE
                      .replace("__DARKMODE_JS__", DARK_MODE_JS)
                      .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                      .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
-                     .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
+                     .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                     .replace("__FOOTER__", FOOTER_HTML))
 
 tickers_json = json.dumps(all_us_tickers)
 
@@ -8131,6 +8151,7 @@ function generateIncomeStatementPDF() {
 }
 </script>
 
+__FOOTER__
 </body>
 </html>"""
 
@@ -8143,6 +8164,7 @@ propertymanager_html = (PROPERTYMANAGER_TEMPLATE
                         .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                         .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
                         .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                        .replace("__FOOTER__", FOOTER_HTML)
                         .replace("__STATE_TAX_JS_HELPER__", STATE_TAX_JS_HELPER))
 
 # ------------------- PAGE 8: GLOSSARY -------------------
@@ -8181,6 +8203,7 @@ __NAV__
 <div class="row" style="flex-wrap:wrap;">
 __GLOSSARY_BODY__
 </div>
+__FOOTER__
 </body>
 </html>"""
 
@@ -8193,6 +8216,7 @@ glossary_html = (GLOSSARY_TEMPLATE
                   .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                   .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
                   .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                  .replace("__FOOTER__", FOOTER_HTML)
                   .replace("__GLOSSARY_BODY__", glossary_body_html()))
 
 # ------------------- PAGE 9: FOR EDUCATORS & STUDENTS -------------------
@@ -8248,6 +8272,7 @@ __NAV__
 
 <p class="note">Stock Digest is an educational and informational tool. Nothing on this site is personalized financial advice or a recommendation to buy or sell any security.</p>
 
+__FOOTER__
 </body>
 </html>"""
 
@@ -8260,6 +8285,7 @@ educators_html = (EDUCATORS_TEMPLATE
                    .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                    .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
                    .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                   .replace("__FOOTER__", FOOTER_HTML)
                    .replace("__EDUCATOR_EMAIL__", EDUCATOR_CONTACT_EMAIL))
 
 # ------------------- PAGE 10: MY PORTFOLIO (SIMPLEST VERSION - ONE PORTFOLIO, ONE EXPERIENCE) -------------------
@@ -8504,6 +8530,7 @@ async function renderPortfolio(tickers) {
   }
 }
 </script>
+__FOOTER__
 </body>
 </html>"""
 
@@ -8515,7 +8542,8 @@ portfolio_html = (PORTFOLIO_TEMPLATE
                    .replace("__DARKMODE_JS__", DARK_MODE_JS)
                    .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                    .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
-                   .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
+                   .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                   .replace("__FOOTER__", FOOTER_HTML))
 
 with open("index.html", "w") as f:
     f.write(stocks_html)
@@ -8670,6 +8698,7 @@ auth.onAuthStateChanged(function(user) {
 });
 </script>
 
+__FOOTER__
 </body>
 </html>"""
 
@@ -8681,9 +8710,277 @@ insights_html = (INSIGHTS_TEMPLATE
                   .replace("__DARKMODE_JS__", DARK_MODE_JS)
                   .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
                   .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
-                  .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS))
+                  .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                  .replace("__FOOTER__", FOOTER_HTML))
 
 with open("insights.html", "w") as f:
     f.write(insights_html)
 
-print("index.html, realestate.html, calculators.html, search.html, stocksearch.html, tickers.json, propertymanager.html, and insights.html generated successfully")
+# ------------------- PAGE 11: LEGAL (TERMS, PRIVACY, REFUND POLICY) -------------------
+#
+# Content below is pre-converted from the reviewed Markdown drafts (see the three .md files
+# provided separately) into static HTML at build time, rather than converting Markdown to HTML
+# on every GitHub Actions run - these documents don't contain live data, so there's no reason to
+# add a new pip dependency (the "markdown" package) to the workflow for content that doesn't
+# change automatically. If you revise the wording, re-run the conversion and paste the updated
+# HTML here (or ask Claude to do it) rather than editing this HTML by hand.
+
+LEGAL_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__PAGE_TITLE__ - Stock Digest</title>
+<style>__CSS__
+__DARKMODE_CSS__
+__LEARNINGMODE_CSS__
+.legal-content h2 { font-size:16px; margin:22px 0 8px; }
+.legal-content ul { padding-left:20px; }
+.legal-content li { margin-bottom:4px; }
+.legal-content hr { border:none; border-top:1px solid var(--card-border); margin:16px 0; }
+.legal-content em { display:block; font-size:12px; color:var(--text-faint); margin-top:20px; }
+</style>
+</head>
+<body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
+__NAV__
+<div class="legal-content">
+__LEGAL_BODY__
+</div>
+__FOOTER__
+</body>
+</html>"""
+
+terms_html = (LEGAL_TEMPLATE
+              .replace("__PAGE_TITLE__", "Terms of Service")
+              .replace("__CSS__", PAGE_CSS)
+              .replace("__NAV__", NAV_HTML)
+              .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+              .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+              .replace("__DARKMODE_JS__", DARK_MODE_JS)
+              .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+              .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+              .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+              .replace("__FOOTER__", FOOTER_HTML)
+              .replace("__LEGAL_BODY__", """<h1>Terms of Service</h1>
+<p><strong>Winners Stock LLC</strong> ("Winners Stock," "we," "us," or "our")
+Operating Stock Digest at winnersstock.com (the "Service")</p>
+<p><strong>Effective Date:</strong> September 1, 2026
+<strong>Last Updated:</strong> September 1, 2026</p>
+<hr />
+<h2>1. Acceptance of Terms</h2>
+<p>By accessing or using Stock Digest, creating an account, or subscribing to any paid tier of the Service, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service.</p>
+<p>You must be at least 18 years old, or the age of majority in your jurisdiction, to create an account or subscribe to the Service.</p>
+<h2>2. Description of Service</h2>
+<p>Stock Digest provides financial market data, economic indicators, educational content, calculators, and portfolio-tracking tools for informational and educational purposes. The Service may include:</p>
+<ul>
+<li>Market data dashboards (stock indexes, commodities, currencies, cryptocurrency prices, interest rates, and related economic indicators)</li>
+<li>Real estate market data and calculators</li>
+<li>Financial calculators (mortgage, loan, tax estimation, and related tools)</li>
+<li>A personal portfolio-tracking feature tied to your account</li>
+<li>Educational glossary and reference content</li>
+<li>[Any additional features - property management tools, market insights, etc.]</li>
+</ul>
+<h2>3. Not Financial Advice</h2>
+<p><strong>The Service is for informational and educational purposes only.</strong> Nothing on Stock Digest constitutes financial, investment, legal, or tax advice, and nothing on the Service is a recommendation to buy, sell, or hold any security, cryptocurrency, real property, or other asset.</p>
+<ul>
+<li>Market data, indicators, and calculator outputs are estimates based on available data sources and may contain errors, delays, or inaccuracies.</li>
+<li>Any AI-generated content, summaries, or "insight" features are automated and may be incomplete or incorrect.</li>
+<li>You are solely responsible for your own financial, investment, and tax decisions. Consult a licensed financial advisor, attorney, or tax professional before making decisions based on anything presented through the Service.</li>
+<li>Winners Stock LLC is not a registered investment advisor, broker-dealer, or tax preparation service.</li>
+</ul>
+<h2>4. Accounts</h2>
+<ul>
+<li>You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account.</li>
+<li>You must provide accurate information when creating an account.</li>
+<li>You may not share your account, or create multiple accounts to circumvent subscription limits or pricing.</li>
+<li>We reserve the right to suspend or terminate accounts that violate these Terms, engage in abusive behavior, or are used for unlawful purposes.</li>
+</ul>
+<h2>5. Subscriptions, Billing, and Cancellation</h2>
+<ul>
+<li>Certain features of the Service require a paid subscription. Current pricing is listed at [PRICING PAGE URL].</li>
+<li>Subscriptions renew automatically at the end of each billing period unless canceled before the renewal date.</li>
+<li>You may cancel your subscription at any time through your account settings. Cancellation takes effect at the end of the current billing period; you will retain access through that period, and you will not be billed again afterward.</li>
+<li>Refunds: see our <a href="refund-policy.html">Cancellation &amp; Refund Policy</a>.</li>
+<li>We reserve the right to change subscription pricing with advance notice. Continued use of the Service after a price change takes effect constitutes acceptance of the new pricing.</li>
+<li>Payment processing is handled by a third-party payment processor. We do not store your full payment card information on our own servers.</li>
+</ul>
+<h2>6. Educational and Institutional Access</h2>
+<p>Free classroom access offered to educators and students under our Educators &amp; Students program is provided at our discretion and may be modified, limited, or discontinued at any time. Educational access is for non-commercial classroom use only.</p>
+<h2>7. Acceptable Use</h2>
+<p>You agree not to:</p>
+<ul>
+<li>Use the Service for any unlawful purpose or in violation of any applicable law or regulation</li>
+<li>Attempt to gain unauthorized access to any part of the Service, other users' accounts or data, or our underlying systems</li>
+<li>Scrape, reverse-engineer, or systematically extract data from the Service beyond normal personal use</li>
+<li>Interfere with or disrupt the integrity or performance of the Service</li>
+<li>Use automated means (bots, scripts) to access the Service in a manner that sends more requests than a human could reasonably send</li>
+</ul>
+<h2>8. Intellectual Property</h2>
+<p>The Service, including its design, calculators, compiled data presentations, and original written content, is owned by Winners Stock LLC and protected by applicable intellectual property laws. Underlying market data is sourced from third parties (see Section 9) and remains subject to those parties' own rights where applicable. You may not copy, resell, or redistribute the Service or its content without our written permission.</p>
+<h2>9. Third-Party Data Sources</h2>
+<p>The Service aggregates and displays data from third-party sources, including but not limited to Yahoo Finance, the Federal Reserve Bank of St. Louis (FRED), the U.S. Bureau of Labor Statistics, the U.S. Census Bureau, the Federal Housing Finance Agency, Finnhub, and other public or licensed data providers. We do not control, and are not responsible for, the accuracy, timeliness, or availability of third-party data. Data may be delayed and is not intended for use in time-sensitive trading decisions.</p>
+<h2>10. Disclaimer of Warranties</h2>
+<p>THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, ACCURACY, OR NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE.</p>
+<h2>11. Limitation of Liability</h2>
+<p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, WINNERS STOCK LLC AND ITS OWNERS, EMPLOYEES, AND CONTRACTORS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA, OR FINANCIAL LOSSES ARISING FROM YOUR USE OF, OR INABILITY TO USE, THE SERVICE, INCLUDING ANY FINANCIAL, INVESTMENT, OR TRADING DECISIONS MADE IN RELIANCE ON INFORMATION PROVIDED THROUGH THE SERVICE. OUR TOTAL LIABILITY FOR ANY CLAIM ARISING FROM THESE TERMS OR THE SERVICE SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM.</p>
+<h2>12. Indemnification</h2>
+<p>You agree to indemnify and hold harmless Winners Stock LLC from any claims, damages, losses, or expenses (including reasonable attorney's fees) arising from your use of the Service or violation of these Terms.</p>
+<h2>13. Changes to These Terms</h2>
+<p>We may update these Terms from time to time. Material changes will be posted on this page with an updated "Last Updated" date. Continued use of the Service after changes take effect constitutes acceptance of the revised Terms.</p>
+<h2>14. Termination</h2>
+<p>We may suspend or terminate your access to the Service at any time for violation of these Terms. You may stop using the Service and close your account at any time.</p>
+<h2>15. Governing Law</h2>
+<p>These Terms are governed by the laws of the State of Florida, without regard to its conflict of law principles. Any disputes arising from these Terms or the Service shall be resolved in the state or federal courts located in Miami-Dade County, Florida.</p>
+<h2>16. Contact</h2>
+<p>Questions about these Terms can be directed to:</p>
+<p>Winners Stock LLC<br />
+2037 NW 27th Avenue<br />
+Miami, Florida 33142<br />
+support@winnersstock.com</p>
+<hr />
+<em>This document is a draft template and has not been reviewed by an attorney. Please have it reviewed by a business attorney licensed in your state before publishing it live or relying on it for legal protection.</em>"""))
+
+privacy_html = (LEGAL_TEMPLATE
+                .replace("__PAGE_TITLE__", "Privacy Policy")
+                .replace("__CSS__", PAGE_CSS)
+                .replace("__NAV__", NAV_HTML)
+                .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                .replace("__FOOTER__", FOOTER_HTML)
+                .replace("__LEGAL_BODY__", """<h1>Privacy Policy</h1>
+<p><strong>Winners Stock LLC</strong> ("Winners Stock," "we," "us," or "our")
+Operating Stock Digest at winnersstock.com (the "Service")</p>
+<p><strong>Effective Date:</strong> September 1, 2026
+<strong>Last Updated:</strong> September 1, 2026</p>
+<hr />
+<h2>1. Overview</h2>
+<p>This Privacy Policy explains what information we collect, how we use it, and the choices you have. By using the Service, you agree to the collection and use of information as described here.</p>
+<h2>2. Information We Collect</h2>
+<h3>Information you provide directly</h3>
+<ul>
+<li><strong>Account information</strong>: email address and password (used to create and secure your account). Passwords are handled by our authentication provider (Firebase Authentication, operated by Google) and are never stored or visible to us in plain text.</li>
+<li><strong>Portfolio data</strong>: any stock or ETF tickers you choose to add to your personal portfolio.</li>
+<li><strong>Property Manager data</strong> (if applicable to your account): property addresses, financial details, and related records you choose to enter for your own use.</li>
+<li><strong>Payment information</strong>: if you subscribe to a paid tier, billing is handled directly by our payment processor. We do not receive or store your full credit card number on our own servers.</li>
+<li><strong>Communications</strong>: information you provide when you contact us for support (e.g., email content).</li>
+</ul>
+<h3>Information collected automatically</h3>
+<ul>
+<li>Basic usage data such as pages visited and general browser/device information, to the extent provided by standard web hosting and analytics tools.</li>
+<li>A local browser preference (e.g., dark mode or "Learning Mode" setting) stored in your browser's local storage. This is not transmitted to our servers and is specific to the browser/device you're using.</li>
+</ul>
+<h3>Information we do NOT collect</h3>
+<ul>
+<li>We do not collect your full payment card number, card verification code, or bank account number directly - these are handled by our third-party payment processor.</li>
+<li>We do not sell your personal information to third parties.</li>
+</ul>
+<h2>3. How We Use Your Information</h2>
+<p>We use the information we collect to:</p>
+<ul>
+<li>Create and maintain your account</li>
+<li>Provide the features you use (e.g., displaying your saved portfolio tickers, saving your property records)</li>
+<li>Process subscription payments and manage billing</li>
+<li>Respond to support requests</li>
+<li>Maintain the security and integrity of the Service</li>
+<li>Comply with legal obligations</li>
+</ul>
+<p>We do not use your portfolio holdings, property data, or other account content to generate targeted advertising, and we do not sell this information.</p>
+<h2>4. Third-Party Service Providers</h2>
+<p>We use the following categories of third-party providers to operate the Service. Each handles a defined, limited scope of data as part of providing their service to us:</p>
+<ul>
+<li><strong>Firebase (Google)</strong> - authentication and database storage for account and portfolio/property data</li>
+<li><strong>Payment processor</strong> [NAME ONCE FINALIZED - e.g., PayPal, North American Bancard/Payments Hub] - subscription billing</li>
+<li><strong>Market data providers</strong> (Yahoo Finance, Finnhub, FRED, and similar) - supply the market data displayed on the Service; we do not share your personal account information with these providers as part of displaying market data</li>
+<li><strong>Cloudflare</strong> - infrastructure used to securely relay certain data requests (e.g., live stock quote lookups) without exposing API credentials in your browser</li>
+</ul>
+<p>These providers have their own privacy policies governing how they handle data on our behalf.</p>
+<h2>5. Data Security</h2>
+<p>We use industry-standard providers (Firebase Authentication and Firestore) to store account and application data, with access restricted so that each user can only read or modify their own data. No method of electronic storage or transmission is 100% secure, and we cannot guarantee absolute security.</p>
+<h2>6. Data Retention</h2>
+<p>We retain your account information and associated data for as long as your account remains active. If you close your account, we will delete or anonymize your personal data within [RETENTION PERIOD, e.g., 30-90 days], except where we are required to retain certain records (e.g., billing records) for legal, tax, or accounting purposes.</p>
+<h2>7. Your Rights and Choices</h2>
+<p>Depending on your location, you may have rights to:</p>
+<ul>
+<li>Access the personal information we hold about you</li>
+<li>Request correction of inaccurate information</li>
+<li>Request deletion of your account and associated data</li>
+<li>Object to or restrict certain processing of your information</li>
+</ul>
+<p>To exercise any of these rights, contact us at support@winnersstock.com. We will respond within a reasonable time and in accordance with applicable law.</p>
+<p>If you are a California resident, you may have additional rights under the California Consumer Privacy Act (CCPA); if you are in the European Economic Area or UK, you may have additional rights under the GDPR/UK GDPR. [Confirm with counsel whether these apply based on where your users are located, and expand this section accordingly if so.]</p>
+<h2>8. Children's Privacy</h2>
+<p>The Service is not directed to children under 13 (or under 16 in jurisdictions where that is the relevant threshold), and we do not knowingly collect personal information from children. If you believe a child has provided us with personal information, contact us at support@winnersstock.com and we will take steps to delete it.</p>
+<h2>9. Cookies and Local Storage</h2>
+<p>We use browser local storage (not third-party tracking cookies) to remember display preferences such as dark mode and Learning Mode settings. This information stays on your device and is not transmitted to us.</p>
+<h2>10. Changes to This Policy</h2>
+<p>We may update this Privacy Policy from time to time. Material changes will be posted on this page with an updated "Last Updated" date. If changes are significant, we will make reasonable efforts to notify account holders (e.g., via email or an in-app notice).</p>
+<h2>11. Contact Us</h2>
+<p>Questions about this Privacy Policy or your personal information can be directed to:</p>
+<p>Winners Stock LLC<br />
+2037 NW 27th Avenue<br />
+Miami, Florida 33142<br />
+support@winnersstock.com</p>
+<hr />
+<em>This document is a draft template and has not been reviewed by an attorney. Data privacy law varies significantly by state and country (e.g., CCPA, GDPR, and other state privacy laws), and applicability depends on where your users are located. Please have this reviewed by a business attorney before publishing it live or relying on it for compliance.</em>"""))
+
+refund_html = (LEGAL_TEMPLATE
+               .replace("__PAGE_TITLE__", "Cancellation & Refund Policy")
+               .replace("__CSS__", PAGE_CSS)
+               .replace("__NAV__", NAV_HTML)
+               .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+               .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+               .replace("__DARKMODE_JS__", DARK_MODE_JS)
+               .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+               .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+               .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+               .replace("__FOOTER__", FOOTER_HTML)
+               .replace("__LEGAL_BODY__", """<h1>Cancellation &amp; Refund Policy</h1>
+<p><strong>Winners Stock LLC</strong> ("Winners Stock," "we," "us," or "our")
+Operating Stock Digest at winnersstock.com (the "Service")</p>
+<p><strong>Effective Date:</strong> September 1, 2026
+<strong>Last Updated:</strong> September 1, 2026</p>
+<hr />
+<h2>1. Subscription Billing</h2>
+<p>Paid subscriptions to Stock Digest bill automatically on a recurring basis (e.g., monthly or annually, as selected at signup) until canceled. Your billing date is set from the date you first subscribe.</p>
+<h2>2. How to Cancel</h2>
+<p>You can cancel your subscription at any time by [DESCRIBE ACTUAL MECHANISM ONCE BUILT - e.g., "going to Account Settings and clicking Cancel Subscription"]. Cancellation takes effect at the end of your current billing period - you will keep access to paid features through the end of the period you already paid for, and you will not be charged again afterward.</p>
+<p>We do not require you to contact support to cancel; cancellation is self-service and available directly in your account, consistent with the same ease you used to subscribe.</p>
+<h2>3. Refunds</h2>
+<p>[CHOOSE ONE APPROACH AND DELETE THE OTHERS BEFORE PUBLISHING - PICK WHAT YOU ACTUALLY WANT TO OFFER:]</p>
+<p><strong>Option A - No refunds for partial periods:</strong>
+Subscription fees are non-refundable for the remainder of a billing period after cancellation. When you cancel, you retain access through the end of the period you already paid for; we do not provide prorated refunds for unused time within a billing period.</p>
+<p><strong>Option B - Money-back guarantee window:</strong>
+If you are not satisfied with your subscription, you may request a full refund within [X] days of your initial subscription charge by contacting support@winnersstock.com. Refund requests made after this window, or for renewal charges after the first billing cycle, are handled on a case-by-case basis at our discretion.</p>
+<p><strong>Option C - Prorated refund:</strong>
+If you cancel mid-billing-period, we will refund the unused portion of that period on a prorated basis.</p>
+<h2>4. Billing Errors and Duplicate Charges</h2>
+<p>If you believe you were charged in error or were billed more than once for the same period, contact us at support@winnersstock.com with your account email and the date of the charge. We will investigate and issue a correction or refund promptly where warranted.</p>
+<h2>5. Failed Payments</h2>
+<p>If a scheduled payment fails (e.g., an expired card), we will attempt to notify you and may retry the charge. If payment is not resolved within [X] days, your subscription may be downgraded to the free tier or suspended until payment is updated.</p>
+<h2>6. Price Changes</h2>
+<p>If we change subscription pricing, we will provide advance notice before the new price takes effect for existing subscribers. Continuing your subscription after that date constitutes acceptance of the new price. You may cancel before the new price takes effect if you do not agree to it.</p>
+<h2>7. Chargebacks</h2>
+<p>If you have a billing concern, we ask that you contact us first at support@winnersstock.com so we can resolve it directly - most issues can be handled faster this way than through a card dispute. Initiating a chargeback without first attempting to resolve the issue with us may result in suspension of your account while the dispute is investigated.</p>
+<h2>8. Contact</h2>
+<p>Questions about billing, cancellation, or refunds:</p>
+<p>Winners Stock LLC<br />
+support@winnersstock.com</p>
+<hr />
+<em>This document is a draft template and has not been reviewed by an attorney. The refund approach (Section 3) is a business decision you should make deliberately - whichever option you choose also needs to match what you actually configure in your payment processor's subscription settings. Please have this reviewed by a business attorney before publishing it live.</em>"""))
+
+with open("terms.html", "w") as f:
+    f.write(terms_html)
+
+with open("privacy.html", "w") as f:
+    f.write(privacy_html)
+
+with open("refund-policy.html", "w") as f:
+    f.write(refund_html)
+
+print("index.html, realestate.html, calculators.html, search.html, stocksearch.html, tickers.json, propertymanager.html, insights.html, glossary.html, educators.html, portfolio.html, terms.html, privacy.html, and refund-policy.html generated successfully")
