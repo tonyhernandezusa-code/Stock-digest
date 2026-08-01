@@ -3642,7 +3642,7 @@ function calcLease() {
       var annualLeaseAndDriving = (totalPayment + fuel_m + maint_m) * 12;
       annualDeduction = annualLeaseAndDriving * businessPct;
       methodNote = "&nbsp;&nbsp;Annual lease payment + fuel + maintenance (" + money(annualLeaseAndDriving) + ") &times; " + (businessPct*100).toFixed(0) + "% business use = " + money(annualDeduction) + "/yr<br>" +
-        "<span style='font-size:11px;color:#888;'>Actual expense method: if this is a \"luxury\" lease above IRS fair-market-value thresholds, a lease inclusion amount slightly reduces this deduction - not modeled here.</span><br>";
+        "<span style='font-size:11px;color:#888;'>Actual expense method: if this is a 'luxury' lease above IRS fair-market-value thresholds, a lease inclusion amount slightly reduces this deduction - not modeled here.</span><br>";
     }
     var businessTaxSavings = annualDeduction * (combinedRateLs / 100);
     businessHtml = "<br><u>Estimated Business-Use Tax Deduction</u><br>" +
