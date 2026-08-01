@@ -595,6 +595,7 @@ NAV_HTML = """
   <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
   <a href="propertymanager.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
   <a href="portfolio.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">My Portfolio</a>
+  <a href="investment-map.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Investment Map</a>
   <a href="insights.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
   <a href="glossary.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Glossary</a>
   <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
@@ -1226,6 +1227,76 @@ def fetch_fred_yoy_quarterly(series_id):
     return {"display": f"{yoy_now:+.1f}% YoY", "num": yoy_now, "num_6mo": yoy_1q_ago,
             "date": obs[0]["date"], "history": history}
 
+def fetch_census_county_population():
+    """Population and 5-year population growth for every US county, used by the County
+    Investment Map. Uses the Census API's wildcard geography pattern (&for=county:*
+    &in=state:*) which returns ALL counties nationally in a single request per vintage - not
+    one request per county (3,143 separate calls would hit rate limits fast; this needs just
+    two calls total, one per ACS 5-year vintage being compared).
+
+    B01003_001E = total population, ACS 5-Year Estimates - a standard, stable Census variable.
+    Comparing the 2023 5-year vintage (2019-2023) to the 2018 vintage (2014-2018) gives a
+    genuine 5-year population change, not a same-period overlap.
+
+    Returns a dict keyed by 5-digit county FIPS code, or None if either call fails."""
+    try:
+        url_now = "https://api.census.gov/data/2023/acs/acs5?get=NAME,B01003_001E&for=county:*&in=state:*"
+        url_before = "https://api.census.gov/data/2018/acs/acs5?get=NAME,B01003_001E&for=county:*&in=state:*"
+        r_now = requests.get(url_now, timeout=30)
+        r_before = requests.get(url_before, timeout=30)
+        r_now.raise_for_status()
+        r_before.raise_for_status()
+        data_now = r_now.json()
+        data_before = r_before.json()
+    except Exception as e:
+        print("Warning: could not fetch Census county population data -", e)
+        return None
+
+    if not data_now or len(data_now) < 2 or not data_before or len(data_before) < 2:
+        print("Warning: Census county population response was empty or malformed - skipping")
+        return None
+
+    header_now = data_now[0]
+    header_before = data_before[0]
+    try:
+        idx_name = header_now.index("NAME")
+        idx_pop = header_now.index("B01003_001E")
+        idx_state = header_now.index("state")
+        idx_county = header_now.index("county")
+        idx_pop_before = header_before.index("B01003_001E")
+        idx_state_before = header_before.index("state")
+        idx_county_before = header_before.index("county")
+    except ValueError as e:
+        print("Warning: Census county population response is missing an expected column -", e)
+        return None
+
+    before_lookup = {}
+    for row in data_before[1:]:
+        try:
+            fips = row[idx_state_before] + row[idx_county_before]
+            before_lookup[fips] = float(row[idx_pop_before])
+        except (ValueError, TypeError, IndexError):
+            continue
+
+    result = {}
+    for row in data_now[1:]:
+        try:
+            fips = row[idx_state] + row[idx_county]
+            pop_now = float(row[idx_pop])
+        except (ValueError, TypeError, IndexError):
+            continue
+        pop_before = before_lookup.get(fips)
+        growth_pct = None
+        if pop_before and pop_before > 0:
+            growth_pct = round((pop_now - pop_before) / pop_before * 100, 2)
+        result[fips] = {
+            "name": row[idx_name],
+            "pop": int(pop_now),
+            "pop_5yr_ago": int(pop_before) if pop_before else None,
+            "growth_pct": growth_pct,
+        }
+    return result
+
 def fetch_fred_mom(series_id):
     """Month-over-month % change now, what it was 6 months ago, and a rolling history in between."""
     obs = fetch_fred(series_id, limit=8)
@@ -1536,6 +1607,9 @@ for state_name, abbr in STATES:
     if r:
         state_rows.append({"state": state_name, **r})
 state_rows.sort(key=lambda x: -x["yoy"])
+
+# County-level data for the Investment Map (see PAGE 12 below for the map itself).
+county_population_data = fetch_census_county_population()
 
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
@@ -8545,11 +8619,167 @@ portfolio_html = (PORTFOLIO_TEMPLATE
                    .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                    .replace("__FOOTER__", FOOTER_HTML))
 
+# ------------------- PAGE 12: COUNTY INVESTMENT MAP -------------------
+#
+# First layer: 5-year county population growth (Census ACS, see fetch_census_county_population()
+# above). More layers (unemployment, income, home price appreciation, building permits) and the
+# Investment Opportunity Score are a planned fast-follow, not included in this first pass - see
+# the note in the page's methodology section.
+#
+# Architecture: county boundaries (TopoJSON, ~3,143 counties) and the D3/topojson-client
+# rendering libraries load from CDNs at runtime, same pattern as Chart.js/jsPDF/Firebase
+# elsewhere on this site. This page's own per-county data (county_data.json) is generated here
+# at build time and fetched by the browser alongside the boundary file.
+
+county_data_json = json.dumps(county_population_data) if county_population_data else "null"
+
+INVESTMENT_MAP_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>County Investment Map - Stock Digest</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson-client/3.1.0/topojson-client.min.js"></script>
+<style>__CSS__
+__DARKMODE_CSS__
+__LEARNINGMODE_CSS__
+#map-wrap { position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; }
+#county-map { width:100%; height:auto; }
+#county-map path.county { stroke:#fff; stroke-width:0.3; cursor:pointer; }
+#county-map path.county:hover { stroke:#111; stroke-width:1; }
+#county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
+#map-tooltip { position:absolute; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:10; max-width:220px; }
+#map-legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); margin-top:10px; }
+#map-legend .swatch { width:16px; height:12px; display:inline-block; }
+#map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
+</style>
+</head>
+<body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
+__NAV__
+<h1>County Investment Map</h1>
+<p class="timestamp">5-year population growth by U.S. county (2018-2023, Census ACS 5-Year Estimates).</p>
+
+<div class="beginner-box learning-mode-only">
+<h3>&#127891; What This Map Shows</h3>
+<p style="font-size:13px;line-height:1.6;margin:0;">Each county is colored by how much its population grew (green) or shrank (red) over the last 5 years of available Census data. Population growth is one input real estate investors watch because more people generally means more housing demand over time - but it's one factor among many, not a standalone signal.</p>
+</div>
+
+<div id="map-wrap">
+  <div id="map-loading">Loading county boundaries and data...</div>
+  <svg id="county-map" viewBox="0 0 975 610" style="display:none;"></svg>
+  <div id="map-tooltip"></div>
+</div>
+<div id="map-legend"></div>
+
+<p class="note" style="margin-top:14px;">
+<strong>Methodology:</strong> Population figures are from the Census Bureau's American Community Survey 5-Year Estimates, comparing the 2019-2023 vintage to the 2014-2018 vintage. Counties with no available data are shown in gray. This is one data layer of a planned multi-factor County Investment Map - additional layers (unemployment, income growth, home price appreciation, building permits) and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> Population growth alone does not indicate whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+</p>
+
+<script>
+var COUNTY_DATA = __COUNTY_DATA_JSON__;
+
+function fipsKey(id) {
+  return String(id).padStart(5, "0");
+}
+
+function colorForGrowth(pct) {
+  if (pct === null || pct === undefined || isNaN(pct)) return "#ccc";
+  var clamped = Math.max(-10, Math.min(20, pct));
+  var t = (clamped + 10) / 30; // 0 at -10%, 1 at +20%
+  return d3.interpolateRdYlGn(t);
+}
+
+function renderLegend() {
+  var stops = [-10, -5, 0, 5, 10, 15, 20];
+  var html = "No data:<span class='swatch' style='background:#ccc;'></span>&nbsp;&nbsp;";
+  stops.forEach(function(v) {
+    html += "<span class='swatch' style='background:" + colorForGrowth(v) + ";'></span>";
+  });
+  html += "<span style='margin-left:4px;'>-10% &rarr; +20% population growth</span>";
+  document.getElementById("map-legend").innerHTML = html;
+}
+
+Promise.all([
+  fetch("https://unpkg.com/us-atlas@3/counties-albers-10m.json").then(function(r) { return r.json(); }),
+]).then(function(results) {
+  var us = results[0];
+  var counties = topojson.feature(us, us.objects.counties);
+  var states = topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; });
+
+  document.getElementById("map-loading").style.display = "none";
+  var svg = document.getElementById("county-map");
+  svg.style.display = "block";
+
+  var d3svg = d3.select("#county-map");
+  var path = d3.geoPath();
+
+  d3svg.append("g")
+    .selectAll("path")
+    .data(counties.features)
+    .join("path")
+    .attr("class", "county")
+    .attr("d", path)
+    .attr("fill", function(d) {
+      if (!COUNTY_DATA) return "#ccc";
+      var rec = COUNTY_DATA[fipsKey(d.id)];
+      return rec ? colorForGrowth(rec.growth_pct) : "#ccc";
+    })
+    .on("mousemove", function(event, d) {
+      var tooltip = document.getElementById("map-tooltip");
+      var rec = COUNTY_DATA ? COUNTY_DATA[fipsKey(d.id)] : null;
+      if (!rec) {
+        tooltip.innerHTML = "No data available";
+      } else {
+        var growthText = (rec.growth_pct === null || rec.growth_pct === undefined) ? "N/A" : (rec.growth_pct > 0 ? "+" : "") + rec.growth_pct.toFixed(1) + "%";
+        tooltip.innerHTML = "<strong>" + rec.name + "</strong><br>Population: " + rec.pop.toLocaleString() + "<br>5-yr growth: " + growthText;
+      }
+      var wrapRect = document.getElementById("map-wrap").getBoundingClientRect();
+      tooltip.style.left = (event.clientX - wrapRect.left + 14) + "px";
+      tooltip.style.top = (event.clientY - wrapRect.top + 10) + "px";
+      tooltip.style.display = "block";
+    })
+    .on("mouseleave", function() {
+      document.getElementById("map-tooltip").style.display = "none";
+    });
+
+  d3svg.append("path")
+    .datum(states)
+    .attr("class", "state-border")
+    .attr("d", path);
+
+  renderLegend();
+}).catch(function(err) {
+  document.getElementById("map-loading").textContent = "Could not load the map (county boundary data failed to load). Try refreshing the page.";
+  console.error("County map load error:", err);
+});
+</script>
+__FOOTER__
+</body>
+</html>"""
+
+investment_map_html = (INVESTMENT_MAP_TEMPLATE
+                        .replace("__CSS__", PAGE_CSS)
+                        .replace("__NAV__", NAV_HTML)
+                        .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                        .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                        .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                        .replace("__LEARNINGMODE_CSS__", LEARNING_MODE_CSS)
+                        .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
+                        .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
+                        .replace("__FOOTER__", FOOTER_HTML)
+                        .replace("__COUNTY_DATA_JSON__", county_data_json))
+
 with open("index.html", "w") as f:
     f.write(stocks_html)
 
 with open("portfolio.html", "w") as f:
     f.write(portfolio_html)
+
+with open("investment-map.html", "w") as f:
+    f.write(investment_map_html)
 
 with open("realestate.html", "w") as f:
     f.write(realestate_html)
