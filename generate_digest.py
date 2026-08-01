@@ -540,7 +540,8 @@ NAV_HTML = """
   <a href="stocksearch.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Stock Search</a>
   <a href="propertymanager.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Property Manager</a>
   <a href="insights.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Market Insights</a>
-  <a href="glossary.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Glossary</a>
+  <a href="glossary.html" style="margin-right:16px;font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">Glossary</a>
+  <a href="educators.html" style="font-size:14px;color:#1f4e79;text-decoration:none;font-weight:600;">For Educators &amp; Students</a>
 </div>
 """
 
@@ -8054,6 +8055,68 @@ glossary_html = (GLOSSARY_TEMPLATE
                   .replace("__DARKMODE_JS__", DARK_MODE_JS)
                   .replace("__GLOSSARY_BODY__", glossary_body_html()))
 
+# ------------------- PAGE 9: FOR EDUCATORS & STUDENTS -------------------
+
+# Single place to update the contact address this page uses - change this one line if you'd
+# rather route requests somewhere else (a dedicated inbox, a form, etc.).
+EDUCATOR_CONTACT_EMAIL = "tonyhernandezusa@gmail.com"
+
+EDUCATORS_TEMPLATE = """<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For Educators &amp; Students - Stock Digest</title>
+<style>__CSS__
+__DARKMODE_CSS__
+.edu-section { background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:16px 18px; margin-bottom:16px; }
+.edu-section h2 { margin:0 0 8px; font-size:16px; color:var(--text); }
+.edu-section p { font-size:13px; line-height:1.6; color:var(--text); margin:0 0 10px; }
+.edu-section ul { margin:0 0 10px; padding-left:18px; font-size:13px; line-height:1.7; color:var(--text); }
+.edu-cta { display:inline-block; background:#1f4e79; color:#fff; text-decoration:none; font-weight:600; font-size:13px; padding:10px 18px; border-radius:6px; }
+</style>
+</head>
+<body>
+__DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
+__NAV__
+<h1>For Business Educators &amp; Students</h1>
+<p class="timestamp">Stock Digest is free to explore, and we're glad to have it used in the classroom.</p>
+
+<div class="edu-section">
+<h2>Free Classroom Access for Professors</h2>
+<p>If you teach finance, economics, accounting, or business at the high school, community college, or university level, we'll set up free classroom access for you and your students - no cost, no catch. This is a manual, no-verification-hassle process right now: just tell us a bit about your course and we'll get you set up.</p>
+<a class="edu-cta" href="mailto:__EDUCATOR_EMAIL__?subject=Classroom%20Access%20Request&amp;body=Course%20name%3A%0ASchool%2Finstitution%3A%0AApproximate%20number%20of%20students%3A%0AWhat%20you%27d%20like%20to%20use%20Stock%20Digest%20for%3A" target="_blank" rel="noopener">Request Classroom Access</a>
+</div>
+
+<div class="edu-section">
+<h2>Suggested Classroom Uses</h2>
+<ul>
+<li><strong>Monetary policy &amp; the Fed's dual mandate:</strong> The <a href="index.html">Fed Policy Targets</a> table shows real, current CPI, Core PCE, unemployment, GDP growth, and Fed Funds Rate readings against the Fed's own longer-run targets - a live example for teaching how the FOMC's Summary of Economic Projections works.</li>
+<li><strong>Fundamentals vs. market sentiment:</strong> The <a href="index.html">Fundamentals vs. Sentiment Gauge</a> gives students a concrete, numeric way to separate "what the macro data explains" from "what's left over" in a sector's price move - a good jumping-off point for discussing market efficiency and behavioral finance.</li>
+<li><strong>Time value of money &amp; loan mechanics:</strong> The <a href="calculators.html">Financial Calculators</a> page (mortgage, auto loan, business valuation, real estate investment) shows students the actual amortization and DSCR math behind the numbers, not just a black-box payment figure.</li>
+<li><strong>Building financial vocabulary:</strong> The <a href="glossary.html">Glossary</a> covers every indicator, index, and rate on the site, with what it measures and who publishes it - useful as an assigned reading or reference for an intro finance/econ course.</li>
+<li><strong>Real estate &amp; property finance:</strong> The <a href="propertymanager.html">Property Manager</a> and <a href="realestate.html">Real Estate</a> pages work as a live case study for cap rate, cash-on-cash return, and DSCR concepts in a real estate finance course.</li>
+</ul>
+</div>
+
+<div class="edu-section">
+<h2>For Students</h2>
+<p>Everything on Stock Digest is free to explore on your own - no login required for most pages. If your professor sets up classroom access, ask them about any course-specific materials or discussion questions they're using alongside it. If you're studying independently and have a question about how a specific calculator or indicator works, the <a href="glossary.html">Glossary</a> and the hover-over definitions throughout the site are a good place to start.</p>
+</div>
+
+<p class="note">Stock Digest is an educational and informational tool. Nothing on this site is personalized financial advice or a recommendation to buy or sell any security.</p>
+
+</body>
+</html>"""
+
+educators_html = (EDUCATORS_TEMPLATE
+                   .replace("__CSS__", PAGE_CSS)
+                   .replace("__NAV__", NAV_HTML)
+                   .replace("__DARKMODE_CSS__", DARK_MODE_CSS)
+                   .replace("__DARKMODE_BUTTON__", DARK_MODE_BUTTON)
+                   .replace("__DARKMODE_JS__", DARK_MODE_JS)
+                   .replace("__EDUCATOR_EMAIL__", EDUCATOR_CONTACT_EMAIL))
+
 with open("index.html", "w") as f:
     f.write(stocks_html)
 
@@ -8077,6 +8140,9 @@ with open("propertymanager.html", "w") as f:
 
 with open("glossary.html", "w") as f:
     f.write(glossary_html)
+
+with open("educators.html", "w") as f:
+    f.write(educators_html)
 
 # ------------------- PAGE 7: MARKET INSIGHTS (LOGIN-GATED, PERSONAL USE ONLY) -------------------
 
