@@ -521,7 +521,7 @@ Promise.all([
   document.getElementById("map-loading").textContent = "Could not load the map. Error: " + (err && err.message ? err.message : err) + " - try refreshing the page.";
   console.error("County map load error:", err);
 });
-[Piece 1 - rewindForD3 function]
+function rewindForD3(geojson) {   function fixPolygonRings(rings) {     var test = { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: rings } };     if (d3.geoArea(test) > 2 * Math.PI) {       rings.forEach(function(ring) { ring.reverse(); });     }   }   var features = geojson.features.map(function(f) {     var geom = JSON.parse(JSON.stringify(f.geometry));     if (geom.type === "Polygon") {       fixPolygonRings(geom.coordinates);     } else if (geom.type === "MultiPolygon") {       geom.coordinates.forEach(fixPolygonRings);     }     return { type: "Feature", properties: f.properties, geometry: geom };   });   return { type: "FeatureCollection", features: features }; }
 
 // Generic territory map renderer, used for Puerto Rico+USVI, Guam+CNMI, and American Samoa -
 // same rendering, tooltip, and error-handling logic for all three, just pointed at different
