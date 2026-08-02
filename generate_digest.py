@@ -8748,8 +8748,9 @@ __LEARNINGMODE_CSS__
 #county-map path.county:hover { stroke:#111; stroke-width:1; }
 #county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
 #map-tooltip { position:absolute; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:10; max-width:220px; }
-#map-legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); margin-top:10px; }
-#map-legend .swatch { width:16px; height:12px; display:inline-block; }
+#map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
+#map-legend .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+#map-legend .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
 #map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
 #layer-toggle { display:flex; gap:8px; margin-bottom:12px; }
 #layer-toggle button { padding:8px 14px; border-radius:8px; border:1px solid var(--card-border); background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; }
@@ -8814,17 +8815,18 @@ function colorForCounty(rec) {
 }
 
 function renderLegend() {
-  var html = "No data:<span class='swatch' style='background:#ccc;'></span>&nbsp;&nbsp;";
+  var html = "<div class='legend-item'><span class='swatch' style='background:#ccc;'></span><span>No data</span></div>";
   if (currentLayer === "growth") {
     [-10, -5, 0, 5, 10, 15, 20].forEach(function(v) {
-      html += "<span class='swatch' style='background:" + colorForGrowth(v) + ";'></span>";
+      var label = (v > 0 ? "+" : "") + v + "%";
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForGrowth(v) + ";'></span><span>" + label + "</span></div>";
     });
-    html += "<span style='margin-left:4px;'>-10% &rarr; +20% population growth</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>5-yr population growth</span>";
   } else {
     [2, 4, 6, 8, 10, 12].forEach(function(v) {
-      html += "<span class='swatch' style='background:" + colorForUnemployment(v) + ";'></span>";
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForUnemployment(v) + ";'></span><span>" + v + "%</span></div>";
     });
-    html += "<span style='margin-left:4px;'>2% &rarr; 12% unemployment rate (lower is greener)</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>unemployment rate (lower is greener)</span>";
   }
   document.getElementById("map-legend").innerHTML = html;
 }
