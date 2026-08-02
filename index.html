@@ -49,6 +49,7 @@ body.dark-mode {
   background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
   border-radius: 20px; cursor: pointer;
 }
+
 #chart-mode-toggle {
   position: fixed; top: 56px; right: 16px; z-index: 1000;
   padding: 8px 14px; font-size: 13px; font-weight: 600;
@@ -56,6 +57,7 @@ body.dark-mode {
   border-radius: 20px; cursor: pointer;
 }
 .sparkline { display: block; margin-top: 6px; }
+
 .learning-mode-only { display: none; }
 body.learning-mode .learning-mode-only { display: block; }
 tr.learning-mode-only { display: none; }
@@ -68,6 +70,7 @@ body.learning-mode tr.learning-mode-only { display: table-row; }
 <body>
 <button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
 <button id="chart-mode-toggle" onclick="toggleAllSparklineType()">&#128202; View as Bars</button>
+
 <button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>
 <script>
 (function() {
@@ -98,6 +101,7 @@ function toggleTheme() {
   localStorage.setItem('siteDarkMode', isDark ? 'dark' : 'light');
   document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
 }
+
 
 function renderSparklineAsMode(svg, mode) {
   var values = svg.getAttribute('data-values').split(',').map(Number).filter(function(v) { return !isNaN(v); });
@@ -132,35 +136,32 @@ function renderSparklineAsMode(svg, mode) {
   }
   svg.innerHTML = content;
 }
-
 function toggleSparklineType(svg) {
   var mode = svg.getAttribute('data-mode') === 'bar' ? 'line' : 'bar';
   renderSparklineAsMode(svg, mode);
 }
-
 function setAllSparklineType(mode) {
   document.querySelectorAll('svg.sparkline').forEach(function(svg) {
     renderSparklineAsMode(svg, mode);
   });
-  localStorage.setItem('stocksPageChartMode', mode);
+  localStorage.setItem('siteChartMode', mode);
   var btn = document.getElementById('chart-mode-toggle');
   if (btn) btn.innerHTML = mode === 'bar' ? '&#128200; View as Lines' : '&#128202; View as Bars';
 }
-
 function toggleAllSparklineType() {
   var current = (document.querySelector('svg.sparkline') || {}).getAttribute
     ? document.querySelector('svg.sparkline').getAttribute('data-mode') : 'line';
   setAllSparklineType(current === 'bar' ? 'line' : 'bar');
 }
-
 (function() {
-  var savedChartMode = localStorage.getItem('stocksPageChartMode');
+  var savedChartMode = localStorage.getItem('siteChartMode');
   if (savedChartMode === 'bar') {
     document.addEventListener('DOMContentLoaded', function() {
       setAllSparklineType('bar');
     });
   }
 })();
+
 
 var AI_INSIGHT_WORKER_URL = "https://finnhub-proxy.tonyhernandezusa.workers.dev";
 
@@ -228,7 +229,7 @@ function showAIInsight(btn) {
 </div>
 
 <h1>Daily Stock Digest</h1>
-<p class="timestamp">Updated 2026-08-02 10:21 UTC</p>
+<p class="timestamp">Updated 2026-08-02 10:45 UTC</p>
 
 
 <div class="beginner-box learning-mode-only">
@@ -240,7 +241,7 @@ function showAIInsight(btn) {
 
 <div class="card" style="max-width:100%;margin-bottom:16px;"><p class="label" style="font-size:14px;font-weight:600;color:#333;">Stock Market Alert</p><div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;"><svg width="320" height="90" viewBox="0 0 320 90" xmlns="http://www.w3.org/2000/svg"><rect x="10.0" y="45" width="75.0" height="24" fill="#b91c1c"/><rect x="85.0" y="45" width="52.5" height="24" fill="#f87171"/><rect x="137.5" y="45" width="45.0" height="24" fill="#d1d5db"/><rect x="182.5" y="45" width="52.5" height="24" fill="#86efac"/><rect x="235.0" y="45" width="75.0" height="24" fill="#15803d"/><line x1="160.0" y1="41" x2="160.0" y2="73" stroke="#555" stroke-width="1.5"/><polygon points="215.0,33 231.0,33 223.0,44" fill="#111"/><text x="10" y="89" font-size="11" fill="#888">-100 Severe Risk</text><text x="160.0" y="89" font-size="11" fill="#888" text-anchor="middle">0</text><text x="310" y="89" font-size="11" fill="#888" text-anchor="end">+100 Strong</text></svg><div style="font-size:28px;font-weight:700;color:#4ade80;">+42</div></div><p style="font-size:12px;line-height:1.5;margin:8px 0 0;max-width:700px;">Market conditions show moderately positive momentum with broad-based gains across major indices—the S&P 500, Dow, and Nasdaq all advanced today, with the Nasdaq leading at +1.00%. The positive yield curve spread of 0.47 between 10-year and 2-year Treasuries indicates reduced recession risk and a healthier economic outlook. Oil's strength at +1.29% suggests underlying demand resilience. However, the semiconductor sector's weakness at -1.13% is a notable concern, as chip stocks often lead economic cycles and their underperformance hints at softer forward momentum or sector-specific headwinds. The Fed Funds Rate at 3.63% reflects a restrictive policy environment that continues to weigh on growth, even if rate cuts may eventually come. Overall, today's data reflects cautious optimism with enough warning signals to warrant measured rather than aggressive positioning.</p><span style="font-size:10px;color:#999;">AI-generated market synthesis - not personalized financial advice. Updated once daily.</span><div style='display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;'><div><p style='font-size:11px;color:#666;margin:0 0 2px;'>Daily (30d)</p><div><svg width="280" height="60" viewBox="0 0 280 60" xmlns="http://www.w3.org/2000/svg"><polyline points="2.0,58.0 94.0,2.0 186.0,17.2 278.0,17.2" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="2.0" cy="58.0" r="2.5" fill="#999"/><text x="2.0" y="52.0" font-size="10" fill="#888" text-anchor="start">-28</text><circle cx="278.0" cy="17.2" r="2.5" fill="#1a8a3d"/><text x="278.0" y="11.2" font-size="10" fill="#1a8a3d" font-weight="600" text-anchor="end">+42</text></svg><p style="font-size:10px;color:#999;margin:2px 0 0;">2026-07-30 &rarr; 2026-08-02</p></div></div><div><p style='font-size:11px;color:#666;margin:0 0 2px;'>Weekly (90d)</p><div><svg width="280" height="60" viewBox="0 0 280 60" xmlns="http://www.w3.org/2000/svg"><polyline points="2.0,58.0 94.0,2.0 186.0,17.2 278.0,17.2" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="2.0" cy="58.0" r="2.5" fill="#999"/><text x="2.0" y="52.0" font-size="10" fill="#888" text-anchor="start">-28</text><circle cx="278.0" cy="17.2" r="2.5" fill="#1a8a3d"/><text x="278.0" y="11.2" font-size="10" fill="#1a8a3d" font-weight="600" text-anchor="end">+42</text></svg><p style="font-size:10px;color:#999;margin:2px 0 0;">2026-07-30 &rarr; 2026-08-02</p></div></div><div><p style='font-size:11px;color:#666;margin:0 0 2px;'>Monthly (365d)</p><div><svg width="280" height="60" viewBox="0 0 280 60" xmlns="http://www.w3.org/2000/svg"><polyline points="2.0,58.0 94.0,2.0 186.0,17.2 278.0,17.2" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="2.0" cy="58.0" r="2.5" fill="#999"/><text x="2.0" y="52.0" font-size="10" fill="#888" text-anchor="start">-28</text><circle cx="278.0" cy="17.2" r="2.5" fill="#1a8a3d"/><text x="278.0" y="11.2" font-size="10" fill="#1a8a3d" font-weight="600" text-anchor="end">+42</text></svg><p style="font-size:10px;color:#999;margin:2px 0 0;">2026-07-30 &rarr; 2026-08-02</p></div></div><div><p style='font-size:11px;color:#666;margin:0 0 2px;'>Yearly (all)</p><div><svg width="280" height="60" viewBox="0 0 280 60" xmlns="http://www.w3.org/2000/svg"><polyline points="2.0,58.0 94.0,2.0 186.0,17.2 278.0,17.2" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="2.0" cy="58.0" r="2.5" fill="#999"/><text x="2.0" y="52.0" font-size="10" fill="#888" text-anchor="start">-28</text><circle cx="278.0" cy="17.2" r="2.5" fill="#1a8a3d"/><text x="278.0" y="11.2" font-size="10" fill="#1a8a3d" font-weight="600" text-anchor="end">+42</text></svg><p style="font-size:10px;color:#999;margin:2px 0 0;">2026-07-30 &rarr; 2026-08-02</p></div></div></div></div>
 
-<div class="card" style="max-width:100%;margin-bottom:16px;"><p class="label" style="font-size:14px;font-weight:600;color:#333;">Stocks & Economy News</p><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://www.straitstimes.com/business/chinas-central-bank-pledges-timely-policy-tool-adjustment" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">China’s central bank pledges timely policy tool adjustment</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Data released in July showed economic growth at 4.3 per cent in the second quarter, its slowest in over 3 years. Read more at straitstimes.com. Read more at...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://economictimes.indiatimes.com/news/sports/cricket/india-speedster-jasprit-bumrah-likely-to-miss-test-series-against-sri-lanka/articleshow/132804378.cms" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">India speedster Jasprit Bumrah likely to miss Test series against Sri Lanka</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Ace pacer Jasprit Bumrah is likely to miss India&#x27;s two-Test series in Sri Lanka in August, with the BCCI medical team advising the premier pacer to allow...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">SECTIONS India speedster Jasprit Bumrah likely &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://economictimes.indiatimes.com/news/economy/indicators/indian-companies-ramp-up-inventories-to-combat-rising-commodity-prices-and-supply-chain-challenges-amid-geopolitical-tensions/articleshow/132804364.cms" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Indian companies build inventories amid rising commodity prices, supply chain risks: Report</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Indian companies are accelerating inventory build-up to meet strong domestic demand. This strategy also prepares them for potential commodity price...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">SECTIONS Indian companies build inventories amid rising commodity prices; Supply Chain Risks Report Ani &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://economictimes.indiatimes.com/news/new-updates/who-is-gaurav-madaan-samay-rainas-indias-got-latent-2-contestant-wins-1-lakh-in-karan-aujla-episode/articleshow/132804326.cms" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Who is Gaurav Madaan? Samay Raina’s India’s Got Latent 2 contestant wins ₹1 lakh in Karan Aujla episode</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Samay Raina&#x27;s India&#x27;s Got Latent 2 featured singer Karan Aujla as a guest. Comedian Gaurav Madaan impressed judges with a musical comedy act. He performed a...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">Trending Desk &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://economictimes.indiatimes.com/news/new-updates/parle-introduces-new-melody-tiramisu-toffee-pack-that-carries-celebrating-india-italy-friendship-message-comes-after-viral-melodi-moments/articleshow/132804252.cms" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Parle&#x27;s new &#x27;Melody Tiramisu&#x27; toffee pack carries &#x27;celebrating India-Italy friendship&#x27; message; comes after viral &#x27;Melodi&#x27; moments</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Parle has launched a limited edition Tiramisu flavour of its iconic Melody toffee exclusively on Blinkit, with the pack explicitly carrying a &#x27;celebrating...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">Trending Desk &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://www.businessinsider.com/jon-gray-running-video-viral-blackstone-intern-analyst-2026-7" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Blackstone&#x27;s Jon Gray goes jogging and goes viral. I took a run with him.</a><p style="margin:4px 0 0;font-size:12px;color:#555;">I spent my Thursday morning jogging with Jon Gray and Blackstone analysts, and felt firsthand the business value of his social media jogging videos.</p><p style="margin:4px 0 0;font-size:11px;color:#999;">atecotzky@businessinsider.com (Alice Tecotzky) &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://www.reddit.com/r/personalfinance/comments/1vddp3a/22_yo_living_in_switzerland_starting_everything/" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">22 yo living in Switzerland starting everything from scratches</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Hi guys,  Here is my situation :  Liability: I have a 4k debt left Assets : 1k7 in the stock market (-30% for the past 6 months), 2k8 in cash Cash-flow :...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">/u/Hot_Temperature1263 &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://www.businesstimes.com.sg/companies-markets/banking-finance/anz-nab-among-banks-funding-blackstones-hsbc-book-buy-australian-media" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">ANZ, NAB among banks funding Blackstone’s HSBC book buy: Australian media</a><p style="margin:4px 0 0;font-size:12px;color:#555;">At least A$30 billion in senior debt has been arranged through a residential mortgage-backed securitisation Read more at The Business Times.</p><p style="margin:4px 0 0;font-size:11px;color:#999;">The Business Times &middot; 2026-08-02</p></div></div>
+<div class="card" style="max-width:100%;margin-bottom:16px;"><p class="label" style="font-size:14px;font-weight:600;color:#333;">Stocks & Economy News</p><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://bworldonline.com/sports/2026/08/02/767529/eala-cruises-to-first-wta-500-final/" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Eala cruises to first WTA 500 final - BusinessWorld Online</a><p style="margin:4px 0 0;font-size:12px;color:#555;">AFTER conquering Mt. Fuji’s best, one step now separates Alexandra “Alex” Eala from reaching another summit for Philippine tennis. And whether she achieves...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">CEDTyClea &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://bworldonline.com/sports/2026/08/02/767528/akari-beats-choco-mucho-in-four-sets-as-nisperos-scores-9-points/" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Akari beats Choco Mucho in four sets as Nisperos scores 9 points - BusinessWorld Online</a><p style="margin:4px 0 0;font-size:12px;color:#555;">FAITH NISPEROS was once one of the country’s promising talents that came out from college and her future looked bright when she signed up for the Akari...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">CEDTyClea &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://bworldonline.com/sports/2026/08/02/767527/philippines-rallies-to-defeat-laos-4-1-in-asean-football-championship-hyundai-cup/" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Philippines rallies to defeat Laos, 4-1, in Asean Football Championship-Hyundai Cup - BusinessWorld Online</a><p style="margin:4px 0 0;font-size:12px;color:#555;">THE Philippines needed a strong finishing kick to overcome a one-goal deficit and beat Laos, 4-1, to revitalize its bid in the Asean Football...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">CEDTyClea &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://bworldonline.com/sports/2026/08/02/767526/thompson-vs-derozan/" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Thompson vs DeRozan - BusinessWorld Online</a><p style="margin:4px 0 0;font-size:12px;color:#555;">The National Basketball Association (NBA) has never lacked for nostalgia. Every summer produces another attempt to reunite a fading star with a contender...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">CEDTyClea &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://economictimes.indiatimes.com/news/politics-and-nation/bjp-stands-for-bhrasht-julm-and-paap-akhilesh-yadav/articleshow/132804844.cms" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">BJP stands for &#x27;bhrasht&#x27;, &#x27;julm&#x27; and &#x27;paap&#x27;: Akhilesh Yadav</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Akhilesh Yadav labeled the BJP as corrupt, oppressive, and sinful during a press conference. He asserted that Uttar Pradesh&#x27;s problems would end only after...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">SECTIONS BJP stands for; Akhilesh Yadav Pti &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://economictimes.indiatimes.com/news/india/ladakh-lg-vinai-kumar-saxena-decentralises-land-use-approvals-to-speed-up-development-work/articleshow/132804850.cms" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Ladakh LG Vinai Kumar Saxena decentralises land-use approvals to speed up development work</a><p style="margin:4px 0 0;font-size:12px;color:#555;">Ladakh&#x27;s Lieutenant Governor has delegated land-use approval powers to officials. This move aims to decentralize decision-making for development projects...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">SECTIONS Ladakh LG Vinai Kumar Saxena decentralises land-use approvals &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://economictimes.indiatimes.com/news/india/indias-greatest-strength-lies-in-its-young-population-jammu-kashmir-lieutenant-general/articleshow/132804768.cms" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">India&#x27;s greatest strength lies in its young population: Jammu &amp; Kashmir Lieutenant General</a><p style="margin:4px 0 0;font-size:12px;color:#555;">India&#x27;s strength lies in its young population, with nearly sixty-five percent below thirty-five years old. Lieutenant Governor Manoj Sinha urged youth to...</p><p style="margin:4px 0 0;font-size:11px;color:#999;">SECTIONS India's greatest strength lies; Kashmir Lieutenant General PTI &middot; 2026-08-02</p></div><div style="padding:10px 0;border-top:1px solid #eee;"><a href="https://www.twelfthmagpie.com/2026/08/02/check-out-the-latest-rolls-royce-share-price-forecast-after-last-weeks-stunning-results/" target="_blank" rel="noopener" style="color:#1f4e79;font-weight:600;text-decoration:none;font-size:14px;">Check out the latest Rolls-Royce share price forecast after last week’s stunning results!</a><p style="margin:4px 0 0;font-size:12px;color:#555;">The Rolls-Royce share price continues to defy gravity, thanks to another brilliant set of results last week. Harvey Jones looks at what might happen next.</p><p style="margin:4px 0 0;font-size:11px;color:#999;">Harvey Jones &middot; 2026-08-02</p></div></div>
 
 <div class="summary">
   <div class="card" title="The stocks you've added to track.
@@ -406,9 +407,9 @@ Calculated and published by the Federal Reserve, tracked via FRED.">
       <p class="label">Mortgage Delinquency Rate (Consumer)</p>
       <p class="value">1.89%</p>
       <p style="margin:2px 0 0;font-size:11px;color:#999;">as of 2026-01-01</p>
-      
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="1.74,1.78,1.77,1.78,1.78,1.79,1.89" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,22.0 14.7,16.7 27.3,18.0 40.0,16.7 52.7,16.7 65.3,15.3 78.0,2.0" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 1.89% &middot; <span style="color:#888;">+0.00 pt (+0.0%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Mortgage Delinquency Rate (Consumer)' data-value='1.89' data-unit='%' data-pct='' data-sixmo='1.89' data-history='1.89' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='Mortgage Delinquency Rate (Consumer)' data-value='1.89' data-unit='%' data-pct='' data-sixmo='1.89' data-history='1.74,1.78,1.77,1.78,1.78,1.79,1.89' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div></div>
 <p class="note">Total Consumer Credit and Credit Card Balances are non-mortgage consumer debt (credit cards, auto loans, student loans, personal loans), seasonally adjusted. Delinquency rates are the share of loans 30+ days past due. Source: Federal Reserve (FRED).</p>
 
@@ -1277,21 +1278,21 @@ Priced and traded on the CME (Chicago Mercantile Exchange).">
 A decentralized digital currency not issued by any government or central bank, often described as 'digital gold' due to its capped 21 million coin supply.
 Tracked via public blockchain data; price shown here reflects trading on major exchanges via Yahoo Finance.">
       <p class="label">Bitcoin</p>
-      <p class="value">$63,167.47</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.64% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="78688.765625,66221.84375,68003.765625,68293.6484375,70493.4609375,67845.2109375,68233.3125,72979.046875,73856.3515625,75776.1328125,80186.765625,76954.171875,74344.703125,60867.4140625,66289.5,59721.67578125,63088.3046875,64956.11328125,65044.8125,63167.46875" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,3.5 6.0,15.6 10.0,13.9 14.0,13.6 18.0,11.5 22.0,14.1 26.0,13.7 30.0,9.0 34.0,8.2 38.0,6.3 42.0,2.0 46.0,5.2 50.0,7.7 54.0,20.9 58.0,15.6 62.0,22.0 66.0,18.7 70.0,16.9 74.0,16.8 78.0,18.6" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 78,688.77 &middot; <span style="color:#c0392b;">-15,521.30 (-19.7%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Bitcoin' data-value='63167.47' data-unit='$' data-pct='0.64' data-sixmo='78688.77' data-history='78688.765625,66221.84375,68003.765625,68293.6484375,70493.4609375,67845.2109375,68233.3125,72979.046875,73856.3515625,75776.1328125,80186.765625,76954.171875,74344.703125,60867.4140625,66289.5,59721.67578125,63088.3046875,64956.11328125,65044.8125,63167.46875' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$63,140.53</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+0.60% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="78688.765625,66221.84375,68003.765625,68293.6484375,70493.4609375,67845.2109375,68233.3125,72979.046875,73856.3515625,75776.1328125,80186.765625,76954.171875,74344.703125,60867.4140625,66289.5,59721.67578125,63088.3046875,64956.11328125,65044.8125,63140.53125" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,3.5 6.0,15.6 10.0,13.9 14.0,13.6 18.0,11.5 22.0,14.1 26.0,13.7 30.0,9.0 34.0,8.2 38.0,6.3 42.0,2.0 46.0,5.2 50.0,7.7 54.0,20.9 58.0,15.6 62.0,22.0 66.0,18.7 70.0,16.9 74.0,16.8 78.0,18.7" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 78,688.77 &middot; <span style="color:#c0392b;">-15,548.24 (-19.8%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='Bitcoin' data-value='63140.53' data-unit='$' data-pct='0.6' data-sixmo='78688.77' data-history='78688.765625,66221.84375,68003.765625,68293.6484375,70493.4609375,67845.2109375,68233.3125,72979.046875,73856.3515625,75776.1328125,80186.765625,76954.171875,74344.703125,60867.4140625,66289.5,59721.67578125,63088.3046875,64956.11328125,65044.8125,63140.53125' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="The second-largest cryptocurrency by market value.
 Unlike Bitcoin, its blockchain runs programmable 'smart contracts,' making it the base layer for most decentralized finance (DeFi) applications.
 Tracked via public blockchain data; price shown here reflects trading on major exchanges via Yahoo Finance.">
       <p class="label">Ethereum</p>
-      <p class="value">$1,867.59</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.31% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="2344.356689453125,1946.940673828125,1973.7371826171875,1982.7689208984375,2073.13623046875,2053.04833984375,2104.708251953125,2245.148681640625,2264.9169921875,2253.415771484375,2306.97216796875,2128.51611328125,2022.1982421875,1568.7677001953125,1794.961181640625,1564.816650390625,1779.032958984375,1889.4798583984375,1877.1002197265625,1867.5899658203125" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,12.2 10.0,11.5 14.0,11.3 18.0,9.0 22.0,9.5 26.0,8.1 30.0,4.5 34.0,4.0 38.0,4.3 42.0,3.0 46.0,7.5 50.0,10.3 54.0,21.9 58.0,16.1 62.0,22.0 66.0,16.5 70.0,13.7 74.0,14.0 78.0,14.2" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 2,344.36 &middot; <span style="color:#c0392b;">-476.77 (-20.3%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Ethereum' data-value='1867.59' data-unit='$' data-pct='1.31' data-sixmo='2344.36' data-history='2344.356689453125,1946.940673828125,1973.7371826171875,1982.7689208984375,2073.13623046875,2053.04833984375,2104.708251953125,2245.148681640625,2264.9169921875,2253.415771484375,2306.97216796875,2128.51611328125,2022.1982421875,1568.7677001953125,1794.961181640625,1564.816650390625,1779.032958984375,1889.4798583984375,1877.1002197265625,1867.5899658203125' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$1,867.35</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.30% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="2344.356689453125,1946.940673828125,1973.7371826171875,1982.7689208984375,2073.13623046875,2053.04833984375,2104.708251953125,2245.148681640625,2264.9169921875,2253.415771484375,2306.97216796875,2128.51611328125,2022.1982421875,1568.7677001953125,1794.961181640625,1564.816650390625,1779.032958984375,1889.4798583984375,1877.1002197265625,1867.3499755859375" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,12.2 10.0,11.5 14.0,11.3 18.0,9.0 22.0,9.5 26.0,8.1 30.0,4.5 34.0,4.0 38.0,4.3 42.0,3.0 46.0,7.5 50.0,10.3 54.0,21.9 58.0,16.1 62.0,22.0 66.0,16.5 70.0,13.7 74.0,14.0 78.0,14.2" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 2,344.36 &middot; <span style="color:#c0392b;">-477.01 (-20.3%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='Ethereum' data-value='1867.35' data-unit='$' data-pct='1.3' data-sixmo='2344.36' data-history='2344.356689453125,1946.940673828125,1973.7371826171875,1982.7689208984375,2073.13623046875,2053.04833984375,2104.708251953125,2245.148681640625,2264.9169921875,2253.415771484375,2306.97216796875,2128.51611328125,2022.1982421875,1568.7677001953125,1794.961181640625,1564.816650390625,1779.032958984375,1889.4798583984375,1877.1002197265625,1867.3499755859375' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A 'stablecoin' designed to hold a constant value of $1 USD, issued by Tether Limited.
 Backed by reserves the company says it holds in cash and cash equivalents; used mainly as a stable trading pair on crypto exchanges rather than as a speculative investment.
@@ -1299,149 +1300,149 @@ Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Tether</p>
       <p class="value">$1.00</p>
       <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.01% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.999131977558136,0.9991639852523804,0.9997810125350952,1.000087022781372,1.0000499486923218,0.999858021736145,0.999023973941803,1.000236988067627,1.0001980066299438,0.9995589852333069,0.9998760223388672,0.9993209838867188,0.9984509944915771,0.999530017375946,0.9993389844894409,0.9986129999160767,0.9990710020065308,0.9992510080337524,0.9991729855537415,0.9989699721336365" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,14.4 6.0,14.0 10.0,7.1 14.0,3.7 18.0,4.1 22.0,6.2 26.0,15.6 30.0,2.0 34.0,2.4 38.0,9.6 42.0,6.0 46.0,12.3 50.0,22.0 54.0,9.9 58.0,12.1 62.0,20.2 66.0,15.1 70.0,13.0 74.0,13.9 78.0,16.2" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.999131977558136,0.9991639852523804,0.9997810125350952,1.000087022781372,1.0000499486923218,0.999858021736145,0.999023973941803,1.000236988067627,1.0001980066299438,0.9995589852333069,0.9998760223388672,0.9993209838867188,0.9984509944915771,0.999530017375946,0.9993389844894409,0.9986129999160767,0.9990710020065308,0.9992510080337524,0.9991729855537415,0.9989500045776367" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,14.4 6.0,14.0 10.0,7.1 14.0,3.7 18.0,4.1 22.0,6.2 26.0,15.6 30.0,2.0 34.0,2.4 38.0,9.6 42.0,6.0 46.0,12.3 50.0,22.0 54.0,9.9 58.0,12.1 62.0,20.2 66.0,15.1 70.0,13.0 74.0,13.9 78.0,16.4" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 1.00 &middot; <span style="color:#888;">+0.00 (+0.0%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Tether' data-value='1.0' data-unit='$' data-pct='-0.01' data-sixmo='1.0' data-history='0.999131977558136,0.9991639852523804,0.9997810125350952,1.000087022781372,1.0000499486923218,0.999858021736145,0.999023973941803,1.000236988067627,1.0001980066299438,0.9995589852333069,0.9998760223388672,0.9993209838867188,0.9984509944915771,0.999530017375946,0.9993389844894409,0.9986129999160767,0.9990710020065308,0.9992510080337524,0.9991729855537415,0.9989699721336365' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='Tether' data-value='1.0' data-unit='$' data-pct='-0.01' data-sixmo='1.0' data-history='0.999131977558136,0.9991639852523804,0.9997810125350952,1.000087022781372,1.0000499486923218,0.999858021736145,0.999023973941803,1.000236988067627,1.0001980066299438,0.9995589852333069,0.9998760223388672,0.9993209838867188,0.9984509944915771,0.999530017375946,0.9993389844894409,0.9986129999160767,0.9990710020065308,0.9992510080337524,0.9991729855537415,0.9989500045776367' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="The native token of the Binance exchange and its associated blockchain.
 Used to pay reduced trading fees on Binance and as the 'gas' token for transactions on the BNB Chain blockchain.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">BNB</p>
-      <p class="value">$583.36</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.46% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="774.5792846679688,613.7109375,625.8980712890625,633.8309326171875,652.135009765625,626.601318359375,617.0491943359375,605.9915161132812,616.5244750976562,617.3297729492188,649.0093383789062,643.0562133789062,648.1592407226562,574.5108032226562,617.421875,559.7989501953125,574.9729614257812,581.7556762695312,566.9454956054688,583.3599853515625" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,17.0 10.0,15.8 14.0,15.1 18.0,13.4 22.0,15.8 26.0,16.7 30.0,17.7 34.0,16.7 38.0,16.6 42.0,13.7 46.0,14.2 50.0,13.8 54.0,20.6 58.0,16.6 62.0,22.0 66.0,20.6 70.0,20.0 74.0,21.3 78.0,19.8" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 774.58 &middot; <span style="color:#c0392b;">-191.22 (-24.7%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='BNB' data-value='583.36' data-unit='$' data-pct='1.46' data-sixmo='774.58' data-history='774.5792846679688,613.7109375,625.8980712890625,633.8309326171875,652.135009765625,626.601318359375,617.0491943359375,605.9915161132812,616.5244750976562,617.3297729492188,649.0093383789062,643.0562133789062,648.1592407226562,574.5108032226562,617.421875,559.7989501953125,574.9729614257812,581.7556762695312,566.9454956054688,583.3599853515625' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$583.48</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.48% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="774.5792846679688,613.7109375,625.8980712890625,633.8309326171875,652.135009765625,626.601318359375,617.0491943359375,605.9915161132812,616.5244750976562,617.3297729492188,649.0093383789062,643.0562133789062,648.1592407226562,574.5108032226562,617.421875,559.7989501953125,574.9729614257812,581.7556762695312,566.9454956054688,583.47998046875" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,17.0 10.0,15.8 14.0,15.1 18.0,13.4 22.0,15.8 26.0,16.7 30.0,17.7 34.0,16.7 38.0,16.6 42.0,13.7 46.0,14.2 50.0,13.8 54.0,20.6 58.0,16.6 62.0,22.0 66.0,20.6 70.0,20.0 74.0,21.3 78.0,19.8" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 774.58 &middot; <span style="color:#c0392b;">-191.10 (-24.7%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='BNB' data-value='583.48' data-unit='$' data-pct='1.48' data-sixmo='774.58' data-history='774.5792846679688,613.7109375,625.8980712890625,633.8309326171875,652.135009765625,626.601318359375,617.0491943359375,605.9915161132812,616.5244750976562,617.3297729492188,649.0093383789062,643.0562133789062,648.1592407226562,574.5108032226562,617.421875,559.7989501953125,574.9729614257812,581.7556762695312,566.9454956054688,583.47998046875' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A blockchain designed for high transaction speed and low fees, positioning itself as an alternative to Ethereum for decentralized applications.
 Its native token (SOL) is used to pay transaction fees on the network.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Solana</p>
-      <p class="value">$73.23</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.90% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="104.47115325927734,78.34844207763672,85.21113586425781,87.0197525024414,86.86779022216797,86.12834930419922,83.10646057128906,84.82847595214844,83.58094787597656,83.02687072753906,91.94982147216797,85.2968978881836,82.36812591552734,62.18980407714844,73.97933197021484,67.57408905029297,81.6496353149414,77.76244354248047,75.85980224609375,73.2300033569336" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,14.4 10.0,11.1 14.0,10.3 18.0,10.3 22.0,10.7 26.0,12.1 30.0,11.3 34.0,11.9 38.0,12.1 42.0,7.9 46.0,11.1 50.0,12.5 54.0,22.0 58.0,16.4 62.0,19.5 66.0,12.8 70.0,14.6 74.0,15.5 78.0,16.8" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 104.47 &middot; <span style="color:#c0392b;">-31.24 (-29.9%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Solana' data-value='73.23' data-unit='$' data-pct='1.9' data-sixmo='104.47' data-history='104.47115325927734,78.34844207763672,85.21113586425781,87.0197525024414,86.86779022216797,86.12834930419922,83.10646057128906,84.82847595214844,83.58094787597656,83.02687072753906,91.94982147216797,85.2968978881836,82.36812591552734,62.18980407714844,73.97933197021484,67.57408905029297,81.6496353149414,77.76244354248047,75.85980224609375,73.2300033569336' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$73.21</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.87% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="104.47115325927734,78.34844207763672,85.21113586425781,87.0197525024414,86.86779022216797,86.12834930419922,83.10646057128906,84.82847595214844,83.58094787597656,83.02687072753906,91.94982147216797,85.2968978881836,82.36812591552734,62.18980407714844,73.97933197021484,67.57408905029297,81.6496353149414,77.76244354248047,75.85980224609375,73.20999908447266" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,14.4 10.0,11.1 14.0,10.3 18.0,10.3 22.0,10.7 26.0,12.1 30.0,11.3 34.0,11.9 38.0,12.1 42.0,7.9 46.0,11.1 50.0,12.5 54.0,22.0 58.0,16.4 62.0,19.5 66.0,12.8 70.0,14.6 74.0,15.5 78.0,16.8" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 104.47 &middot; <span style="color:#c0392b;">-31.26 (-29.9%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='Solana' data-value='73.21' data-unit='$' data-pct='1.87' data-sixmo='104.47' data-history='104.47115325927734,78.34844207763672,85.21113586425781,87.0197525024414,86.86779022216797,86.12834930419922,83.10646057128906,84.82847595214844,83.58094787597656,83.02687072753906,91.94982147216797,85.2968978881836,82.36812591552734,62.18980407714844,73.97933197021484,67.57408905029297,81.6496353149414,77.76244354248047,75.85980224609375,73.20999908447266' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="The native token of the XRP Ledger, a blockchain created by Ripple Labs designed for fast, low-cost cross-border payments.
 Its price and use have been closely tied to Ripple's ongoing relationships with banks and payment providers.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">XRP</p>
       <p class="value">$1.08</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.91% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="1.6205470561981201,1.3620699644088745,1.4316649436950684,1.360563039779663,1.3846490383148193,1.3848830461502075,1.3402589559555054,1.3566060066223145,1.3946529626846313,1.3692519664764404,1.4182850122451782,1.3891990184783936,1.306151032447815,1.0934580564498901,1.2382129430770874,1.0416409969329834,1.1567870378494263,1.1111199855804443,1.1068830490112305,1.0800000429153442" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,10.9 10.0,8.5 14.0,11.0 18.0,10.1 22.0,10.1 26.0,11.7 30.0,11.1 34.0,9.8 38.0,10.7 42.0,9.0 46.0,10.0 50.0,12.9 54.0,20.2 58.0,15.2 62.0,22.0 66.0,18.0 70.0,19.6 74.0,19.7 78.0,20.7" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.90% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="1.6205470561981201,1.3620699644088745,1.4316649436950684,1.360563039779663,1.3846490383148193,1.3848830461502075,1.3402589559555054,1.3566060066223145,1.3946529626846313,1.3692519664764404,1.4182850122451782,1.3891990184783936,1.306151032447815,1.0934580564498901,1.2382129430770874,1.0416409969329834,1.1567870378494263,1.1111199855804443,1.1068830490112305,1.0799000263214111" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,10.9 10.0,8.5 14.0,11.0 18.0,10.1 22.0,10.1 26.0,11.7 30.0,11.1 34.0,9.8 38.0,10.7 42.0,9.0 46.0,10.0 50.0,12.9 54.0,20.2 58.0,15.2 62.0,22.0 66.0,18.0 70.0,19.6 74.0,19.7 78.0,20.7" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 1.62 &middot; <span style="color:#c0392b;">-0.54 (-33.3%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='XRP' data-value='1.08' data-unit='$' data-pct='1.91' data-sixmo='1.62' data-history='1.6205470561981201,1.3620699644088745,1.4316649436950684,1.360563039779663,1.3846490383148193,1.3848830461502075,1.3402589559555054,1.3566060066223145,1.3946529626846313,1.3692519664764404,1.4182850122451782,1.3891990184783936,1.306151032447815,1.0934580564498901,1.2382129430770874,1.0416409969329834,1.1567870378494263,1.1111199855804443,1.1068830490112305,1.0800000429153442' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='XRP' data-value='1.08' data-unit='$' data-pct='1.9' data-sixmo='1.62' data-history='1.6205470561981201,1.3620699644088745,1.4316649436950684,1.360563039779663,1.3846490383148193,1.3848830461502075,1.3402589559555054,1.3566060066223145,1.3946529626846313,1.3692519664764404,1.4182850122451782,1.3891990184783936,1.306151032447815,1.0934580564498901,1.2382129430770874,1.0416409969329834,1.1567870378494263,1.1111199855804443,1.1068830490112305,1.0799000263214111' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A 'stablecoin' designed to hold a constant value of $1 USD, issued by Circle.
 Backed by cash and short-term US Treasury holdings, with regular attestations of its reserves; used mainly as a stable trading pair rather than a speculative investment.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">USD Coin</p>
       <p class="value">$1.00</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#666;">+0.00% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.9996839761734009,0.9998679757118225,1.000035047531128,1.0000580549240112,0.9998909831047058,0.9999809861183167,0.9996740221977234,0.9998289942741394,0.9996659755706787,0.9997850060462952,0.9998229742050171,0.9998239874839783,0.9996730089187622,0.9997209906578064,0.9997029900550842,0.9997199773788452,0.9998329877853394,0.9998549818992615,0.9998419880867004,0.9998049139976501" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,21.1 6.0,11.7 10.0,3.2 14.0,2.0 18.0,10.5 22.0,5.9 26.0,21.6 30.0,13.7 34.0,22.0 38.0,15.9 42.0,14.0 46.0,13.9 50.0,21.6 54.0,19.2 58.0,20.1 62.0,19.2 66.0,13.5 70.0,12.4 74.0,13.0 78.0,14.9" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p style="margin:2px 0 0;font-size:13px;color:#666;">-0.00% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.9996839761734009,0.9998679757118225,1.000035047531128,1.0000580549240112,0.9998909831047058,0.9999809861183167,0.9996740221977234,0.9998289942741394,0.9996659755706787,0.9997850060462952,0.9998229742050171,0.9998239874839783,0.9996730089187622,0.9997209906578064,0.9997029900550842,0.9997199773788452,0.9998329877853394,0.9998549818992615,0.9998419880867004,0.999769926071167" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,21.1 6.0,11.7 10.0,3.2 14.0,2.0 18.0,10.5 22.0,5.9 26.0,21.6 30.0,13.7 34.0,22.0 38.0,15.9 42.0,14.0 46.0,13.9 50.0,21.6 54.0,19.2 58.0,20.1 62.0,19.2 66.0,13.5 70.0,12.4 74.0,13.0 78.0,16.7" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 1.00 &middot; <span style="color:#888;">+0.00 (+0.0%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='USD Coin' data-value='1.0' data-unit='$' data-pct='0.0' data-sixmo='1.0' data-history='0.9996839761734009,0.9998679757118225,1.000035047531128,1.0000580549240112,0.9998909831047058,0.9999809861183167,0.9996740221977234,0.9998289942741394,0.9996659755706787,0.9997850060462952,0.9998229742050171,0.9998239874839783,0.9996730089187622,0.9997209906578064,0.9997029900550842,0.9997199773788452,0.9998329877853394,0.9998549818992615,0.9998419880867004,0.9998049139976501' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='USD Coin' data-value='1.0' data-unit='$' data-pct='-0.0' data-sixmo='1.0' data-history='0.9996839761734009,0.9998679757118225,1.000035047531128,1.0000580549240112,0.9998909831047058,0.9999809861183167,0.9996740221977234,0.9998289942741394,0.9996659755706787,0.9997850060462952,0.9998229742050171,0.9998239874839783,0.9996730089187622,0.9997209906578064,0.9997029900550842,0.9997199773788452,0.9998329877853394,0.9998549818992615,0.9998419880867004,0.999769926071167' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A blockchain platform for smart contracts and decentralized applications, notable for its academic, peer-reviewed approach to development.
 Its native token (ADA) is used to pay transaction fees on the network.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Cardano</p>
       <p class="value">$0.19</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+7.57% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.2989000082015991,0.26422399282455444,0.280021995306015,0.26288801431655884,0.26319798827171326,0.25059500336647034,0.24156300723552704,0.25425899028778076,0.24252399802207947,0.2445169985294342,0.2732599973678589,0.25135400891304016,0.237062007188797,0.15725600719451904,0.17855800688266754,0.1434289962053299,0.19203099608421326,0.16522599756717682,0.16832099854946136,0.1873999983072281" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,6.5 10.0,4.4 14.0,6.6 18.0,6.6 22.0,8.2 26.0,9.4 30.0,7.7 34.0,9.3 38.0,9.0 42.0,5.3 46.0,8.1 50.0,10.0 54.0,20.2 58.0,17.5 62.0,22.0 66.0,15.7 70.0,19.2 74.0,18.8 78.0,16.3" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+7.91% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.2989000082015991,0.26422399282455444,0.280021995306015,0.26288801431655884,0.26319798827171326,0.25059500336647034,0.24156300723552704,0.25425899028778076,0.24252399802207947,0.2445169985294342,0.2732599973678589,0.25135400891304016,0.237062007188797,0.15725600719451904,0.17855800688266754,0.1434289962053299,0.19203099608421326,0.16522599756717682,0.16832099854946136,0.18799999356269836" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,6.5 10.0,4.4 14.0,6.6 18.0,6.6 22.0,8.2 26.0,9.4 30.0,7.7 34.0,9.3 38.0,9.0 42.0,5.3 46.0,8.1 50.0,10.0 54.0,20.2 58.0,17.5 62.0,22.0 66.0,15.7 70.0,19.2 74.0,18.8 78.0,16.3" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 0.30 &middot; <span style="color:#c0392b;">-0.11</span></p>
-      <button onclick='showAIInsight(this)' data-name='Cardano' data-value='0.19' data-unit='$' data-pct='7.57' data-sixmo='0.3' data-history='0.2989000082015991,0.26422399282455444,0.280021995306015,0.26288801431655884,0.26319798827171326,0.25059500336647034,0.24156300723552704,0.25425899028778076,0.24252399802207947,0.2445169985294342,0.2732599973678589,0.25135400891304016,0.237062007188797,0.15725600719451904,0.17855800688266754,0.1434289962053299,0.19203099608421326,0.16522599756717682,0.16832099854946136,0.1873999983072281' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='Cardano' data-value='0.19' data-unit='$' data-pct='7.91' data-sixmo='0.3' data-history='0.2989000082015991,0.26422399282455444,0.280021995306015,0.26288801431655884,0.26319798827171326,0.25059500336647034,0.24156300723552704,0.25425899028778076,0.24252399802207947,0.2445169985294342,0.2732599973678589,0.25135400891304016,0.237062007188797,0.15725600719451904,0.17855800688266754,0.1434289962053299,0.19203099608421326,0.16522599756717682,0.16832099854946136,0.18799999356269836' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="Originally created in 2013 as a joke based on the 'Doge' internet meme.
 It has since become one of the largest cryptocurrencies by market value despite having no specific technical purpose beyond simple payments.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Dogecoin</p>
       <p class="value">$0.07</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.33% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.10786399990320206,0.0929889976978302,0.09847799688577652,0.09003300219774246,0.0947360023856163,0.09010399878025055,0.09220799803733826,0.0937340036034584,0.09306000173091888,0.10401800274848938,0.10945600271224976,0.10465099662542343,0.10041599720716476,0.0818530023097992,0.08810900151729584,0.07478699833154678,0.0775889977812767,0.07444100081920624,0.06913299858570099,0.06999000161886215" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.8 6.0,10.2 10.0,7.4 14.0,11.6 18.0,9.3 22.0,11.6 26.0,10.6 30.0,9.8 34.0,10.1 38.0,4.7 42.0,2.0 46.0,4.4 50.0,6.5 54.0,15.7 58.0,12.6 62.0,19.2 66.0,17.8 70.0,19.4 74.0,22.0 78.0,21.6" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.30% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.10786399990320206,0.0929889976978302,0.09847799688577652,0.09003300219774246,0.0947360023856163,0.09010399878025055,0.09220799803733826,0.0937340036034584,0.09306000173091888,0.10401800274848938,0.10945600271224976,0.10465099662542343,0.10041599720716476,0.0818530023097992,0.08810900151729584,0.07478699833154678,0.0775889977812767,0.07444100081920624,0.06913299858570099,0.06996999680995941" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.8 6.0,10.2 10.0,7.4 14.0,11.6 18.0,9.3 22.0,11.6 26.0,10.6 30.0,9.8 34.0,10.1 38.0,4.7 42.0,2.0 46.0,4.4 50.0,6.5 54.0,15.7 58.0,12.6 62.0,19.2 66.0,17.8 70.0,19.4 74.0,22.0 78.0,21.6" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 0.11 &middot; <span style="color:#c0392b;">-0.04</span></p>
-      <button onclick='showAIInsight(this)' data-name='Dogecoin' data-value='0.07' data-unit='$' data-pct='1.33' data-sixmo='0.11' data-history='0.10786399990320206,0.0929889976978302,0.09847799688577652,0.09003300219774246,0.0947360023856163,0.09010399878025055,0.09220799803733826,0.0937340036034584,0.09306000173091888,0.10401800274848938,0.10945600271224976,0.10465099662542343,0.10041599720716476,0.0818530023097992,0.08810900151729584,0.07478699833154678,0.0775889977812767,0.07444100081920624,0.06913299858570099,0.06999000161886215' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='Dogecoin' data-value='0.07' data-unit='$' data-pct='1.3' data-sixmo='0.11' data-history='0.10786399990320206,0.0929889976978302,0.09847799688577652,0.09003300219774246,0.0947360023856163,0.09010399878025055,0.09220799803733826,0.0937340036034584,0.09306000173091888,0.10401800274848938,0.10945600271224976,0.10465099662542343,0.10041599720716476,0.0818530023097992,0.08810900151729584,0.07478699833154678,0.0775889977812767,0.07444100081920624,0.06913299858570099,0.06996999680995941' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A blockchain platform focused on content-sharing and decentralized applications, also widely used as a low-fee network for transferring stablecoins like Tether.
 Its native token is TRX.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">TRON</p>
       <p class="value">$0.33</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.40% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.2831229865550995,0.2797499895095825,0.2889139950275421,0.2805190086364746,0.2890770137310028,0.3104870021343231,0.31320899724960327,0.3192319869995117,0.3292050063610077,0.32305800914764404,0.3506140112876892,0.355430006980896,0.3677630126476288,0.32400599122047424,0.3184739947319031,0.3233970105648041,0.3249880075454712,0.32572001218795776,0.3286049962043762,0.3262207508087158" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,21.2 6.0,22.0 10.0,19.9 14.0,21.8 18.0,19.9 22.0,15.0 26.0,14.4 30.0,13.0 34.0,10.8 38.0,12.2 42.0,5.9 46.0,4.8 50.0,2.0 54.0,11.9 58.0,13.2 62.0,12.1 66.0,11.7 70.0,11.6 74.0,10.9 78.0,11.4" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.36% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.2831229865550995,0.2797499895095825,0.2889139950275421,0.2805190086364746,0.2890770137310028,0.3104870021343231,0.31320899724960327,0.3192319869995117,0.3292050063610077,0.32305800914764404,0.3506140112876892,0.355430006980896,0.3677630126476288,0.32400599122047424,0.3184739947319031,0.3233970105648041,0.3249880075454712,0.32572001218795776,0.3286049962043762,0.32636758685112" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,21.2 6.0,22.0 10.0,19.9 14.0,21.8 18.0,19.9 22.0,15.0 26.0,14.4 30.0,13.0 34.0,10.8 38.0,12.2 42.0,5.9 46.0,4.8 50.0,2.0 54.0,11.9 58.0,13.2 62.0,12.1 66.0,11.7 70.0,11.6 74.0,10.9 78.0,11.4" fill="none" stroke="#1a8a3d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 0.28 &middot; <span style="color:#1a8a3d;">+0.05</span></p>
-      <button onclick='showAIInsight(this)' data-name='TRON' data-value='0.33' data-unit='$' data-pct='-0.4' data-sixmo='0.28' data-history='0.2831229865550995,0.2797499895095825,0.2889139950275421,0.2805190086364746,0.2890770137310028,0.3104870021343231,0.31320899724960327,0.3192319869995117,0.3292050063610077,0.32305800914764404,0.3506140112876892,0.355430006980896,0.3677630126476288,0.32400599122047424,0.3184739947319031,0.3233970105648041,0.3249880075454712,0.32572001218795776,0.3286049962043762,0.3262207508087158' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='TRON' data-value='0.33' data-unit='$' data-pct='-0.36' data-sixmo='0.28' data-history='0.2831229865550995,0.2797499895095825,0.2889139950275421,0.2805190086364746,0.2890770137310028,0.3104870021343231,0.31320899724960327,0.3192319869995117,0.3292050063610077,0.32305800914764404,0.3506140112876892,0.355430006980896,0.3677630126476288,0.32400599122047424,0.3184739947319031,0.3233970105648041,0.3249880075454712,0.32572001218795776,0.3286049962043762,0.32636758685112' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A blockchain platform designed for fast transaction finality and high throughput, used for decentralized finance and custom blockchain deployments.
 Its native token (AVAX) is used to pay network fees.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Avalanche</p>
-      <p class="value">$6.60</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+6.72% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="10.14255428314209,8.888179779052734,9.120891571044922,9.17881965637207,9.677624702453613,9.018503189086914,8.909309387207031,9.404664039611816,9.01020622253418,9.12057876586914,9.896980285644531,9.233905792236328,9.037548065185547,6.670938968658447,6.837200164794922,6.221860885620117,6.964107990264893,6.697113037109375,6.261688232421875,6.599999904632568" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,8.4 10.0,7.2 14.0,6.9 18.0,4.4 22.0,7.7 26.0,8.3 30.0,5.8 34.0,7.8 38.0,7.2 42.0,3.3 46.0,6.6 50.0,7.6 54.0,19.7 58.0,18.9 62.0,22.0 66.0,18.2 70.0,19.6 74.0,21.8 78.0,20.1" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 10.14 &middot; <span style="color:#c0392b;">-3.54 (-34.9%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Avalanche' data-value='6.6' data-unit='$' data-pct='6.72' data-sixmo='10.14' data-history='10.14255428314209,8.888179779052734,9.120891571044922,9.17881965637207,9.677624702453613,9.018503189086914,8.909309387207031,9.404664039611816,9.01020622253418,9.12057876586914,9.896980285644531,9.233905792236328,9.037548065185547,6.670938968658447,6.837200164794922,6.221860885620117,6.964107990264893,6.697113037109375,6.261688232421875,6.599999904632568' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$6.58</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+6.40% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="10.14255428314209,8.888179779052734,9.120891571044922,9.17881965637207,9.677624702453613,9.018503189086914,8.909309387207031,9.404664039611816,9.01020622253418,9.12057876586914,9.896980285644531,9.233905792236328,9.037548065185547,6.670938968658447,6.837200164794922,6.221860885620117,6.964107990264893,6.697113037109375,6.261688232421875,6.579999923706055" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,8.4 10.0,7.2 14.0,6.9 18.0,4.4 22.0,7.7 26.0,8.3 30.0,5.8 34.0,7.8 38.0,7.2 42.0,3.3 46.0,6.6 50.0,7.6 54.0,19.7 58.0,18.9 62.0,22.0 66.0,18.2 70.0,19.6 74.0,21.8 78.0,20.2" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 10.14 &middot; <span style="color:#c0392b;">-3.56 (-35.1%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='Avalanche' data-value='6.58' data-unit='$' data-pct='6.4' data-sixmo='10.14' data-history='10.14255428314209,8.888179779052734,9.120891571044922,9.17881965637207,9.677624702453613,9.018503189086914,8.909309387207031,9.404664039611816,9.01020622253418,9.12057876586914,9.896980285644531,9.233905792236328,9.037548065185547,6.670938968658447,6.837200164794922,6.221860885620117,6.964107990264893,6.697113037109375,6.261688232421875,6.579999923706055' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A network that supplies external, real-world data (like asset prices) to blockchains, which can't natively access outside information on their own.
 Its native token (LINK) is used to pay for these data services.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Chainlink</p>
-      <p class="value">$8.32</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+3.23% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="9.806777000427246,8.402665138244629,8.876015663146973,8.81236743927002,9.058503150939941,8.685224533081055,8.777544975280762,9.087806701660156,9.070685386657715,9.118186950683594,10.330209732055664,9.592828750610352,9.128114700317383,7.397984027862549,8.295220375061035,7.232656955718994,8.000990867614746,8.339827537536621,8.464208602905273,8.315999984741211" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,5.4 6.0,14.4 10.0,11.4 14.0,11.8 18.0,10.2 22.0,12.6 26.0,12.0 30.0,10.0 34.0,10.1 38.0,9.8 42.0,2.0 46.0,6.8 50.0,9.8 54.0,20.9 58.0,15.1 62.0,22.0 66.0,17.0 70.0,14.9 74.0,14.0 78.0,15.0" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 9.81 &middot; <span style="color:#c0392b;">-1.49 (-15.2%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Chainlink' data-value='8.32' data-unit='$' data-pct='3.23' data-sixmo='9.81' data-history='9.806777000427246,8.402665138244629,8.876015663146973,8.81236743927002,9.058503150939941,8.685224533081055,8.777544975280762,9.087806701660156,9.070685386657715,9.118186950683594,10.330209732055664,9.592828750610352,9.128114700317383,7.397984027862549,8.295220375061035,7.232656955718994,8.000990867614746,8.339827537536621,8.464208602905273,8.315999984741211' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$8.31</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+3.12% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="9.806777000427246,8.402665138244629,8.876015663146973,8.81236743927002,9.058503150939941,8.685224533081055,8.777544975280762,9.087806701660156,9.070685386657715,9.118186950683594,10.330209732055664,9.592828750610352,9.128114700317383,7.397984027862549,8.295220375061035,7.232656955718994,8.000990867614746,8.339827537536621,8.464208602905273,8.307000160217285" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,5.4 6.0,14.4 10.0,11.4 14.0,11.8 18.0,10.2 22.0,12.6 26.0,12.0 30.0,10.0 34.0,10.1 38.0,9.8 42.0,2.0 46.0,6.8 50.0,9.8 54.0,20.9 58.0,15.1 62.0,22.0 66.0,17.0 70.0,14.9 74.0,14.0 78.0,15.1" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 9.81 &middot; <span style="color:#c0392b;">-1.50 (-15.3%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='Chainlink' data-value='8.31' data-unit='$' data-pct='3.12' data-sixmo='9.81' data-history='9.806777000427246,8.402665138244629,8.876015663146973,8.81236743927002,9.058503150939941,8.685224533081055,8.777544975280762,9.087806701660156,9.070685386657715,9.118186950683594,10.330209732055664,9.592828750610352,9.128114700317383,7.397984027862549,8.295220375061035,7.232656955718994,8.000990867614746,8.339827537536621,8.464208602905273,8.307000160217285' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A blockchain platform designed to let multiple separate blockchains ('parachains') communicate and share security with one another.
 Its native token (DOT) is used for network governance and securing parachain slots.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Polkadot</p>
       <p class="value">$0.80</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+2.11% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="1.542801022529602,1.2815330028533936,1.358886957168579,1.5302129983901978,1.5165899991989136,1.4115079641342163,1.2516200542449951,1.305346965789795,1.2403279542922974,1.2112770080566406,1.3714369535446167,1.2497470378875732,1.2288579940795898,0.9428079724311829,1.0103050470352173,0.8417559862136841,0.8835780024528503,0.85173499584198,0.815330982208252,0.796999990940094" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,9.0 10.0,6.9 14.0,2.3 18.0,2.7 22.0,5.5 26.0,9.8 30.0,8.4 34.0,10.1 38.0,10.9 42.0,6.6 46.0,9.9 50.0,10.4 54.0,18.1 58.0,16.3 62.0,20.8 66.0,19.7 70.0,20.5 74.0,21.5 78.0,22.0" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.98% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="1.542801022529602,1.2815330028533936,1.358886957168579,1.5302129983901978,1.5165899991989136,1.4115079641342163,1.2516200542449951,1.305346965789795,1.2403279542922974,1.2112770080566406,1.3714369535446167,1.2497470378875732,1.2288579940795898,0.9428079724311829,1.0103050470352173,0.8417559862136841,0.8835780024528503,0.85173499584198,0.815330982208252,0.7960000038146973" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,9.0 10.0,6.9 14.0,2.3 18.0,2.7 22.0,5.5 26.0,9.8 30.0,8.4 34.0,10.1 38.0,10.9 42.0,6.6 46.0,9.8 50.0,10.4 54.0,18.1 58.0,16.3 62.0,20.8 66.0,19.7 70.0,20.5 74.0,21.5 78.0,22.0" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p class="sixmo">6 mo ago: 1.54 &middot; <span style="color:#c0392b;">-0.74 (-48.1%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Polkadot' data-value='0.8' data-unit='$' data-pct='2.11' data-sixmo='1.54' data-history='1.542801022529602,1.2815330028533936,1.358886957168579,1.5302129983901978,1.5165899991989136,1.4115079641342163,1.2516200542449951,1.305346965789795,1.2403279542922974,1.2112770080566406,1.3714369535446167,1.2497470378875732,1.2288579940795898,0.9428079724311829,1.0103050470352173,0.8417559862136841,0.8835780024528503,0.85173499584198,0.815330982208252,0.796999990940094' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <button onclick='showAIInsight(this)' data-name='Polkadot' data-value='0.8' data-unit='$' data-pct='1.98' data-sixmo='1.54' data-history='1.542801022529602,1.2815330028533936,1.358886957168579,1.5302129983901978,1.5165899991989136,1.4115079641342163,1.2516200542449951,1.305346965789795,1.2403279542922974,1.2112770080566406,1.3714369535446167,1.2497470378875732,1.2288579940795898,0.9428079724311829,1.0103050470352173,0.8417559862136841,0.8835780024528503,0.85173499584198,0.815330982208252,0.7960000038146973' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="One of the earliest Bitcoin-derived cryptocurrencies, created in 2011 with faster block times and a larger total coin supply than Bitcoin.
 Often described as 'silver to Bitcoin's gold.'
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Litecoin</p>
-      <p class="value">$44.74</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.26% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="59.99173355102539,53.09817886352539,54.945823669433594,54.77610778808594,54.574989318847656,53.48957061767578,53.91790771484375,54.966800689697266,54.07212448120117,55.30350875854492,58.233158111572266,54.310062408447266,51.9226188659668,41.33696365356445,45.8035888671875,40.8530387878418,44.82707214355469,45.43452453613281,46.927825927734375,44.7400016784668" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,9.2 10.0,7.3 14.0,7.5 18.0,7.7 22.0,8.8 26.0,8.3 30.0,7.3 34.0,8.2 38.0,6.9 42.0,3.8 46.0,7.9 50.0,10.4 54.0,21.5 58.0,16.8 62.0,22.0 66.0,17.8 70.0,17.2 74.0,15.7 78.0,17.9" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 59.99 &middot; <span style="color:#c0392b;">-15.25 (-25.4%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Litecoin' data-value='44.74' data-unit='$' data-pct='1.26' data-sixmo='59.99' data-history='59.99173355102539,53.09817886352539,54.945823669433594,54.77610778808594,54.574989318847656,53.48957061767578,53.91790771484375,54.966800689697266,54.07212448120117,55.30350875854492,58.233158111572266,54.310062408447266,51.9226188659668,41.33696365356445,45.8035888671875,40.8530387878418,44.82707214355469,45.43452453613281,46.927825927734375,44.7400016784668' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$44.66</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+1.08% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="59.99173355102539,53.09817886352539,54.945823669433594,54.77610778808594,54.574989318847656,53.48957061767578,53.91790771484375,54.966800689697266,54.07212448120117,55.30350875854492,58.233158111572266,54.310062408447266,51.9226188659668,41.33696365356445,45.8035888671875,40.8530387878418,44.82707214355469,45.43452453613281,46.927825927734375,44.65999984741211" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,9.2 10.0,7.3 14.0,7.5 18.0,7.7 22.0,8.8 26.0,8.3 30.0,7.3 34.0,8.2 38.0,6.9 42.0,3.8 46.0,7.9 50.0,10.4 54.0,21.5 58.0,16.8 62.0,22.0 66.0,17.8 70.0,17.2 74.0,15.7 78.0,18.0" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 59.99 &middot; <span style="color:#c0392b;">-15.33 (-25.6%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='Litecoin' data-value='44.66' data-unit='$' data-pct='1.08' data-sixmo='59.99' data-history='59.99173355102539,53.09817886352539,54.945823669433594,54.77610778808594,54.574989318847656,53.48957061767578,53.91790771484375,54.966800689697266,54.07212448120117,55.30350875854492,58.233158111572266,54.310062408447266,51.9226188659668,41.33696365356445,45.8035888671875,40.8530387878418,44.82707214355469,45.43452453613281,46.927825927734375,44.65999984741211' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A token created in 2020 as a Dogecoin-inspired 'meme coin,' with no specific technical purpose.
 Its price has historically been driven largely by social media attention and speculative trading rather than underlying utility.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Shiba Inu</p>
-      <p class="value">$0.00000500</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#666;">+0.00% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="7.000000096013537e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,4.999999873689376e-06,4.999999873689376e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,4.999999873689376e-06" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,8.7 10.0,8.7 14.0,15.3 18.0,8.7 22.0,8.7 26.0,8.7 30.0,8.7 34.0,8.7 38.0,8.7 42.0,8.7 46.0,8.7 50.0,15.3 54.0,15.3 58.0,15.3 62.0,22.0 66.0,22.0 70.0,22.0 74.0,22.0 78.0,15.3" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 0.00000700 &middot; <span style="color:#c0392b;">-0.00000200</span></p>
-      <button onclick='showAIInsight(this)' data-name='Shiba Inu' data-value='5e-06' data-unit='$' data-pct='0.0' data-sixmo='7e-06' data-history='7.000000096013537e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,4.999999873689376e-06,4.999999873689376e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,4.999999873689376e-06' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$0.00000498</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#c0392b;">-0.40% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="7.000000096013537e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,4.999999873689376e-06,4.999999873689376e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,4.980000085197389e-06" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,2.0 6.0,8.7 10.0,8.7 14.0,15.3 18.0,8.7 22.0,8.7 26.0,8.7 30.0,8.7 34.0,8.7 38.0,8.7 42.0,8.7 46.0,8.7 50.0,15.3 54.0,15.3 58.0,15.3 62.0,22.0 66.0,22.0 70.0,22.0 74.0,22.0 78.0,15.5" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 0.00000700 &middot; <span style="color:#c0392b;">-0.00000202</span></p>
+      <button onclick='showAIInsight(this)' data-name='Shiba Inu' data-value='4.98e-06' data-unit='$' data-pct='-0.4' data-sixmo='7e-06' data-history='7.000000096013537e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,6.000000212225132e-06,4.999999873689376e-06,4.999999873689376e-06,4.999999873689376e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,3.999999989900971e-06,4.980000085197389e-06' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A cryptocurrency created in 2017 when a group of Bitcoin developers disagreed over how to scale the network and split off ('forked') their own blockchain with larger block sizes.
 Designed as a more payments-focused alternative to Bitcoin.
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Bitcoin Cash</p>
-      <p class="value">$212.35</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+2.13% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="540.1192626953125,502.63128662109375,564.1983642578125,444.3538818359375,455.2119445800781,468.1551208496094,466.3345642089844,443.9245300292969,435.4740905761719,447.6954040527344,450.3813171386719,378.5041198730469,333.9219055175781,217.37767028808594,224.5537567138672,192.6192169189453,236.1881866455078,236.49058532714844,212.09034729003906,212.35000610351562" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,3.3 6.0,5.3 10.0,2.0 14.0,8.5 18.0,7.9 22.0,7.2 26.0,7.3 30.0,8.5 34.0,8.9 38.0,8.3 42.0,8.1 46.0,12.0 50.0,14.4 54.0,20.7 58.0,20.3 62.0,22.0 66.0,19.7 70.0,19.6 74.0,21.0 78.0,20.9" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 540.12 &middot; <span style="color:#c0392b;">-327.77 (-60.7%)</span></p>
-      <button onclick='showAIInsight(this)' data-name='Bitcoin Cash' data-value='212.35' data-unit='$' data-pct='2.13' data-sixmo='540.12' data-history='540.1192626953125,502.63128662109375,564.1983642578125,444.3538818359375,455.2119445800781,468.1551208496094,466.3345642089844,443.9245300292969,435.4740905761719,447.6954040527344,450.3813171386719,378.5041198730469,333.9219055175781,217.37767028808594,224.5537567138672,192.6192169189453,236.1881866455078,236.49058532714844,212.09034729003906,212.35000610351562' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$212.23</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+2.07% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="540.1192626953125,502.63128662109375,564.1983642578125,444.3538818359375,455.2119445800781,468.1551208496094,466.3345642089844,443.9245300292969,435.4740905761719,447.6954040527344,450.3813171386719,378.5041198730469,333.9219055175781,217.37767028808594,224.5537567138672,192.6192169189453,236.1881866455078,236.49058532714844,212.09034729003906,212.22999572753906" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,3.3 6.0,5.3 10.0,2.0 14.0,8.5 18.0,7.9 22.0,7.2 26.0,7.3 30.0,8.5 34.0,8.9 38.0,8.3 42.0,8.1 46.0,12.0 50.0,14.4 54.0,20.7 58.0,20.3 62.0,22.0 66.0,19.7 70.0,19.6 74.0,21.0 78.0,20.9" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 540.12 &middot; <span style="color:#c0392b;">-327.89 (-60.7%)</span></p>
+      <button onclick='showAIInsight(this)' data-name='Bitcoin Cash' data-value='212.23' data-unit='$' data-pct='2.07' data-sixmo='540.12' data-history='540.1192626953125,502.63128662109375,564.1983642578125,444.3538818359375,455.2119445800781,468.1551208496094,466.3345642089844,443.9245300292969,435.4740905761719,447.6954040527344,450.3813171386719,378.5041198730469,333.9219055175781,217.37767028808594,224.5537567138672,192.6192169189453,236.1881866455078,236.49058532714844,212.09034729003906,212.22999572753906' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div>
     <div class="card" title="A blockchain platform designed for fast, low-cost cross-border payments and asset transfers, with a particular focus on connecting financial institutions in developing markets.
 Its native token is XLM (Lumens).
 Price tracked via major exchanges through Yahoo Finance.">
       <p class="label">Stellar</p>
-      <p class="value">$0.18</p>
-      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+2.47% today</p>
-      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.17870700359344482,0.1562650054693222,0.16106100380420685,0.15151800215244293,0.1602330058813095,0.15591199696063995,0.16726499795913696,0.15517699718475342,0.16671299934387207,0.15957899391651154,0.16331399977207184,0.14709800481796265,0.16385400295257568,0.21262699365615845,0.2138260006904602,0.17848099768161774,0.20669899880886078,0.18449999392032623,0.18225300312042236,0.17505599558353424" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,12.5 6.0,19.3 10.0,17.8 14.0,20.7 18.0,18.1 22.0,19.4 26.0,16.0 30.0,19.6 34.0,16.1 38.0,18.3 42.0,17.1 46.0,22.0 50.0,17.0 54.0,2.4 58.0,2.0 62.0,12.6 66.0,4.1 70.0,10.8 74.0,11.5 78.0,13.6" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <p class="sixmo">6 mo ago: 0.18 &middot; <span style="color:#888;">+0.00</span></p>
-      <button onclick='showAIInsight(this)' data-name='Stellar' data-value='0.18' data-unit='$' data-pct='2.47' data-sixmo='0.18' data-history='0.17870700359344482,0.1562650054693222,0.16106100380420685,0.15151800215244293,0.1602330058813095,0.15591199696063995,0.16726499795913696,0.15517699718475342,0.16671299934387207,0.15957899391651154,0.16331399977207184,0.14709800481796265,0.16385400295257568,0.21262699365615845,0.2138260006904602,0.17848099768161774,0.20669899880886078,0.18449999392032623,0.18225300312042236,0.17505599558353424' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
+      <p class="value">$0.17</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#1a8a3d;">+2.42% today</p>
+      <svg class="sparkline" width="80" height="24" viewBox="0 0 80 24" xmlns="http://www.w3.org/2000/svg" data-values="0.17870700359344482,0.1562650054693222,0.16106100380420685,0.15151800215244293,0.1602330058813095,0.15591199696063995,0.16726499795913696,0.15517699718475342,0.16671299934387207,0.15957899391651154,0.16331399977207184,0.14709800481796265,0.16385400295257568,0.21262699365615845,0.2138260006904602,0.17848099768161774,0.20669899880886078,0.18449999392032623,0.18225300312042236,0.17496299743652344" data-mode="line" onclick="toggleSparklineType(this)" style="cursor:pointer;" title="Click to toggle bar/line view"><polyline points="2.0,12.5 6.0,19.3 10.0,17.8 14.0,20.7 18.0,18.1 22.0,19.4 26.0,16.0 30.0,19.6 34.0,16.1 38.0,18.3 42.0,17.1 46.0,22.0 50.0,17.0 54.0,2.4 58.0,2.0 62.0,12.6 66.0,4.1 70.0,10.8 74.0,11.5 78.0,13.6" fill="none" stroke="#c0392b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p class="sixmo">6 mo ago: 0.18 &middot; <span style="color:#c0392b;">-0.01</span></p>
+      <button onclick='showAIInsight(this)' data-name='Stellar' data-value='0.17' data-unit='$' data-pct='2.42' data-sixmo='0.18' data-history='0.17870700359344482,0.1562650054693222,0.16106100380420685,0.15151800215244293,0.1602330058813095,0.15591199696063995,0.16726499795913696,0.15517699718475342,0.16671299934387207,0.15957899391651154,0.16331399977207184,0.14709800481796265,0.16385400295257568,0.21262699365615845,0.2138260006904602,0.17848099768161774,0.20669899880886078,0.18449999392032623,0.18225300312042236,0.17496299743652344' style='margin-top:6px;padding:3px 8px;font-size:10px;background:#f0efe9;color:#666;border:1px solid #ddd;border-radius:10px;cursor:pointer;'>&#129302; AI Insight</button><div class='ai-insight-area' style='display:none;margin-top:4px;'></div>
     </div></div>
 <p class="note">Prices via Yahoo Finance, quoted in USD. Crypto trades 24/7, unlike stocks and most commodities/indices - these prices can change even when traditional markets are closed. Extremely volatile compared to traditional assets - treat accordingly.</p>
 
@@ -1842,11 +1843,11 @@ Published daily by the Federal Reserve (H.10 foreign exchange release).">
 
     <tr data-ticker="AAPL" data-pct="-7.35">
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/AAPL" target="_blank" title="RECENT NEWS:
+Prediction: Greg Abel Will Continue Holding This Berkshire Hathaway Stock That Warren Buffett Backed for Decades. (Motley Fool - 2026-08-02)
+
 Apple’s record iPhone boom just became a Wall Street trap (TheStreet - 2026-08-02)
 
-US Schools Are Ditching Chromebooks for MacBooks by the Thousands— Apple Just Named Names (Benzinga - 2026-08-01)
-
-Apple CEO sends strong warning on AI and price of Apple products (TheStreet - 2026-08-01)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">AAPL</a></td>
+US Schools Are Ditching Chromebooks for MacBooks by the Thousands— Apple Just Named Names (Benzinga - 2026-08-01)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">AAPL</a></td>
       <td style="text-align:right;">$308.91</td>
       <td style="text-align:right;color:#c0392b;">-7.35%</td>
       <td style="text-align:right;color:#1a8a3d;">+19.82%</td>
@@ -1890,7 +1891,7 @@ If You Invest $500 a Month in the Vanguard Total Stock Market ETF Starting Today
       <td style="text-align:right;color:#1a8a3d;">+8.22%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">47.50</span></td>
       <td style="text-align:right;">-</td>
-      <td style="text-align:right;">26.2</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">3.2M</span></td>
       <td style="text-align:right;">3.4M</td>
@@ -1937,11 +1938,11 @@ TSMC Is Reportedly Developing Advanced Chip Packaging Tech to Challenge Intel&#x
     </tr>
     <tr data-ticker="META" data-pct="3.28">
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/META" target="_blank" title="RECENT NEWS:
+Mark Zuckerberg Says He&#x27;s Betting Big on AI Compute Even as Meta&#x27;s Free Cash Flow Craters. Here&#x27;s What Investors Should Watch. (Motley Fool - 2026-08-02)
+
 Meta Trades at a Forward P/E of 17, Below Its 5-Year Average, Making the Stock a Potential Bargain as Zuckerberg&#x27;s Net Worth Rebounds (Motley Fool - 2026-08-02)
 
-An Analyst Just Named Mark Zuckerberg&#x27;s Meta a Top Large-Cap Long Idea, Citing AI-Driven Ad Momentum and an Attractive Valuation (Motley Fool - 2026-08-02)
-
-3 Brilliant Artificial Intelligence (AI) Stocks Billionaire Bill Ackman Owns That You Should Too (Motley Fool - 2026-08-02)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">META</a></td>
+An Analyst Just Named Mark Zuckerberg&#x27;s Meta a Top Large-Cap Long Idea, Citing AI-Driven Ad Momentum and an Attractive Valuation (Motley Fool - 2026-08-02)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">META</a></td>
       <td style="text-align:right;">$556.71</td>
       <td style="text-align:right;color:#1a8a3d;">+3.28%</td>
       <td style="text-align:right;color:#c0392b;">-24.46%</td>
@@ -2013,11 +2014,11 @@ The 5 Most Interesting Analyst Questions From Intel’s Q2 Earnings Call (StockS
     </tr>
     <tr data-ticker="NVDA" data-pct="2.93">
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/NVDA" target="_blank" title="RECENT NEWS:
-3 Top Tech Stocks for Long-Term Growth and Income (Motley Fool - 2026-08-02)
+Mark Zuckerberg Says He&#x27;s Betting Big on AI Compute Even as Meta&#x27;s Free Cash Flow Craters. Here&#x27;s What Investors Should Watch. (Motley Fool - 2026-08-02)
 
-If You&#x27;d Invested $10,000 in Bitcoin 10 Years Ago, Here&#x27;s How Much You Would Have Today (Motley Fool - 2026-08-02)
+1 Thing Every Investor Needs to Know About Buying the S&amp;P 500 Right Now (Motley Fool - 2026-08-02)
 
-Dan Ives Says Nvidia Demand Is Outpacing Supply &quot;12 to 1.&quot; Here&#x27;s What That Means for the Stock&#x27;s Next Move. (Motley Fool - 2026-08-02)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">NVDA</a></td>
+Prediction: Greg Abel Will Continue Holding This Berkshire Hathaway Stock That Warren Buffett Backed for Decades. (Motley Fool - 2026-08-02)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">NVDA</a></td>
       <td style="text-align:right;">$200.75</td>
       <td style="text-align:right;color:#1a8a3d;">+2.93%</td>
       <td style="text-align:right;color:#1a8a3d;">+4.41%</td>
@@ -2041,7 +2042,7 @@ TSMC is quietly borrowing a page from Intel&#x27;s playbook (TheStreet - 2026-08
       <td style="text-align:right;color:#c0392b;">-1.90%</td>
       <td style="text-align:right;color:#1a8a3d;">+88.81%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">40.62</span></td>
-      <td style="text-align:right;">776.41B</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">158.7</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">26.5M</span></td>
@@ -2175,7 +2176,7 @@ Exchange-Traded Funds Lower, Equity Futures Mixed Pre-Bell Wednesday Ahead of Fe
       <td style="text-align:right;color:#1a8a3d;">+7.31%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">51.47</span></td>
       <td style="text-align:right;">-</td>
-      <td style="text-align:right;">28.9</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">234K</span></td>
       <td style="text-align:right;">255K</td>
@@ -2212,7 +2213,7 @@ Rambus Q2 Earnings Surpass Estimates, Revenues Rise Y/Y (Zacks - 2026-07-28)" st
       <td style="text-align:right;color:#1a8a3d;">+1.62%</td>
       <td style="text-align:right;color:#c0392b;">-25.14%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">36.21</span></td>
-      <td style="text-align:right;">9.84B</td>
+      <td style="text-align:right;">9.87B</td>
       <td style="text-align:right;">41.8</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">2.4M</span></td>
@@ -2251,7 +2252,7 @@ Your Social Security Check Won’t Cover the Bills You Already Have. These 4 ETF
       <td style="text-align:right;color:#1a8a3d;">+9.66%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">55.20</span></td>
       <td style="text-align:right;">-</td>
-      <td style="text-align:right;">22.0</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">1.5M</span></td>
       <td style="text-align:right;">1.3M</td>
@@ -2270,7 +2271,7 @@ Value ETF (IVE) Hits a New 52-Week High (Zacks - 2026-07-06)" style="color:#1f4e
       <td style="text-align:right;color:#1a8a3d;">+7.75%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">52.56</span></td>
       <td style="text-align:right;">-</td>
-      <td style="text-align:right;">23.9</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">892K</span></td>
       <td style="text-align:right;">1.0M</td>
@@ -2440,7 +2441,7 @@ Reading Between The Lines Of WM&#x27;s Latest Call (Trefis - 2026-07-31)" style=
       <td style="text-align:right;color:#c0392b;">-0.37%</td>
       <td style="text-align:right;color:#c0392b;">-1.39%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">32.81</span></td>
-      <td style="text-align:right;">64.78B</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">30.2</td>
       <td style="text-align:right;">1.19%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">1.2M</span></td>
@@ -2460,7 +2461,7 @@ Too Much Tech in Your Portfolio? ETFs to Help You Diversify (Zacks - 2026-06-05)
       <td style="text-align:right;color:#1a8a3d;">+3.29%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">34.17</span></td>
       <td style="text-align:right;">-</td>
-      <td style="text-align:right;">21.1</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">119K</span></td>
       <td style="text-align:right;">158K</td>
@@ -2497,7 +2498,7 @@ Moderna Stock Has Doubled This Year. Can Earnings Keep the Rally Alive? (Barrons
       <td style="text-align:right;color:#1a8a3d;">+0.32%</td>
       <td style="text-align:right;color:#1a8a3d;">+21.94%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">62.96</span></td>
-      <td style="text-align:right;">321.57B</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">36.7</td>
       <td style="text-align:right;">2.61%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">7.7M</span></td>
@@ -2516,7 +2517,7 @@ Archer Daniels Midland (ADM) Is Up 0.02% in One Week: What You Should Know (Zack
       <td style="text-align:right;color:#c0392b;">-1.66%</td>
       <td style="text-align:right;color:#1a8a3d;">+20.13%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">40.28</span></td>
-      <td style="text-align:right;">38.20B</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">35.4</td>
       <td style="text-align:right;">2.62%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;background:#ddebf7;color:#1f4e79;font-weight:600;">7.6M</span></td>
@@ -2535,7 +2536,7 @@ US GDP Growth Softens Despite Strong Consumer, Investment (Bloomberg - 2026-07-3
       <td style="text-align:right;color:#c0392b;">-1.84%</td>
       <td style="text-align:right;color:#c0392b;">-16.76%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">45.78</span></td>
-      <td style="text-align:right;">19.08B</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;">6.83%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">9.3M</span></td>
@@ -2545,11 +2546,11 @@ US GDP Growth Softens Despite Strong Consumer, Investment (Bloomberg - 2026-07-3
     </tr>
     <tr data-ticker="BRK-B" data-pct="0.36">
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/BRK-B" target="_blank" title="RECENT NEWS:
+Prediction: Greg Abel Will Continue Holding This Berkshire Hathaway Stock That Warren Buffett Backed for Decades. (Motley Fool - 2026-08-02)
+
 Warren Buffett Thinks Investors Are &quot;Gambling&quot; Right Now. Here&#x27;s What Happened the Last Time He Uttered Those Words. (Motley Fool - 2026-08-02)
 
-Warren Buffett and Greg Abel Have Already Made Close to $8 Billion in Gains and $424 Million in Dividends This Year on 1 of Their Oldest, Most Boring Stocks (Motley Fool - 2026-08-02)
-
-Berkshire Hathaway&#x27;s Record $397 Billion Cash Pile Gives Greg Abel Room for Buybacks or a Big Acquisition (Motley Fool - 2026-08-02)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">BRK-B</a></td>
+Warren Buffett and Greg Abel Have Already Made Close to $8 Billion in Gains and $424 Million in Dividends This Year on 1 of Their Oldest, Most Boring Stocks (Motley Fool - 2026-08-02)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">BRK-B</a></td>
       <td style="text-align:right;">$511.54</td>
       <td style="text-align:right;color:#1a8a3d;">+0.36%</td>
       <td style="text-align:right;color:#1a8a3d;">+7.29%</td>
@@ -2573,7 +2574,7 @@ Prediction: Eli Lilly Will Be Worth $2 Trillion by 2031 (Motley Fool - 2026-08-0
       <td style="text-align:right;color:#c0392b;">-0.53%</td>
       <td style="text-align:right;color:#1a8a3d;">+12.56%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">43.61</span></td>
-      <td style="text-align:right;">1.02T</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">40.8</td>
       <td style="text-align:right;">0.60%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">2.9M</span></td>
@@ -2583,17 +2584,17 @@ Prediction: Eli Lilly Will Be Worth $2 Trillion by 2031 (Motley Fool - 2026-08-0
     </tr>
     <tr data-ticker="VOO" data-pct="0.71">
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/VOO" target="_blank" title="RECENT NEWS:
+1 Thing Every Investor Needs to Know About Buying the S&amp;P 500 Right Now (Motley Fool - 2026-08-02)
+
 You Inherited an IRA and the IRS Gives You 10 Years to Empty It. These 3 ETFs Make Every Year Count (24/7 Wall St. - 2026-08-01)
 
-Warren Buffett&#x27;s favorite fund quadrupled your money in 10 years (TheStreet - 2026-08-01)
-
-The 12% Yield Trap: How SPYI Returns Your Own Capital as ‘Income’ (24/7 Wall St. - 2026-08-01)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">VOO</a></td>
+Warren Buffett&#x27;s favorite fund quadrupled your money in 10 years (TheStreet - 2026-08-01)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">VOO</a></td>
       <td style="text-align:right;">$686.65</td>
       <td style="text-align:right;color:#1a8a3d;">+0.71%</td>
       <td style="text-align:right;color:#1a8a3d;">+8.23%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">48.47</span></td>
       <td style="text-align:right;">-</td>
-      <td style="text-align:right;">26.9</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">-</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">7.7M</span></td>
       <td style="text-align:right;">7.9M</td>
@@ -2725,7 +2726,7 @@ Deere (DE) Stock Declines While Market Improves: Some Information for Investors 
       <td style="text-align:right;color:#c0392b;">-1.13%</td>
       <td style="text-align:right;color:#1a8a3d;">+12.43%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">52.58</span></td>
-      <td style="text-align:right;">160.08B</td>
+      <td style="text-align:right;">159.98B</td>
       <td style="text-align:right;">33.6</td>
       <td style="text-align:right;">1.09%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">1.1M</span></td>
@@ -2754,11 +2755,11 @@ Why Is PepsiCo So Much Cheaper Than Coca-Cola? This Is the Only Answer I Can Thi
     </tr>
     <tr data-ticker="KO" data-pct="-1.02">
       <td style="font-weight:600;"><a href="https://finance.yahoo.com/quote/KO" target="_blank" title="RECENT NEWS:
+Prediction: Greg Abel Will Continue Holding This Berkshire Hathaway Stock That Warren Buffett Backed for Decades. (Motley Fool - 2026-08-02)
+
 Why Is PepsiCo So Much Cheaper Than Coca-Cola? This Is the Only Answer I Can Think Of. (Motley Fool - 2026-08-02)
 
-3 Dividend Stocks to Buy and Hold Forever (Motley Fool - 2026-08-01)
-
-Meet the Dividend Stock That Keeps Raising Its Payout No Matter What the Market Does (Motley Fool - 2026-08-01)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">KO</a></td>
+3 Dividend Stocks to Buy and Hold Forever (Motley Fool - 2026-08-01)" style="color:#1f4e79;text-decoration:none;border-bottom:1px dotted #1f4e79;">KO</a></td>
       <td style="text-align:right;">$87.59</td>
       <td style="text-align:right;color:#c0392b;">-1.02%</td>
       <td style="text-align:right;color:#1a8a3d;">+20.88%</td>
@@ -2839,7 +2840,7 @@ Beyond the Mag 7: Rising Q3 Estimates Signal a Market-Wide Earnings Expansion (Z
       <td style="text-align:right;color:#1a8a3d;">+0.70%</td>
       <td style="text-align:right;color:#1a8a3d;">+22.94%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;background:#fbe0dd;color:#c0392b;font-weight:600;">27.09</span></td>
-      <td style="text-align:right;">375.29B</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">40.7</td>
       <td style="text-align:right;">0.80%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">2.4M</span></td>
@@ -2953,7 +2954,7 @@ Silicon Motion Crushed Earnings and Surprised Memory Chip Bears (Motley Fool - 2
       <td style="text-align:right;color:#c0392b;">-5.90%</td>
       <td style="text-align:right;color:#1a8a3d;">+88.97%</td>
       <td style="text-align:right;"><span style="padding:2px 8px;border-radius:6px;">42.72</span></td>
-      <td style="text-align:right;">929.52B</td>
+      <td style="text-align:right;">-</td>
       <td style="text-align:right;">18.6</td>
       <td style="text-align:right;">0.06%</td>
       <td style="text-align:right;"><span style="padding:2px 6px;border-radius:6px;">54.3M</span></td>
