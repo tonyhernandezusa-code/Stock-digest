@@ -9865,6 +9865,14 @@ __NAV__
 <strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, median household income, vacant homes for sale, and total vacancy rate figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Vacant Homes For Sale and Total Vacancy Rate are both structural, once-every-5-years survey estimates - NOT live listing counts, and not equivalent to current MLS, Realtor.com, or Zillow active inventory; treat them as slow-moving structural comparisons between counties, not a current-month market-timing signal. Vacant Homes For Sale isolates only units classified as vacant and for sale (shown per 1,000 housing units); Total Vacancy Rate is the broader figure, covering units vacant for any reason - for rent, for sale, seasonal/vacation use, and more (shown as a % of the housing stock) - so it will always read notably higher than the For Sale figure alone, and the two aren't meant to be compared directly on the same scale. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 housing units using the housing-unit figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. Counties with no available data for the selected layer are shown in gray. This is eleven data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
+<h2 style="margin-top:28px;">County Ranking Table</h2>
+<p class="timestamp">Sortable list of every county with data for the currently selected layer above - switch layers with the buttons at the top of the page and this table updates to match. Useful for finding the actual top or bottom counties rather than reading colors off the map.</p>
+<div style="margin-bottom:10px;">
+  <input type="text" id="ranking-search" placeholder="Search county or municipio name..." oninput="renderRankingTable()" style="padding:8px;font-size:13px;border:1px solid var(--card-border);border-radius:6px;width:280px;max-width:100%;background:var(--card-bg);color:var(--text);">
+  <span id="ranking-count" style="margin-left:10px;font-size:12px;color:var(--text-secondary);"></span>
+</div>
+<div id="ranking-table-container"></div>
+
 <script>
 var COUNTY_DATA = __COUNTY_DATA_JSON__;
 var currentLayer = "growth";
@@ -10055,6 +10063,121 @@ function formatMoney(n) {
   return "$" + Math.round(n).toLocaleString();
 }
 
+// Returns { raw, formatted } for whichever layer is currently selected, given one county's
+// record. "raw" is a plain number used for sorting; "formatted" is the same display string
+// already used in the map's own tooltips, kept consistent so the ranking table below never
+// disagrees with what hovering the map shows. Reuses the same rate-computing helper functions
+// (vacantForSaleRate, totalVacancyRate, permitsPerHousingUnit) already defined above rather than
+// recalculating anything - this function only decides which one applies to which layer and how
+// to format the result.
+function getLayerValue(rec, layer) {
+  if (!rec) return { raw: null, formatted: "N/A" };
+  var raw = null, formatted = "N/A";
+  function pctStr(v) { return (v > 0 ? "+" : "") + v.toFixed(1) + "%"; }
+  if (layer === "growth") {
+    raw = rec.growth_pct;
+  } else if (layer === "unemployment") {
+    raw = rec.unemployment_rate;
+    if (raw !== null && raw !== undefined) formatted = raw.toFixed(1) + "%";
+  } else if (layer === "homevalue") {
+    raw = rec.median_home_value;
+    if (raw !== null && raw !== undefined) formatted = formatMoney(raw);
+  } else if (layer === "rent") {
+    raw = rec.median_rent;
+    if (raw !== null && raw !== undefined) formatted = formatMoney(raw) + "/mo";
+  } else if (layer === "income") {
+    raw = rec.median_income;
+    if (raw !== null && raw !== undefined) formatted = formatMoney(raw);
+  } else if (layer === "housinggrowth") {
+    raw = rec.housing_growth_pct;
+  } else if (layer === "permitgrowth") {
+    raw = rec.permit_growth_pct;
+  } else if (layer === "multifamilyshare") {
+    raw = rec.multifamily_share_pct;
+    if (raw !== null && raw !== undefined) formatted = raw.toFixed(0) + "%";
+  } else if (layer === "vacantforsale") {
+    raw = vacantForSaleRate(rec);
+    if (raw !== null && raw !== undefined) formatted = raw.toFixed(1) + " per 1,000 housing units";
+  } else if (layer === "totalvacancy") {
+    raw = totalVacancyRate(rec);
+    if (raw !== null && raw !== undefined) formatted = raw.toFixed(1) + "%";
+  } else {
+    raw = permitsPerHousingUnit(rec); // "permits" fallback, matches colorForCounty's own fallback
+    if (raw !== null && raw !== undefined) formatted = raw.toFixed(1) + " per 1,000 housing units";
+  }
+  // The three percentage-growth layers (growth, housinggrowth, permitgrowth) all share the same
+  // "+X.X%" formatting, so it's handled once here rather than repeated in each branch above.
+  if ((layer === "growth" || layer === "housinggrowth" || layer === "permitgrowth") && raw !== null && raw !== undefined) {
+    formatted = pctStr(raw);
+  }
+  if (raw === null || raw === undefined || isNaN(raw)) return { raw: null, formatted: "N/A" };
+  return { raw: raw, formatted: formatted };
+}
+
+var rankingSortColumn = "value";
+var rankingSortDir = "desc";
+
+function setRankingSort(column) {
+  if (rankingSortColumn === column) {
+    rankingSortDir = rankingSortDir === "desc" ? "asc" : "desc";
+  } else {
+    rankingSortColumn = column;
+    rankingSortDir = column === "name" ? "asc" : "desc";
+  }
+  renderRankingTable();
+}
+
+function renderRankingTable() {
+  var container = document.getElementById("ranking-table-container");
+  var countEl = document.getElementById("ranking-count");
+  if (!container || !countEl) return;
+  if (!COUNTY_DATA) {
+    container.innerHTML = "<span style='font-size:12px;color:var(--text-secondary);'>County data is temporarily unavailable.</span>";
+    return;
+  }
+  var searchBox = document.getElementById("ranking-search");
+  var searchTerm = searchBox ? searchBox.value.trim().toLowerCase() : "";
+
+  var rows = [];
+  Object.keys(COUNTY_DATA).forEach(function(fips) {
+    var rec = COUNTY_DATA[fips];
+    var lv = getLayerValue(rec, currentLayer);
+    if (lv.raw === null) return; // skip entries with no data for the currently selected layer
+    var name = rec.name || fips;
+    if (searchTerm && name.toLowerCase().indexOf(searchTerm) === -1) return;
+    rows.push({ name: name, raw: lv.raw, formatted: lv.formatted });
+  });
+
+  rows.sort(function(a, b) {
+    if (rankingSortColumn === "name") {
+      return rankingSortDir === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    }
+    return rankingSortDir === "desc" ? b.raw - a.raw : a.raw - b.raw;
+  });
+
+  countEl.textContent = rows.length.toLocaleString() + " counties/municipios with data for this layer" + (searchTerm ? " matching \"" + searchTerm + "\"" : "");
+
+  var nameArrow = rankingSortColumn === "name" ? (rankingSortDir === "asc" ? " \u25B2" : " \u25BC") : "";
+  var valueArrow = rankingSortColumn === "value" ? (rankingSortDir === "asc" ? " \u25B2" : " \u25BC") : "";
+  var html = "<div class='table-wrap'><table><tr>" +
+    "<th style='cursor:pointer;' onclick=\"setRankingSort('name')\">County / Municipio" + nameArrow + "</th>" +
+    "<th style='text-align:right;cursor:pointer;' onclick=\"setRankingSort('value')\">Value" + valueArrow + "</th>" +
+    "</tr>";
+  // Cap the rendered rows for performance - with search/sort already narrowing things down,
+  // showing the top 500 of whatever's currently sorted/filtered covers every realistic use case
+  // (finding the top or bottom counties for a layer) without asking the browser to build and
+  // hold several thousand table rows in the DOM at once for a view nobody scrolls that deep into.
+  var displayRows = rows.slice(0, 500);
+  displayRows.forEach(function(r) {
+    html += "<tr><td>" + r.name + "</td><td style='text-align:right;'>" + r.formatted + "</td></tr>";
+  });
+  html += "</table></div>";
+  if (rows.length > displayRows.length) {
+    html += "<p class='note' style='margin-top:6px;'>Showing the top " + displayRows.length + " of " + rows.length.toLocaleString() + " matching rows for this sort order - narrow your search or change the sort to see others.</p>";
+  }
+  container.innerHTML = html;
+}
+
 function renderLegend() {
   var html = "<div class='legend-item'><span class='swatch' style='background:#ccc;'></span><span>No data</span></div>";
   if (currentLayer === "growth") {
@@ -10241,7 +10364,13 @@ function setLayer(layer) {
       return colorForCounty(rec, true);
     });
   }
+  renderRankingTable();
 }
+
+// Initial ranking table render - runs immediately using the already-embedded COUNTY_DATA, rather
+// than waiting on the county-boundary map(s) to finish loading below, since the table doesn't
+// depend on the D3/TopoJSON rendering at all.
+renderRankingTable();
 
 Promise.all([
   fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-albers-10m.json").then(function(r) { return r.json(); }),
