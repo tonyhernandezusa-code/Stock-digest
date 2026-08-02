@@ -1435,6 +1435,83 @@ def fetch_census_county_population():
         }
     return result
 
+def fetch_census_county_housing_units():
+    """Total housing units and 5-year housing-unit growth for every US county, used by the
+    County Investment Map. Mirrors fetch_census_county_population() exactly (same ACS wildcard
+    query pattern, same two-vintage comparison, same proven, already-working infrastructure) -
+    just a different Census variable, so this reuses code that's already reliable in production
+    rather than depending on a separate, less certain Census data program.
+
+    B25001_001E = total housing units, ACS 5-Year Estimates - a standard, stable Census variable
+    (distinct from B01003_001E, total population, used elsewhere on this map). Comparing the
+    2023 5-year vintage (2019-2023) to the 2018 vintage (2014-2018) gives a genuine 5-year
+    change in the housing stock - where new supply has actually been added, not just requested
+    via permit (that's the separate Building Permits layer already on this map).
+
+    Returns a dict keyed by 5-digit county FIPS code, or None if either call fails."""
+    if not CENSUS_API_KEY:
+        print("Warning: CENSUS_API_KEY not set - skipping county housing-unit data for the "
+              "Investment Map. Get a free key at https://api.census.gov/data/key_signup.html "
+              "and set CENSUS_API_KEY near the top of this script.")
+        return None
+    try:
+        url_now = f"https://api.census.gov/data/2023/acs/acs5?get=NAME,B25001_001E&for=county:*&in=state:*&key={CENSUS_API_KEY}"
+        url_before = f"https://api.census.gov/data/2018/acs/acs5?get=NAME,B25001_001E&for=county:*&in=state:*&key={CENSUS_API_KEY}"
+        r_now = requests.get(url_now, timeout=30)
+        r_before = requests.get(url_before, timeout=30)
+        r_now.raise_for_status()
+        r_before.raise_for_status()
+        data_now = r_now.json()
+        data_before = r_before.json()
+    except Exception as e:
+        print("Warning: could not fetch Census county housing-unit data -", e)
+        return None
+
+    if not data_now or len(data_now) < 2 or not data_before or len(data_before) < 2:
+        print("Warning: Census county housing-unit response was empty or malformed - skipping")
+        return None
+
+    header_now = data_now[0]
+    header_before = data_before[0]
+    try:
+        idx_name = header_now.index("NAME")
+        idx_units = header_now.index("B25001_001E")
+        idx_state = header_now.index("state")
+        idx_county = header_now.index("county")
+        idx_units_before = header_before.index("B25001_001E")
+        idx_state_before = header_before.index("state")
+        idx_county_before = header_before.index("county")
+    except ValueError as e:
+        print("Warning: Census county housing-unit response is missing an expected column -", e)
+        return None
+
+    before_lookup = {}
+    for row in data_before[1:]:
+        try:
+            fips = row[idx_state_before] + row[idx_county_before]
+            before_lookup[fips] = float(row[idx_units_before])
+        except (ValueError, TypeError, IndexError):
+            continue
+
+    result = {}
+    for row in data_now[1:]:
+        try:
+            fips = row[idx_state] + row[idx_county]
+            units_now = float(row[idx_units])
+        except (ValueError, TypeError, IndexError):
+            continue
+        units_before = before_lookup.get(fips)
+        growth_pct = None
+        if units_before and units_before > 0:
+            growth_pct = round((units_now - units_before) / units_before * 100, 2)
+        result[fips] = {
+            "name": row[idx_name],
+            "housing_units": int(units_now),
+            "housing_units_5yr_ago": int(units_before) if units_before else None,
+            "housing_growth_pct": growth_pct,
+        }
+    return result
+
 def fetch_census_county_median_home_value():
     """Median value of owner-occupied housing units for every US county, used by the County
     Investment Map. Same bulk wildcard pattern as population - one API call covers all 3,143
@@ -2224,6 +2301,7 @@ state_rows.sort(key=lambda x: -x["yoy"])
 
 # County-level data for the Investment Map (see PAGE 12 below for the map itself).
 county_population_data = fetch_census_county_population()
+county_housing_units_data = fetch_census_county_housing_units()
 county_unemployment_data = fetch_bls_county_unemployment()
 county_home_value_data = fetch_census_county_median_home_value()
 county_rent_data = fetch_census_county_median_rent()
@@ -2231,6 +2309,20 @@ county_income_data = fetch_census_county_median_income()
 county_permits_data = fetch_census_county_building_permits()
 puerto_rico_geojson = fetch_puerto_rico_municipio_boundaries()
 territory_geojson = fetch_territory_boundaries()
+
+# Merge 5-year housing-unit growth into the same per-FIPS dict, same pattern as every other
+# county layer below.
+if county_housing_units_data:
+    if county_population_data is None:
+        county_population_data = {}
+    for fips, rec in county_housing_units_data.items():
+        if fips not in county_population_data:
+            county_population_data[fips] = {"name": rec["name"], "pop": None, "pop_5yr_ago": None, "growth_pct": None}
+        elif not county_population_data[fips].get("name"):
+            county_population_data[fips]["name"] = rec["name"]
+        county_population_data[fips]["housing_units"] = rec["housing_units"]
+        county_population_data[fips]["housing_units_5yr_ago"] = rec["housing_units_5yr_ago"]
+        county_population_data[fips]["housing_growth_pct"] = rec["housing_growth_pct"]
 
 # Merge unemployment into the same per-FIPS dict the population data uses, so the client only
 # needs one data structure with a layer toggle, rather than two separate fetches/objects.
@@ -9469,6 +9561,7 @@ __NAV__
   <button id="layer-btn-rent" onclick="setLayer('rent')">Median Rent</button>
   <button id="layer-btn-income" onclick="setLayer('income')">Median Household Income</button>
   <button id="layer-btn-permits" onclick="setLayer('permits')">Building Permits</button>
+  <button id="layer-btn-housinggrowth" onclick="setLayer('housinggrowth')">Housing-Unit Growth</button>
 </div>
 
 <div id="map-wrap">
@@ -9505,7 +9598,7 @@ __NAV__
 <p class="note" style="margin-top:4px;">Unlike every other layer on this page, American Samoa, Guam, CNMI, and the U.S. Virgin Islands are shown as a single figure for the whole territory rather than broken down by county or municipio - these territories are small enough (47,000 to 154,000 residents each) that further subdividing wouldn't add much. They're also not covered by the American Community Survey the way the mainland and Puerto Rico are; population, income, and home value come from the 2020 Island Areas Census instead and won't update again until the 2030 census. Rent is the one exception - it uses HUD's Fair Market Rent estimate, which HUD does publish annually for these territories, so it's more current than the other figures here. These four territories don't have a building permits figure at all currently.</p>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Counties with no available data for the selected layer are shown in gray. This is six data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Counties with no available data for the selected layer are shown in gray. This is seven data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <script>
@@ -9627,6 +9720,7 @@ function colorForCounty(rec, isPR) {
   if (currentLayer === "homevalue") return isPR ? colorForHomeValuePR(rec.median_home_value) : colorForHomeValue(rec.median_home_value);
   if (currentLayer === "rent") return isPR ? colorForRentPR(rec.median_rent) : colorForRent(rec.median_rent);
   if (currentLayer === "income") return isPR ? colorForIncomePR(rec.median_income) : colorForIncome(rec.median_income);
+  if (currentLayer === "housinggrowth") return colorForGrowth(rec.housing_growth_pct);
   return isPR ? colorForPermitsPR(permitsPerCapita(rec)) : colorForPermits(permitsPerCapita(rec));
 }
 
@@ -9665,6 +9759,12 @@ function renderLegend() {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForIncome(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>median household income (darker = higher, not &quot;better&quot;)</span>";
+  } else if (currentLayer === "housinggrowth") {
+    [-10, -5, 0, 5, 10, 15, 20].forEach(function(v) {
+      var label = (v > 0 ? "+" : "") + v + "%";
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForGrowth(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>5-yr housing-unit growth (new supply added, not just permitted)</span>";
   } else {
     [0, 8, 16, 24, 32, 40].forEach(function(v) {
       var label = v >= 40 ? "40+" : String(v);
@@ -9708,6 +9808,12 @@ function renderTerritoryLegend(containerId) {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForIncomePR(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>median household income - territory scale (darker = higher, not &quot;better&quot;)</span>";
+  } else if (currentLayer === "housinggrowth") {
+    [-10, -5, 0, 5, 10, 15, 20].forEach(function(v) {
+      var label = (v > 0 ? "+" : "") + v + "%";
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForGrowth(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>5-yr housing-unit growth (new supply added, not just permitted)</span>";
   } else {
     [0, 2, 4, 6, 8, 10].forEach(function(v) {
       var label = v >= 10 ? "10+" : String(v);
@@ -9726,6 +9832,7 @@ function setLayer(layer) {
   document.getElementById("layer-btn-rent").classList.toggle("active", layer === "rent");
   document.getElementById("layer-btn-income").classList.toggle("active", layer === "income");
   document.getElementById("layer-btn-permits").classList.toggle("active", layer === "permits");
+  document.getElementById("layer-btn-housinggrowth").classList.toggle("active", layer === "housinggrowth");
   renderLegend();
   renderTerritoryLegend("pr-map-legend");
   renderTerritoryLegend("mariana-map-legend");
@@ -9794,6 +9901,10 @@ Promise.all([
         if (rec.pop) {
           var growthText = (rec.growth_pct === null || rec.growth_pct === undefined) ? "N/A" : (rec.growth_pct > 0 ? "+" : "") + rec.growth_pct.toFixed(1) + "%";
           lines.push("Population: " + rec.pop.toLocaleString() + " (5-yr growth: " + growthText + ")");
+        }
+        if (rec.housing_units) {
+          var housingGrowthText = (rec.housing_growth_pct === null || rec.housing_growth_pct === undefined) ? "N/A" : (rec.housing_growth_pct > 0 ? "+" : "") + rec.housing_growth_pct.toFixed(1) + "%";
+          lines.push("Housing units: " + rec.housing_units.toLocaleString() + " (5-yr growth: " + housingGrowthText + ")");
         }
         if (rec.unemployment_rate !== null && rec.unemployment_rate !== undefined) {
           lines.push("Unemployment: " + rec.unemployment_rate.toFixed(1) + "% (" + rec.unemployment_period + ")");
@@ -9912,6 +10023,10 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
           if (rec.pop) {
             var growthText = (rec.growth_pct === null || rec.growth_pct === undefined) ? "N/A" : (rec.growth_pct > 0 ? "+" : "") + rec.growth_pct.toFixed(1) + "%";
             lines.push("Population: " + rec.pop.toLocaleString() + " (5-yr growth: " + growthText + ")");
+          }
+          if (rec.housing_units) {
+            var housingGrowthText = (rec.housing_growth_pct === null || rec.housing_growth_pct === undefined) ? "N/A" : (rec.housing_growth_pct > 0 ? "+" : "") + rec.housing_growth_pct.toFixed(1) + "%";
+            lines.push("Housing units: " + rec.housing_units.toLocaleString() + " (5-yr growth: " + housingGrowthText + ")");
           }
           if (rec.unemployment_rate !== null && rec.unemployment_rate !== undefined) {
             lines.push("Unemployment: " + rec.unemployment_rate.toFixed(1) + "% (" + rec.unemployment_period + ")");
