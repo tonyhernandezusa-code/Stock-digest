@@ -9068,7 +9068,7 @@ __LEARNINGMODE_CSS__
 #county-map path.county { stroke:#fff; stroke-width:0.3; cursor:pointer; }
 #county-map path.county:hover { stroke:#111; stroke-width:1; }
 #county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
-#map-tooltip { position:absolute; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:10; max-width:220px; }
+#map-tooltip { position:fixed; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:1000; max-width:220px; }
 #map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
 #map-legend .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; }
 #map-legend .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
@@ -9319,9 +9319,8 @@ Promise.all([
         }
         tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
       }
-      var wrapRect = document.getElementById("map-wrap").getBoundingClientRect();
-      tooltip.style.left = (event.clientX - wrapRect.left + 14) + "px";
-      tooltip.style.top = (event.clientY - wrapRect.top + 10) + "px";
+      tooltip.style.left = (event.clientX + 14) + "px";
+      tooltip.style.top = (event.clientY + 10) + "px";
       tooltip.style.display = "block";
     })
     .on("mouseleave", function() {
@@ -9392,9 +9391,8 @@ try {
           }
           tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
         }
-        var wrapRect = document.getElementById("pr-map-wrap").getBoundingClientRect();
-        tooltip.style.left = (event.clientX - wrapRect.left + 14) + "px";
-        tooltip.style.top = (event.clientY - wrapRect.top + 10) + "px";
+        tooltip.style.left = (event.clientX + 14) + "px";
+        tooltip.style.top = (event.clientY + 10) + "px";
         tooltip.style.display = "block";
       })
       .on("mouseleave", function() {
