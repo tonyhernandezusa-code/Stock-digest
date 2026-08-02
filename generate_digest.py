@@ -9827,6 +9827,45 @@ Promise.all([
 
 
 
+function rewindForD3(geojson) {
+  function fixPolygonRings(rings) {
+    var test = {
+      type: "Feature",
+      properties: {},
+      geometry: {
+        type: "Polygon",
+        coordinates: rings
+      }
+    };
+
+    if (d3.geoArea(test) > 2 * Math.PI) {
+      rings.forEach(function(ring) {
+        ring.reverse();
+      });
+    }
+  }
+
+  var features = geojson.features.map(function(f) {
+    var geom = JSON.parse(JSON.stringify(f.geometry));
+
+    if (geom.type === "Polygon") {
+      fixPolygonRings(geom.coordinates);
+    } else if (geom.type === "MultiPolygon") {
+      geom.coordinates.forEach(fixPolygonRings);
+    }
+
+    return {
+      type: "Feature",
+      properties: f.properties,
+      geometry: geom
+    };
+  });
+
+  return {
+    type: "FeatureCollection",
+    features: features
+  };
+}
 // Generic territory map renderer, used for Puerto Rico+USVI, Guam+CNMI, and American Samoa -
 // same rendering, tooltip, and error-handling logic for all three, just pointed at different
 // elements and GeoJSON data. Returns the rendered path selection (or null on failure) so the
@@ -9837,7 +9876,7 @@ function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, v
       document.getElementById(loadingId).textContent = label + " map data is temporarily unavailable.";
       return null;
     }
-   
+    geojson = rewindForD3(geojson);   
 var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson);
     var path = d3.geoPath().projection(projection);
     var svg = d3.select("#" + svgId);
