@@ -746,6 +746,86 @@ function toggleLearningMode() {
 }
 """
 
+# Site-wide bar/line sparkline toggle, using the same shared-localStorage-key pattern as Dark
+# Mode and Learning Mode above. Previously this only existed inline on the stocks page (the only
+# page that used it when it was first built) - extracted here so any other page with sparklines
+# (e.g. Real Estate) gets the exact same toggle button and behavior, not a page missing it
+# entirely. Renamed the localStorage key from the old page-specific "stocksPageChartMode" to
+# "siteChartMode" to match the siteDarkMode/siteLearningMode naming convention, now that this is
+# genuinely a site-wide preference rather than a stocks-page-only one.
+CHART_MODE_CSS = """
+#chart-mode-toggle {
+  position: fixed; top: 56px; right: 16px; z-index: 1000;
+  padding: 8px 14px; font-size: 13px; font-weight: 600;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
+  border-radius: 20px; cursor: pointer;
+}
+.sparkline { display: block; margin-top: 6px; }
+"""
+
+CHART_MODE_BUTTON = '<button id="chart-mode-toggle" onclick="toggleAllSparklineType()">&#128202; View as Bars</button>\n'
+
+CHART_MODE_JS = """
+function renderSparklineAsMode(svg, mode) {
+  var values = svg.getAttribute('data-values').split(',').map(Number).filter(function(v) { return !isNaN(v); });
+  svg.setAttribute('data-mode', mode);
+  var width = parseFloat(svg.getAttribute('width'));
+  var height = parseFloat(svg.getAttribute('height'));
+  var n = values.length;
+  if (n < 2) return; // not enough valid data to draw anything meaningful
+  var lo = Math.min.apply(null, values);
+  var hi = Math.max.apply(null, values);
+  var span = hi - lo;
+  var color = values[n - 1] > values[0] ? '#1a8a3d' : values[n - 1] < values[0] ? '#c0392b' : '#999';
+  var content;
+  if (mode === 'line') {
+    var points = values.map(function(v, i) {
+      var x = (n === 1) ? width / 2 : (i / (n - 1)) * (width - 4) + 2;
+      var y = span === 0 ? height / 2 : height - 2 - ((v - lo) / span) * (height - 4);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    content = '<polyline points="' + points + '" fill="none" stroke="' + color +
+      '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+  } else {
+    var slotWidth = (width - 4) / n;
+    var barWidth = slotWidth * 0.7;
+    content = values.map(function(v, i) {
+      var barHeight = span === 0 ? 2 : ((v - lo) / span) * (height - 6) + 1;
+      var x = 2 + i * slotWidth + (slotWidth - barWidth) / 2;
+      var y = height - 2 - barHeight;
+      return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barWidth.toFixed(1) +
+        '" height="' + barHeight.toFixed(1) + '" fill="' + color + '"/>';
+    }).join('');
+  }
+  svg.innerHTML = content;
+}
+function toggleSparklineType(svg) {
+  var mode = svg.getAttribute('data-mode') === 'bar' ? 'line' : 'bar';
+  renderSparklineAsMode(svg, mode);
+}
+function setAllSparklineType(mode) {
+  document.querySelectorAll('svg.sparkline').forEach(function(svg) {
+    renderSparklineAsMode(svg, mode);
+  });
+  localStorage.setItem('siteChartMode', mode);
+  var btn = document.getElementById('chart-mode-toggle');
+  if (btn) btn.innerHTML = mode === 'bar' ? '&#128200; View as Lines' : '&#128202; View as Bars';
+}
+function toggleAllSparklineType() {
+  var current = (document.querySelector('svg.sparkline') || {}).getAttribute
+    ? document.querySelector('svg.sparkline').getAttribute('data-mode') : 'line';
+  setAllSparklineType(current === 'bar' ? 'line' : 'bar');
+}
+(function() {
+  var savedChartMode = localStorage.getItem('siteChartMode');
+  if (savedChartMode === 'bar') {
+    document.addEventListener('DOMContentLoaded', function() {
+      setAllSparklineType('bar');
+    });
+  }
+})();
+"""
+
 def compute_rsi(series, period=14):
     delta = series.diff()
     gain = delta.where(delta > 0, 0).rolling(period).mean()
@@ -1195,15 +1275,35 @@ def fetch_currents_news(category, limit=8):
         print(f"Warning: news fetch failed for category {category} ({e})")
         return []
 
+# Series known to be quarterly-frequency (not daily/monthly) when fetched via fetch_fred_rate.
+# A 6-month lookback window (fine for daily/monthly series - dozens to ~180 points) only yields
+# 1-2 observations for a quarterly series, which can't show a real trend and often looks like a
+# flat line even when there IS a genuine change, or literally a single point (no line at all) if
+# the latest release happens to fall right at the edge of the window. These get a 2-year window
+# instead, giving ~8 quarterly points - enough for an actual visible sparkline trend.
+QUARTERLY_FRED_SERIES = {"DRSFRMACBS", "RSAHORUSQ156S", "RRVRUSQ156N", "RHVRUSQ156N"}
+
 def fetch_fred_rate(series_id):
     """Latest value, the value from ~6 months ago, and the full history in between for sparklines."""
-    six_months_ago = (datetime.now() - timedelta(days=183)).strftime("%Y-%m-%d")
-    series = fetch_fred(series_id, limit=200, sort_order="asc", observation_start=six_months_ago)
+    lookback_days = 730 if series_id in QUARTERLY_FRED_SERIES else 183
+    start_date = (datetime.now() - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
+    series = fetch_fred(series_id, limit=200, sort_order="asc", observation_start=start_date)
     if not series:
         return None
     latest = series[-1]
     history = downsample_series([o["value"] for o in series])
-    return {"value": latest["value"], "date": latest["date"], "value_6mo": series[0]["value"], "history": history}
+
+    # "6 months ago" comparison value: find the observation closest to 183 days before latest,
+    # not just the oldest point in the window - for quarterly series the window above is longer
+    # than 6 months (to build a real sparkline trend), so series[0] would otherwise be ~2 years
+    # old rather than ~6 months old, silently making the "6 mo ago" label on the page wrong.
+    if lookback_days == 183:
+        value_6mo = series[0]["value"]
+    else:
+        target_date = datetime.now() - timedelta(days=183)
+        value_6mo = min(series, key=lambda o: abs(datetime.strptime(o["date"], "%Y-%m-%d") - target_date))["value"]
+
+    return {"value": latest["value"], "date": latest["date"], "value_6mo": value_6mo, "history": history}
 
 def fetch_fred_yoy(series_id):
     """Year-over-year % change now, what it was 6 months ago, and a rolling history in between."""
@@ -2472,13 +2572,7 @@ body.dark-mode {{
   background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
   border-radius: 20px; cursor: pointer;
 }}
-#chart-mode-toggle {{
-  position: fixed; top: 56px; right: 16px; z-index: 1000;
-  padding: 8px 14px; font-size: 13px; font-weight: 600;
-  background: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);
-  border-radius: 20px; cursor: pointer;
-}}
-.sparkline {{ display: block; margin-top: 6px; }}
+{CHART_MODE_CSS}
 .learning-mode-only {{ display: none; }}
 body.learning-mode .learning-mode-only {{ display: block; }}
 tr.learning-mode-only {{ display: none; }}
@@ -2490,7 +2584,7 @@ body.learning-mode tr.learning-mode-only {{ display: table-row; }}
 </head>
 <body>
 <button id="theme-toggle" onclick="toggleTheme()">&#9680; Dark Mode</button>
-<button id="chart-mode-toggle" onclick="toggleAllSparklineType()">&#128202; View as Bars</button>
+{CHART_MODE_BUTTON}
 <button id="learning-mode-toggle" onclick="toggleLearningMode()">&#127891; Learning Mode: Off</button>
 <script>
 (function() {{
@@ -2522,68 +2616,7 @@ function toggleTheme() {{
   document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light Mode' : '&#9680; Dark Mode';
 }}
 
-function renderSparklineAsMode(svg, mode) {{
-  var values = svg.getAttribute('data-values').split(',').map(Number).filter(function(v) {{ return !isNaN(v); }});
-  svg.setAttribute('data-mode', mode);
-  var width = parseFloat(svg.getAttribute('width'));
-  var height = parseFloat(svg.getAttribute('height'));
-  var n = values.length;
-  if (n < 2) return; // not enough valid data to draw anything meaningful
-  var lo = Math.min.apply(null, values);
-  var hi = Math.max.apply(null, values);
-  var span = hi - lo;
-  var color = values[n - 1] > values[0] ? '#1a8a3d' : values[n - 1] < values[0] ? '#c0392b' : '#999';
-  var content;
-  if (mode === 'line') {{
-    var points = values.map(function(v, i) {{
-      var x = (n === 1) ? width / 2 : (i / (n - 1)) * (width - 4) + 2;
-      var y = span === 0 ? height / 2 : height - 2 - ((v - lo) / span) * (height - 4);
-      return x.toFixed(1) + ',' + y.toFixed(1);
-    }}).join(' ');
-    content = '<polyline points="' + points + '" fill="none" stroke="' + color +
-      '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
-  }} else {{
-    var slotWidth = (width - 4) / n;
-    var barWidth = slotWidth * 0.7;
-    content = values.map(function(v, i) {{
-      var barHeight = span === 0 ? 2 : ((v - lo) / span) * (height - 6) + 1;
-      var x = 2 + i * slotWidth + (slotWidth - barWidth) / 2;
-      var y = height - 2 - barHeight;
-      return '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + barWidth.toFixed(1) +
-        '" height="' + barHeight.toFixed(1) + '" fill="' + color + '"/>';
-    }}).join('');
-  }}
-  svg.innerHTML = content;
-}}
-
-function toggleSparklineType(svg) {{
-  var mode = svg.getAttribute('data-mode') === 'bar' ? 'line' : 'bar';
-  renderSparklineAsMode(svg, mode);
-}}
-
-function setAllSparklineType(mode) {{
-  document.querySelectorAll('svg.sparkline').forEach(function(svg) {{
-    renderSparklineAsMode(svg, mode);
-  }});
-  localStorage.setItem('stocksPageChartMode', mode);
-  var btn = document.getElementById('chart-mode-toggle');
-  if (btn) btn.innerHTML = mode === 'bar' ? '&#128200; View as Lines' : '&#128202; View as Bars';
-}}
-
-function toggleAllSparklineType() {{
-  var current = (document.querySelector('svg.sparkline') || {{}}).getAttribute
-    ? document.querySelector('svg.sparkline').getAttribute('data-mode') : 'line';
-  setAllSparklineType(current === 'bar' ? 'line' : 'bar');
-}}
-
-(function() {{
-  var savedChartMode = localStorage.getItem('stocksPageChartMode');
-  if (savedChartMode === 'bar') {{
-    document.addEventListener('DOMContentLoaded', function() {{
-      setAllSparklineType('bar');
-    }});
-  }}
-}})();
+{CHART_MODE_JS}
 
 var AI_INSIGHT_WORKER_URL = "https://finnhub-proxy.tonyhernandezusa.workers.dev";
 
@@ -2741,10 +2774,11 @@ realestate_html = f"""<!DOCTYPE html>
 <title>Real Estate Dashboard</title>
 <style>{PAGE_CSS}
 {LEARNING_MODE_CSS}
+{CHART_MODE_CSS}
 </style>
 </head>
 <body>
-{LEARNING_MODE_BUTTON}<script>{LEARNING_MODE_JS}</script>
+{CHART_MODE_BUTTON}{LEARNING_MODE_BUTTON}<script>{LEARNING_MODE_JS}{CHART_MODE_JS}</script>
 {NAV_HTML}
 <h1>Real Estate Dashboard</h1>
 <p class="timestamp">Updated {timestamp}</p>
