@@ -11,6 +11,12 @@ from datetime import datetime, timedelta
 
 FRED_API_KEY = "d6150924a7a201d4e891d082f7123818"
 
+# As of May 12, 2026, the Census Bureau requires a registered API key for ACS5 queries -
+# get a free one at https://api.census.gov/data/key_signup.html (instant, no approval wait)
+# and paste it here. Without this, the County Investment Map's population data will fail
+# to load and every county will show as "no data" (gray).
+CENSUS_API_KEY = "4eff88d2eade5014bcf016d85d4a09f309872025"
+
 WATCHLIST = ["AAPL", "GOOGL", "VTI", "QCOM", "TSM", "META", "TSLA", "MSFT", "INTC", "NVDA", "AMD", "ORCL", "DRIV", "ARTY", "ROBO", "SHOP", "SNPS", "VHT", "CRDO", "RMBS", "SDY", "VYM", "IVE", "AVGO", "JNJ", "AMZN", "BMY", "MRVL", "SCHD", "SPY", "WM", "RSG", "IDU", "MKC", "MRK", "ADM", "GIS", "BRK-B", "LLY", "VOO", "QQQ", "TQQQ", "SQQQ", "SDS", "CSCO", "WMT", "DE", "PEP", "KO", "V", "MA", "CMI", "CAT", "UNP", "CSX", "NSC", "PLTR", "DELL", "MU", "SNDK", "LMT", "AMGN", "ABBV", "RTX", "IONQ", "KEEL", "JCI", "HONA", "HON"]
 
 INDEXES = [
@@ -1239,9 +1245,14 @@ def fetch_census_county_population():
     genuine 5-year population change, not a same-period overlap.
 
     Returns a dict keyed by 5-digit county FIPS code, or None if either call fails."""
+    if not CENSUS_API_KEY:
+        print("Warning: CENSUS_API_KEY not set - skipping county population data for the "
+              "Investment Map. Get a free key at https://api.census.gov/data/key_signup.html "
+              "and set CENSUS_API_KEY near the top of this script.")
+        return None
     try:
-        url_now = "https://api.census.gov/data/2023/acs/acs5?get=NAME,B01003_001E&for=county:*&in=state:*"
-        url_before = "https://api.census.gov/data/2018/acs/acs5?get=NAME,B01003_001E&for=county:*&in=state:*"
+        url_now = f"https://api.census.gov/data/2023/acs/acs5?get=NAME,B01003_001E&for=county:*&in=state:*&key={CENSUS_API_KEY}"
+        url_before = f"https://api.census.gov/data/2018/acs/acs5?get=NAME,B01003_001E&for=county:*&in=state:*&key={CENSUS_API_KEY}"
         r_now = requests.get(url_now, timeout=30)
         r_before = requests.get(url_before, timeout=30)
         r_now.raise_for_status()
@@ -1295,6 +1306,81 @@ def fetch_census_county_population():
             "pop_5yr_ago": int(pop_before) if pop_before else None,
             "growth_pct": growth_pct,
         }
+    return result
+
+def fetch_bls_county_unemployment():
+    """County-level unemployment rate for every US county, used by the County Investment Map.
+
+    BLS publishes Local Area Unemployment Statistics (LAUS) as bulk flat files, not a
+    rate-limited API - no key needed. The full historical county file is enormous (300+ MB,
+    back to 1990), but BLS also publishes a "current window" file covering just the most
+    recent ~5 years (currently 2025-2029), which is what we actually need since we only want
+    each county's latest rate - roughly 22-33MB, a reasonable one-time download during a
+    GitHub Actions run.
+
+    Series ID format for county unemployment rate: "LAUCN" + 5-digit county FIPS + "0000000"
+    + "03" (measure code 03 = unemployment rate). E.g. LAUCN010010000000003 = Autauga County,
+    AL. Source: BLS LAUS series ID convention, cross-checked against a live example
+    (LAUCN281070000000003) in BLS's own API documentation.
+
+    File format: tab-separated, one header row, columns are series_id / year / period / value
+    / footnote_codes. Period "M13" is the annual average - skipped here since we want the
+    latest available month, not an annual figure. Fields are stripped of whitespace since
+    BLS flat files are historically fixed-width-padded.
+
+    Returns a dict keyed by 5-digit county FIPS code (rate + the year-month it's from), or
+    None if the download/parse fails entirely."""
+    url = "https://download.bls.gov/pub/time.series/la/la.data.0.CurrentU25-29"
+    try:
+        resp = requests.get(url, timeout=90, headers={"User-Agent": "USA Tools Inc Stock Digest contact@usatoolsinc.com"})
+        resp.raise_for_status()
+        text = resp.text
+    except Exception as e:
+        print("Warning: could not download BLS county unemployment data -", e)
+        return None
+
+    lines = text.splitlines()
+    if len(lines) < 2:
+        print("Warning: BLS county unemployment file was empty or malformed - skipping")
+        return None
+
+    result = {}
+    parsed_rows = 0
+    for line in lines[1:]:  # skip header row
+        parts = line.split("\t")
+        if len(parts) < 4:
+            continue
+        series_id = parts[0].strip()
+        year_str = parts[1].strip()
+        period = parts[2].strip()
+        value_str = parts[3].strip()
+
+        if not series_id.startswith("LAUCN") or not series_id.endswith("03") or period == "M13":
+            continue
+        fips = series_id[5:10]
+        if len(fips) != 5 or not fips.isdigit():
+            continue
+        try:
+            year = int(year_str)
+            rate = float(value_str)
+        except (ValueError, TypeError):
+            continue
+
+        parsed_rows += 1
+        # Period is like "M01".."M12" - keep only the latest (year, month) per county
+        existing = result.get(fips)
+        key_now = (year, period)
+        if existing is None or key_now > existing["_sort_key"]:
+            result[fips] = {"rate": rate, "period": f"{year}-{period[1:]}", "_sort_key": key_now}
+
+    if parsed_rows == 0:
+        print("Warning: BLS county unemployment file parsed but no matching rows found - "
+              "the file format may have changed. Skipping.")
+        return None
+
+    for fips in result:
+        del result[fips]["_sort_key"]
+
     return result
 
 def fetch_fred_mom(series_id):
@@ -1610,6 +1696,18 @@ state_rows.sort(key=lambda x: -x["yoy"])
 
 # County-level data for the Investment Map (see PAGE 12 below for the map itself).
 county_population_data = fetch_census_county_population()
+county_unemployment_data = fetch_bls_county_unemployment()
+
+# Merge unemployment into the same per-FIPS dict the population data uses, so the client only
+# needs one data structure with a layer toggle, rather than two separate fetches/objects.
+if county_unemployment_data:
+    if county_population_data is None:
+        county_population_data = {}
+    for fips, rec in county_unemployment_data.items():
+        if fips not in county_population_data:
+            county_population_data[fips] = {"name": None, "pop": None, "pop_5yr_ago": None, "growth_pct": None}
+        county_population_data[fips]["unemployment_rate"] = rec["rate"]
+        county_population_data[fips]["unemployment_period"] = rec["period"]
 
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
@@ -8653,6 +8751,9 @@ __LEARNINGMODE_CSS__
 #map-legend { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); margin-top:10px; }
 #map-legend .swatch { width:16px; height:12px; display:inline-block; }
 #map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
+#layer-toggle { display:flex; gap:8px; margin-bottom:12px; }
+#layer-toggle button { padding:8px 14px; border-radius:8px; border:1px solid var(--card-border); background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; }
+#layer-toggle button.active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
 </style>
 </head>
 <body>
@@ -8660,11 +8761,16 @@ __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>County Investment Map</h1>
-<p class="timestamp">5-year population growth by U.S. county (2018-2023, Census ACS 5-Year Estimates).</p>
+<p class="timestamp">Population growth and unemployment by U.S. county.</p>
 
 <div class="beginner-box learning-mode-only">
 <h3>&#127891; What This Map Shows</h3>
-<p style="font-size:13px;line-height:1.6;margin:0;">Each county is colored by how much its population grew (green) or shrank (red) over the last 5 years of available Census data. Population growth is one input real estate investors watch because more people generally means more housing demand over time - but it's one factor among many, not a standalone signal.</p>
+<p style="font-size:13px;line-height:1.6;margin:0;">Switch between two views of the same counties: population growth over the last 5 years (green = growing, red = shrinking) and current unemployment rate (green = lower/better, red = higher/worse). Both are inputs real estate investors watch, but each is one factor among many, not a standalone signal.</p>
+</div>
+
+<div id="layer-toggle">
+  <button id="layer-btn-growth" class="active" onclick="setLayer('growth')">Population Growth</button>
+  <button id="layer-btn-unemployment" onclick="setLayer('unemployment')">Unemployment Rate</button>
 </div>
 
 <div id="map-wrap">
@@ -8675,11 +8781,13 @@ __NAV__
 <div id="map-legend"></div>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population figures are from the Census Bureau's American Community Survey 5-Year Estimates, comparing the 2019-2023 vintage to the 2014-2018 vintage. Counties with no available data are shown in gray. This is one data layer of a planned multi-factor County Investment Map - additional layers (unemployment, income growth, home price appreciation, building permits) and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> Population growth alone does not indicate whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population figures are from the Census Bureau's American Community Survey 5-Year Estimates, comparing the 2019-2023 vintage to the 2014-2018 vintage. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Counties with no available data for the selected layer are shown in gray. This is two data layers of a planned multi-factor County Investment Map - additional layers (income growth, home price appreciation, building permits) and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> Neither population growth nor unemployment alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <script>
 var COUNTY_DATA = __COUNTY_DATA_JSON__;
+var currentLayer = "growth";
+var countyPaths = null; // set once the map itself has rendered, reused when the layer toggles
 
 function fipsKey(id) {
   return String(id).padStart(5, "0");
@@ -8692,14 +8800,46 @@ function colorForGrowth(pct) {
   return d3.interpolateRdYlGn(t);
 }
 
+function colorForUnemployment(rate) {
+  if (rate === null || rate === undefined || isNaN(rate)) return "#ccc";
+  var clamped = Math.max(2, Math.min(12, rate));
+  var t = 1 - ((clamped - 2) / 10); // inverted: low unemployment (2%) = green, high (12%) = red
+  return d3.interpolateRdYlGn(t);
+}
+
+function colorForCounty(rec) {
+  if (!rec) return "#ccc";
+  if (currentLayer === "growth") return colorForGrowth(rec.growth_pct);
+  return colorForUnemployment(rec.unemployment_rate);
+}
+
 function renderLegend() {
-  var stops = [-10, -5, 0, 5, 10, 15, 20];
   var html = "No data:<span class='swatch' style='background:#ccc;'></span>&nbsp;&nbsp;";
-  stops.forEach(function(v) {
-    html += "<span class='swatch' style='background:" + colorForGrowth(v) + ";'></span>";
-  });
-  html += "<span style='margin-left:4px;'>-10% &rarr; +20% population growth</span>";
+  if (currentLayer === "growth") {
+    [-10, -5, 0, 5, 10, 15, 20].forEach(function(v) {
+      html += "<span class='swatch' style='background:" + colorForGrowth(v) + ";'></span>";
+    });
+    html += "<span style='margin-left:4px;'>-10% &rarr; +20% population growth</span>";
+  } else {
+    [2, 4, 6, 8, 10, 12].forEach(function(v) {
+      html += "<span class='swatch' style='background:" + colorForUnemployment(v) + ";'></span>";
+    });
+    html += "<span style='margin-left:4px;'>2% &rarr; 12% unemployment rate (lower is greener)</span>";
+  }
   document.getElementById("map-legend").innerHTML = html;
+}
+
+function setLayer(layer) {
+  currentLayer = layer;
+  document.getElementById("layer-btn-growth").classList.toggle("active", layer === "growth");
+  document.getElementById("layer-btn-unemployment").classList.toggle("active", layer === "unemployment");
+  renderLegend();
+  if (countyPaths) {
+    countyPaths.attr("fill", function(d) {
+      var rec = COUNTY_DATA ? COUNTY_DATA[fipsKey(d.id)] : null;
+      return colorForCounty(rec);
+    });
+  }
 }
 
 Promise.all([
@@ -8716,16 +8856,15 @@ Promise.all([
   var d3svg = d3.select("#county-map");
   var path = d3.geoPath();
 
-  d3svg.append("g")
+  countyPaths = d3svg.append("g")
     .selectAll("path")
     .data(counties.features)
     .join("path")
     .attr("class", "county")
     .attr("d", path)
     .attr("fill", function(d) {
-      if (!COUNTY_DATA) return "#ccc";
-      var rec = COUNTY_DATA[fipsKey(d.id)];
-      return rec ? colorForGrowth(rec.growth_pct) : "#ccc";
+      var rec = COUNTY_DATA ? COUNTY_DATA[fipsKey(d.id)] : null;
+      return colorForCounty(rec);
     })
     .on("mousemove", function(event, d) {
       var tooltip = document.getElementById("map-tooltip");
@@ -8733,8 +8872,16 @@ Promise.all([
       if (!rec) {
         tooltip.innerHTML = "No data available";
       } else {
-        var growthText = (rec.growth_pct === null || rec.growth_pct === undefined) ? "N/A" : (rec.growth_pct > 0 ? "+" : "") + rec.growth_pct.toFixed(1) + "%";
-        tooltip.innerHTML = "<strong>" + rec.name + "</strong><br>Population: " + rec.pop.toLocaleString() + "<br>5-yr growth: " + growthText;
+        var lines = [];
+        if (rec.name) lines.push("<strong>" + rec.name + "</strong>");
+        if (rec.pop) {
+          var growthText = (rec.growth_pct === null || rec.growth_pct === undefined) ? "N/A" : (rec.growth_pct > 0 ? "+" : "") + rec.growth_pct.toFixed(1) + "%";
+          lines.push("Population: " + rec.pop.toLocaleString() + " (5-yr growth: " + growthText + ")");
+        }
+        if (rec.unemployment_rate !== null && rec.unemployment_rate !== undefined) {
+          lines.push("Unemployment: " + rec.unemployment_rate.toFixed(1) + "% (" + rec.unemployment_period + ")");
+        }
+        tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
       }
       var wrapRect = document.getElementById("map-wrap").getBoundingClientRect();
       tooltip.style.left = (event.clientX - wrapRect.left + 14) + "px";
