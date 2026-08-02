@@ -9435,7 +9435,7 @@ __LEARNINGMODE_CSS__
 #county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
 #map-tooltip { position:fixed; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:1000; max-width:220px; }
 #map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
-#map-legend .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+#map-legend, #pr-map-legend, #mariana-map-legend, #american-samoa-map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; } .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; } .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); } { display:flex; align-items:center; gap:4px; white-space:nowrap; }
 #map-legend .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
 #map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
 #layer-toggle { display:flex; gap:8px; margin-bottom:12px; }
