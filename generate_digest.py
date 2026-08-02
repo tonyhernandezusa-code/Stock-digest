@@ -2785,6 +2785,11 @@ realestate_html = f"""<!DOCTYPE html>
 
 {render_market_alert_section(_re_score_data, _re_history, "Real Estate Market Alert")}
 
+<div class="beginner-box learning-mode-only">
+<h3>&#127891; What These Numbers Mean</h3>
+<p style="font-size:13px;line-height:1.6;margin:0;">Housing Starts, Building Permits, and New Home Sales track new construction activity - permits come first (builders getting approval), starts come next (ground actually broken), and new home sales measure whether buyers are actually purchasing what gets built. The 30-Yr Mortgage Rate is the typical borrowing cost for a home loan, and Mortgage Delinquency Rate tracks how many homeowners are falling behind on payments - a rising rate is an early warning sign. Homeownership Rate is the share of households that own (versus rent) their home. Rental Vacancy Rate and Homeowner Vacancy Rate measure how much housing sits empty and available - rising vacancy generally signals softening demand, falling vacancy signals a tightening market. None of these alone says whether now is a good time to buy or sell - they're pieces of a much bigger picture.</p>
+</div>
+
 <h2>National Housing Indicators</h2>
 <div class="row">{re_national_cards(re_national_rows)}</div>
 <p class="note">Housing starts, permits, and new home sales are seasonally adjusted annual rates in thousands. "6 mo ago" compares to the reading six months earlier. Source: Federal Reserve (FRED).</p>
