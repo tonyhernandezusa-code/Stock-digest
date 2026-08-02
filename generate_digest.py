@@ -1631,6 +1631,67 @@ def fetch_census_county_vacant_for_sale():
         result[fips] = {"name": row[idx_name], "vacant_for_sale": int(value)}
     return result
 
+def fetch_census_county_total_vacancy():
+    """Total vacant housing units (all reasons - for rent, for sale, seasonal use, etc.) for
+    every US county, used by the County Investment Map's Total Vacancy Rate layer. Same bulk
+    wildcard pattern and single-vintage snapshot as fetch_census_county_vacant_for_sale() above -
+    one API call covers all 3,143 counties. B25004_001E = total vacant housing units (all
+    categories combined), ACS 5-Year Estimates (2019-2023 vintage) - the "Total:" line of the
+    same B25004 (Vacancy Status) table used for the Vacant Homes For Sale layer, verified
+    directly against the Census Bureau's own table documentation before using it here.
+
+    Unlike Vacant Homes For Sale (which isolates just the "for sale only" category), this is the
+    broader total vacancy rate - it captures homes vacant for any reason, giving a fuller picture
+    of how much of a county's housing stock is sitting empty overall, not just what's on the
+    market to buy.
+
+    Client-side, this is displayed as a rate (total vacant units as a percentage of total
+    housing units, using the housing_units figure already fetched by
+    fetch_census_county_housing_units() above) rather than a raw count, so a large county isn't
+    penalized in the color scale just for having more homes overall.
+
+    Returns a dict keyed by 5-digit county FIPS code, or None if the call fails."""
+    if not CENSUS_API_KEY:
+        print("Warning: CENSUS_API_KEY not set - skipping total vacancy data for the "
+              "Investment Map.")
+        return None
+    try:
+        url = f"https://api.census.gov/data/2023/acs/acs5?get=NAME,B25004_001E&for=county:*&in=state:*&key={CENSUS_API_KEY}"
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print("Warning: could not fetch Census county total vacancy data -", e)
+        return None
+
+    if not data or len(data) < 2:
+        print("Warning: Census county total vacancy response was empty or malformed - skipping")
+        return None
+
+    header = data[0]
+    try:
+        idx_name = header.index("NAME")
+        idx_value = header.index("B25004_001E")
+        idx_state = header.index("state")
+        idx_county = header.index("county")
+    except ValueError as e:
+        print("Warning: Census county total vacancy response is missing an expected column -", e)
+        return None
+
+    result = {}
+    for row in data[1:]:
+        try:
+            fips = row[idx_state] + row[idx_county]
+            value = float(row[idx_value])
+        except (ValueError, TypeError, IndexError):
+            continue
+        # Same Census sentinel-value convention as home value/rent/income - negative counts are
+        # never real data, they mean "no reliable estimate available for this geography."
+        if value < 0:
+            continue
+        result[fips] = {"name": row[idx_name], "vacant_total": int(value)}
+    return result
+
 def fetch_census_county_median_rent():
     """Median gross rent for every US county, used by the County Investment Map. Same bulk
     wildcard pattern as population/home value - one API call covers all 3,143 counties.
@@ -2463,6 +2524,7 @@ county_housing_units_data = fetch_census_county_housing_units()
 county_unemployment_data = fetch_bls_county_unemployment()
 county_home_value_data = fetch_census_county_median_home_value()
 county_vacant_for_sale_data = fetch_census_county_vacant_for_sale()
+county_total_vacancy_data = fetch_census_county_total_vacancy()
 county_rent_data = fetch_census_county_median_rent()
 county_income_data = fetch_census_county_median_income()
 county_permits_data = fetch_census_county_building_permits()
@@ -2516,6 +2578,17 @@ if county_vacant_for_sale_data:
         elif not county_population_data[fips].get("name"):
             county_population_data[fips]["name"] = rec["name"]
         county_population_data[fips]["vacant_for_sale"] = rec["vacant_for_sale"]
+
+# Same merge pattern for total vacancy.
+if county_total_vacancy_data:
+    if county_population_data is None:
+        county_population_data = {}
+    for fips, rec in county_total_vacancy_data.items():
+        if fips not in county_population_data:
+            county_population_data[fips] = {"name": rec["name"], "pop": None, "pop_5yr_ago": None, "growth_pct": None}
+        elif not county_population_data[fips].get("name"):
+            county_population_data[fips]["name"] = rec["name"]
+        county_population_data[fips]["vacant_total"] = rec["vacant_total"]
 
 # Same merge pattern for median rent.
 if county_rent_data:
@@ -9752,6 +9825,7 @@ __NAV__
   <button id="layer-btn-permitgrowth" onclick="setLayer('permitgrowth')">Permit Growth (YoY)</button>
   <button id="layer-btn-multifamilyshare" onclick="setLayer('multifamilyshare')">Multifamily Share</button>
   <button id="layer-btn-vacantforsale" onclick="setLayer('vacantforsale')">Vacant Homes For Sale</button>
+  <button id="layer-btn-totalvacancy" onclick="setLayer('totalvacancy')">Total Vacancy Rate</button>
 </div>
 
 <div id="map-wrap">
@@ -9788,7 +9862,7 @@ __NAV__
 <p class="note" style="margin-top:4px;">Unlike every other layer on this page, American Samoa, Guam, CNMI, and the U.S. Virgin Islands are shown as a single figure for the whole territory rather than broken down by county or municipio - these territories are small enough (47,000 to 154,000 residents each) that further subdividing wouldn't add much. They're also not covered by the American Community Survey the way the mainland and Puerto Rico are; population, income, and home value come from the 2020 Island Areas Census instead and won't update again until the 2030 census. Rent is the one exception - it uses HUD's Fair Market Rent estimate, which HUD does publish annually for these territories, so it's more current than the other figures here. These four territories don't have a building permits figure at all currently.</p>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, median household income, and vacant homes for sale figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Vacant Homes For Sale is a structural, once-every-5-years survey estimate of housing units classified as vacant and for sale, shown per 1,000 housing units - it is NOT a live listing count and is not equivalent to current MLS, Realtor.com, or Zillow active inventory; treat it as a slow-moving structural comparison between counties, not a current-month market-timing signal. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. Counties with no available data for the selected layer are shown in gray. This is ten data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, median household income, vacant homes for sale, and total vacancy rate figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Vacant Homes For Sale and Total Vacancy Rate are both structural, once-every-5-years survey estimates - NOT live listing counts, and not equivalent to current MLS, Realtor.com, or Zillow active inventory; treat them as slow-moving structural comparisons between counties, not a current-month market-timing signal. Vacant Homes For Sale isolates only units classified as vacant and for sale (shown per 1,000 housing units); Total Vacancy Rate is the broader figure, covering units vacant for any reason - for rent, for sale, seasonal/vacation use, and more (shown as a % of the housing stock) - so it will always read notably higher than the For Sale figure alone, and the two aren't meant to be compared directly on the same scale. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. Counties with no available data for the selected layer are shown in gray. This is eleven data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <script>
@@ -9852,6 +9926,24 @@ function colorForVacantForSale(rate) {
   var clamped = Math.max(0, Math.min(20, rate));
   var t = clamped / 20;
   return d3.interpolateReds(t);
+}
+
+function totalVacancyRate(rec) {
+  if (!rec || rec.vacant_total === null || rec.vacant_total === undefined) return null;
+  if (!rec.housing_units || rec.housing_units <= 0) return null; // can't compute a rate without a housing-stock denominator
+  return (rec.vacant_total / rec.housing_units) * 100;
+}
+
+function colorForTotalVacancy(pct) {
+  if (pct === null || pct === undefined || isNaN(pct)) return "#ccc";
+  // Sequential scale, same treatment as Vacant Homes For Sale above but a distinct hue (OrRd,
+  // orange-to-red) so the two related-but-different vacancy layers are visually distinguishable
+  // from one another at a glance. Total vacancy naturally runs quite a bit higher than the
+  // for-sale-only subset (it includes seasonal/vacation homes, units for rent, etc.), so this
+  // uses a wider 0-30% clamp range rather than Vacant Homes For Sale's tighter per-1,000 scale.
+  var clamped = Math.max(0, Math.min(30, pct));
+  var t = clamped / 30;
+  return d3.interpolateOrRd(t);
 }
 
 function colorForUnemployment(rate) {
@@ -9955,6 +10047,7 @@ function colorForCounty(rec, isPR) {
   if (currentLayer === "permitgrowth") return colorForPermitGrowth(rec.permit_growth_pct);
   if (currentLayer === "multifamilyshare") return colorForMultifamilyShare(rec.multifamily_share_pct);
   if (currentLayer === "vacantforsale") return colorForVacantForSale(vacantForSaleRate(rec));
+  if (currentLayer === "totalvacancy") return colorForTotalVacancy(totalVacancyRate(rec));
   return isPR ? colorForPermitsPR(permitsPerCapita(rec)) : colorForPermits(permitsPerCapita(rec));
 }
 
@@ -10016,6 +10109,12 @@ function renderLegend() {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForVacantForSale(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>vacant homes for sale per 1,000 housing units (5-yr survey estimate, not live listings)</span>";
+  } else if (currentLayer === "totalvacancy") {
+    [0, 6, 12, 18, 24, 30].forEach(function(v) {
+      var label = v >= 30 ? "30+" : String(v);
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForTotalVacancy(v) + ";'></span><span>" + label + "%</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>total vacant units, all reasons, as % of housing stock (5-yr survey estimate)</span>";
   } else {
     [0, 8, 16, 24, 32, 40].forEach(function(v) {
       var label = v >= 40 ? "40+" : String(v);
@@ -10082,6 +10181,12 @@ function renderTerritoryLegend(containerId) {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForVacantForSale(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>vacant homes for sale per 1,000 housing units (5-yr survey estimate, not live listings)</span>";
+  } else if (currentLayer === "totalvacancy") {
+    [0, 6, 12, 18, 24, 30].forEach(function(v) {
+      var label = v >= 30 ? "30+" : String(v);
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForTotalVacancy(v) + ";'></span><span>" + label + "%</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>total vacant units, all reasons, as % of housing stock (5-yr survey estimate)</span>";
   } else {
     [0, 2, 4, 6, 8, 10].forEach(function(v) {
       var label = v >= 10 ? "10+" : String(v);
@@ -10104,6 +10209,7 @@ function setLayer(layer) {
   document.getElementById("layer-btn-permitgrowth").classList.toggle("active", layer === "permitgrowth");
   document.getElementById("layer-btn-multifamilyshare").classList.toggle("active", layer === "multifamilyshare");
   document.getElementById("layer-btn-vacantforsale").classList.toggle("active", layer === "vacantforsale");
+  document.getElementById("layer-btn-totalvacancy").classList.toggle("active", layer === "totalvacancy");
   renderLegend();
   renderTerritoryLegend("pr-map-legend");
   renderTerritoryLegend("mariana-map-legend");
@@ -10203,6 +10309,10 @@ Promise.all([
         if (rec.vacant_for_sale !== null && rec.vacant_for_sale !== undefined) {
           var vfsRate = vacantForSaleRate(rec);
           lines.push("Vacant for sale: " + rec.vacant_for_sale.toLocaleString() + (vfsRate !== null ? " (" + vfsRate.toFixed(1) + " per 1,000 housing units, 5-yr survey estimate)" : ""));
+        }
+        if (rec.vacant_total !== null && rec.vacant_total !== undefined) {
+          var totalVacRate = totalVacancyRate(rec);
+          lines.push("Total vacant (all reasons): " + rec.vacant_total.toLocaleString() + (totalVacRate !== null ? " (" + totalVacRate.toFixed(1) + "% of housing stock, 5-yr survey estimate)" : ""));
         }
         tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
       }
@@ -10336,6 +10446,10 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
           if (rec.vacant_for_sale !== null && rec.vacant_for_sale !== undefined) {
             var vfsRate = vacantForSaleRate(rec);
             lines.push("Vacant for sale: " + rec.vacant_for_sale.toLocaleString() + (vfsRate !== null ? " (" + vfsRate.toFixed(1) + " per 1,000 housing units, 5-yr survey estimate)" : ""));
+          }
+          if (rec.vacant_total !== null && rec.vacant_total !== undefined) {
+            var totalVacRate = totalVacancyRate(rec);
+            lines.push("Total vacant (all reasons): " + rec.vacant_total.toLocaleString() + (totalVacRate !== null ? " (" + totalVacRate.toFixed(1) + "% of housing stock, 5-yr survey estimate)" : ""));
           }
           tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
         }
