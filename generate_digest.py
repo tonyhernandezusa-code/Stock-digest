@@ -1361,6 +1361,55 @@ def fetch_census_county_median_home_value():
         result[fips] = {"name": row[idx_name], "median_home_value": value}
     return result
 
+def fetch_census_county_median_rent():
+    """Median gross rent for every US county, used by the County Investment Map. Same bulk
+    wildcard pattern as population/home value - one API call covers all 3,143 counties.
+    B25064_001E = median gross rent, ACS 5-Year Estimates (2019-2023 vintage).
+
+    Like home value, rent has no single inherent "good" color direction (high rent could mean
+    a desirable area with strong renter demand, or an affordability problem, depending on
+    perspective) - left as a neutral sequential scale on the client side, not red-green.
+
+    Returns a dict keyed by 5-digit county FIPS code, or None if the call fails."""
+    if not CENSUS_API_KEY:
+        print("Warning: CENSUS_API_KEY not set - skipping median rent for the Investment Map.")
+        return None
+    try:
+        url = f"https://api.census.gov/data/2023/acs/acs5?get=NAME,B25064_001E&for=county:*&in=state:*&key={CENSUS_API_KEY}"
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print("Warning: could not fetch Census county median rent data -", e)
+        return None
+
+    if not data or len(data) < 2:
+        print("Warning: Census county median rent response was empty or malformed - skipping")
+        return None
+
+    header = data[0]
+    try:
+        idx_name = header.index("NAME")
+        idx_value = header.index("B25064_001E")
+        idx_state = header.index("state")
+        idx_county = header.index("county")
+    except ValueError as e:
+        print("Warning: Census county median rent response is missing an expected column -", e)
+        return None
+
+    result = {}
+    for row in data[1:]:
+        try:
+            fips = row[idx_state] + row[idx_county]
+            value = float(row[idx_value])
+        except (ValueError, TypeError, IndexError):
+            continue
+        # Same Census sentinel-value convention as home value - negative rent is never real.
+        if value < 0:
+            continue
+        result[fips] = {"name": row[idx_name], "median_rent": value}
+    return result
+
 def fetch_bls_county_unemployment():
     """County-level unemployment rate for every US county, used by the County Investment Map.
 
@@ -1751,6 +1800,7 @@ state_rows.sort(key=lambda x: -x["yoy"])
 county_population_data = fetch_census_county_population()
 county_unemployment_data = fetch_bls_county_unemployment()
 county_home_value_data = fetch_census_county_median_home_value()
+county_rent_data = fetch_census_county_median_rent()
 
 # Merge unemployment into the same per-FIPS dict the population data uses, so the client only
 # needs one data structure with a layer toggle, rather than two separate fetches/objects.
@@ -1773,6 +1823,17 @@ if county_home_value_data:
         elif not county_population_data[fips].get("name"):
             county_population_data[fips]["name"] = rec["name"]
         county_population_data[fips]["median_home_value"] = rec["median_home_value"]
+
+# Same merge pattern for median rent.
+if county_rent_data:
+    if county_population_data is None:
+        county_population_data = {}
+    for fips, rec in county_rent_data.items():
+        if fips not in county_population_data:
+            county_population_data[fips] = {"name": rec["name"], "pop": None, "pop_5yr_ago": None, "growth_pct": None}
+        elif not county_population_data[fips].get("name"):
+            county_population_data[fips]["name"] = rec["name"]
+        county_population_data[fips]["median_rent"] = rec["median_rent"]
 
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
@@ -8827,17 +8888,18 @@ __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>County Investment Map</h1>
-<p class="timestamp">Population growth, unemployment, and median home value by U.S. county.</p>
+<p class="timestamp">Population growth, unemployment, median home value, and median rent by U.S. county.</p>
 
 <div class="beginner-box learning-mode-only">
 <h3>&#127891; What This Map Shows</h3>
-<p style="font-size:13px;line-height:1.6;margin:0;">Switch between three views of the same counties: population growth over the last 5 years (green = growing, red = shrinking), current unemployment rate (green = lower/better, red = higher/worse), and median home value (a neutral blue scale - darker just means a higher dollar figure, not "better," since a high home value can mean either a desirable, appreciating area or a less affordable one, depending on what you're looking for). All three are inputs real estate investors watch, but each is one factor among many, not a standalone signal.</p>
+<p style="font-size:13px;line-height:1.6;margin:0;">Switch between four views of the same counties: population growth over the last 5 years (green = growing, red = shrinking), current unemployment rate (green = lower/better, red = higher/worse), median home value, and median rent (both shown on neutral scales - darker just means a higher dollar figure, not "better," since a high value or rent can mean either a desirable, appreciating area or a less affordable one, depending on what you're looking for). All four are inputs real estate investors watch, but each is one factor among many, not a standalone signal.</p>
 </div>
 
 <div id="layer-toggle">
   <button id="layer-btn-growth" class="active" onclick="setLayer('growth')">Population Growth</button>
   <button id="layer-btn-unemployment" onclick="setLayer('unemployment')">Unemployment Rate</button>
   <button id="layer-btn-homevalue" onclick="setLayer('homevalue')">Median Home Value</button>
+  <button id="layer-btn-rent" onclick="setLayer('rent')">Median Rent</button>
 </div>
 
 <div id="map-wrap">
@@ -8848,7 +8910,7 @@ __NAV__
 <div id="map-legend"></div>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population and median home value figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Counties with no available data for the selected layer are shown in gray. This is three data layers of a planned multi-factor County Investment Map - additional layers (median rent, median income, building permits, housing affordability) and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population, median home value, and median rent figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Counties with no available data for the selected layer are shown in gray. This is four data layers of a planned multi-factor County Investment Map - additional layers (median income, building permits, housing affordability) and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <script>
@@ -8884,11 +8946,21 @@ function colorForHomeValue(value) {
   return d3.interpolateBlues(t);
 }
 
+function colorForRent(value) {
+  if (value === null || value === undefined || isNaN(value)) return "#ccc";
+  // Same neutral-scale reasoning as home value, using a distinct hue (purple, not blue) so the
+  // two "no inherent good/bad direction" layers stay visually distinguishable from each other.
+  var clamped = Math.max(500, Math.min(2500, value));
+  var t = (clamped - 500) / 2000;
+  return d3.interpolatePurples(t);
+}
+
 function colorForCounty(rec) {
   if (!rec) return "#ccc";
   if (currentLayer === "growth") return colorForGrowth(rec.growth_pct);
   if (currentLayer === "unemployment") return colorForUnemployment(rec.unemployment_rate);
-  return colorForHomeValue(rec.median_home_value);
+  if (currentLayer === "homevalue") return colorForHomeValue(rec.median_home_value);
+  return colorForRent(rec.median_rent);
 }
 
 function formatMoney(n) {
@@ -8908,12 +8980,18 @@ function renderLegend() {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForUnemployment(v) + ";'></span><span>" + v + "%</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>unemployment rate (lower is greener)</span>";
-  } else {
+  } else if (currentLayer === "homevalue") {
     [50000, 150000, 300000, 500000, 750000, 1000000].forEach(function(v) {
       var label = v >= 1000000 ? "$1M+" : "$" + Math.round(v / 1000) + "K";
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForHomeValue(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>median home value (darker = higher, not &quot;better&quot;)</span>";
+  } else {
+    [500, 900, 1300, 1700, 2100, 2500].forEach(function(v) {
+      var label = v >= 2500 ? "$2.5K+" : "$" + Math.round(v);
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForRent(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median rent (darker = higher, not &quot;better&quot;)</span>";
   }
   document.getElementById("map-legend").innerHTML = html;
 }
@@ -8923,6 +9001,7 @@ function setLayer(layer) {
   document.getElementById("layer-btn-growth").classList.toggle("active", layer === "growth");
   document.getElementById("layer-btn-unemployment").classList.toggle("active", layer === "unemployment");
   document.getElementById("layer-btn-homevalue").classList.toggle("active", layer === "homevalue");
+  document.getElementById("layer-btn-rent").classList.toggle("active", layer === "rent");
   renderLegend();
   if (countyPaths) {
     countyPaths.attr("fill", function(d) {
@@ -8973,6 +9052,9 @@ Promise.all([
         }
         if (rec.median_home_value !== null && rec.median_home_value !== undefined) {
           lines.push("Median home value: " + formatMoney(rec.median_home_value));
+        }
+        if (rec.median_rent !== null && rec.median_rent !== undefined) {
+          lines.push("Median rent: " + formatMoney(rec.median_rent) + "/mo");
         }
         tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
       }
