@@ -379,6 +379,9 @@ RE_NATIONAL = [
     ("Building Permits (annualized)", "PERMIT", "K"),
     ("New Home Sales (annualized)", "HSN1F", "K"),
     ("30-Yr Mortgage Rate", "MORTGAGE30US", "%"),
+    ("Homeownership Rate", "RSAHORUSQ156S", "%"),
+    ("Rental Vacancy Rate", "RRVRUSQ156N", "%"),
+    ("Homeowner Vacancy Rate", "RHVRUSQ156N", "%"),
 ]
 
 # Consumer debt indicators - each tuple includes a conversion factor to normalize to Billions
@@ -473,6 +476,9 @@ DEFINITIONS = {
     "Building Permits (annualized)": "Permits issued for future home construction, annualized in thousands of units.\nA leading indicator for housing starts, since permits are typically pulled before construction begins.\nCalculated and published monthly by the U.S. Census Bureau, jointly with HUD.",
     "New Home Sales (annualized)": "Newly built single-family homes sold, annualized in thousands of units.\nMeasures actual buyer demand for new construction, as opposed to starts/permits which measure builder activity.\nCalculated and published monthly by the U.S. Census Bureau, jointly with HUD.",
     "30-Yr Mortgage Rate": "The average interest rate on a 30-year fixed-rate US home loan.\nIt measures the typical borrowing cost for a conventional home purchase.\nPublished weekly by Freddie Mac's Primary Mortgage Market Survey.",
+    "Homeownership Rate": "The share of occupied housing units that are owned (rather than rented) by their occupants.\nA broad gauge of housing affordability and access - it tends to fall when home prices or mortgage rates rise faster than incomes.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
+    "Rental Vacancy Rate": "The share of rental housing units that are vacant and available for rent.\nA rising rate signals softer demand or oversupply in rental markets (downward pressure on rents); a falling rate signals a tightening market.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
+    "Homeowner Vacancy Rate": "The share of owner-occupied-eligible housing units that are vacant and for sale.\nA rising rate can signal softening demand for home purchases; a falling rate signals tighter for-sale inventory.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
     "CPI Inflation (YoY)": "The Consumer Price Index, year-over-year change.\nIt measures how much prices consumers actually pay for a broad basket of goods and services rose over the past 12 months - the most widely cited inflation gauge, and the one compared here to the Fed's 2% target.\nCalculated and published monthly by the U.S. Bureau of Labor Statistics (BLS).",
     "Core PCE Inflation (YoY)": "Core Personal Consumption Expenditures Price Index, year-over-year change.\nIt measures inflation in consumer spending but excludes food and energy, since those categories are volatile and can distort the underlying trend.\nCalculated and published monthly by the Bureau of Economic Analysis (BEA), and it's the Federal Reserve's own preferred inflation gauge for setting monetary policy.",
     "Unemployment Rate": "The share of the labor force that is jobless and actively looking for work.\nIt measures labor-market slack; the Fed watches it alongside inflation as part of its dual mandate (maximum employment and stable prices).\nCalculated and published monthly by the U.S. Bureau of Labor Statistics (BLS), based on the Current Population Survey.",
