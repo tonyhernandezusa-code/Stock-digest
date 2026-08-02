@@ -81,9 +81,9 @@ body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
 #county-map path.county:hover { stroke:#111; stroke-width:1; }
 #county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
 #map-tooltip { position:fixed; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:1000; max-width:220px; }
-#map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
-#map-legend .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; }
-#map-legend .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
+#map-legend, #pr-map-legend, #mariana-map-legend, #american-samoa-map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
+.legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+.swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
 #map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
 #layer-toggle { display:flex; gap:8px; margin-bottom:12px; }
 #layer-toggle button { padding:8px 14px; border-radius:8px; border:1px solid var(--card-border); background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; }
