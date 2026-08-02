@@ -378,6 +378,8 @@ RE_NATIONAL = [
     ("Housing Starts (annualized)", "HOUST", "K"),
     ("Building Permits (annualized)", "PERMIT", "K"),
     ("New Home Sales (annualized)", "HSN1F", "K"),
+    ("New Homes For Sale", "HNFSEPUSSA", "K"),
+    ("Months of New-Home Supply", "MSACSR", "mo"),
     ("30-Yr Mortgage Rate", "MORTGAGE30US", "%"),
     ("Homeownership Rate", "RSAHORUSQ156S", "%"),
     ("Rental Vacancy Rate", "RRVRUSQ156N", "%"),
@@ -491,6 +493,8 @@ DEFINITIONS = {
     "Housing Starts (annualized)": "New homes that began construction, expressed as an annualized pace in thousands of units.\nIt's a direct read on homebuilder activity and confidence.\nCalculated and published monthly by the U.S. Census Bureau, jointly with HUD.",
     "Building Permits (annualized)": "Permits issued for future home construction, annualized in thousands of units.\nA leading indicator for housing starts, since permits are typically pulled before construction begins.\nCalculated and published monthly by the U.S. Census Bureau, jointly with HUD.",
     "New Home Sales (annualized)": "Newly built single-family homes sold, annualized in thousands of units.\nMeasures actual buyer demand for new construction, as opposed to starts/permits which measure builder activity.\nCalculated and published monthly by the U.S. Census Bureau, jointly with HUD.",
+    "New Homes For Sale": "The number of new single-family homes on the market and not yet sold, in thousands of units.\nMeasures how much new-construction inventory is sitting available for buyers right now - the numerator behind Months of New-Home Supply.\nCalculated and published monthly by the U.S. Census Bureau, jointly with HUD.",
+    "Months of New-Home Supply": "How many months it would take to sell through all new homes currently for sale, at the current sales pace.\nA rising figure means new-home inventory is building up relative to sales (a cooling market); a falling figure means new homes are selling faster than they're being listed (a tightening market). Historically, 4-6 months is considered a roughly balanced market.\nCalculated and published monthly by the U.S. Census Bureau, jointly with HUD.",
     "30-Yr Mortgage Rate": "The average interest rate on a 30-year fixed-rate US home loan.\nIt measures the typical borrowing cost for a conventional home purchase.\nPublished weekly by Freddie Mac's Primary Mortgage Market Survey.",
     "Homeownership Rate": "The share of occupied housing units that are owned (rather than rented) by their occupants.\nA broad gauge of housing affordability and access - it tends to fall when home prices or mortgage rates rise faster than incomes.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
     "Rental Vacancy Rate": "The share of rental housing units that are vacant and available for rent.\nA rising rate signals softer demand or oversupply in rental markets (downward pressure on rents); a falling rate signals a tightening market.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
@@ -2563,6 +2567,9 @@ def re_national_cards(items):
         elif i["unit"] == "$B":
             val = f"${i['value']:,.1f}B"
             six = sixmo_line(i.get("value_6mo"), i["value"], unit="$B")
+        elif i["unit"] == "mo":
+            val = f"{i['value']:.1f} months"
+            six = sixmo_line(i.get("value_6mo"), i["value"], unit=" months")
         else:
             val = f"{i['value']:,.0f}K"
             six = sixmo_line(i.get("value_6mo"), i["value"], unit="K")
