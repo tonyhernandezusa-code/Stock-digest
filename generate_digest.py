@@ -9811,7 +9811,7 @@ __NAV__
 
 <div class="beginner-box learning-mode-only">
 <h3>&#127891; What This Map Shows</h3>
-<p style="font-size:13px;line-height:1.6;margin:0;">Switch between six views of the same counties: population growth over the last 5 years (green = growing, red = shrinking), current unemployment rate (green = lower/better, red = higher/worse), median home value, median rent, median household income (all three dollar figures shown on neutral scales - darker just means a higher number, not "better"), and new building permits per 1,000 residents in the most recent year (shown per-capita, not as a raw count, so a small fast-growing county isn't dwarfed by a huge slow-growing one just because it's smaller). All six are inputs real estate investors watch, but each is one factor among many, not a standalone signal.</p>
+<p style="font-size:13px;line-height:1.6;margin:0;">Switch between the buttons above to see different views of the same counties: population and housing-unit growth over the last 5 years (green = growing, red = shrinking), current unemployment rate (green = lower/better, red = higher/worse), median home value, rent, and household income (dollar figures shown on neutral scales - darker just means a higher number, not "better"), new building permits and permit growth (construction activity and its year-over-year trend), the mix of new construction (single-family vs. multifamily), and vacancy figures (structural survey estimates, not live listings). Some layers are shown as rates (per 1,000 housing units, or as a percentage) rather than raw counts, so a small fast-growing county isn't dwarfed by a huge slow-growing one just because it's smaller. Each layer is one input real estate investors watch, but each is one factor among many, not a standalone signal.</p>
 </div>
 
 <div id="layer-toggle">
@@ -9862,7 +9862,7 @@ __NAV__
 <p class="note" style="margin-top:4px;">Unlike every other layer on this page, American Samoa, Guam, CNMI, and the U.S. Virgin Islands are shown as a single figure for the whole territory rather than broken down by county or municipio - these territories are small enough (47,000 to 154,000 residents each) that further subdividing wouldn't add much. They're also not covered by the American Community Survey the way the mainland and Puerto Rico are; population, income, and home value come from the 2020 Island Areas Census instead and won't update again until the 2030 census. Rent is the one exception - it uses HUD's Fair Market Rent estimate, which HUD does publish annually for these territories, so it's more current than the other figures here. These four territories don't have a building permits figure at all currently.</p>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, median household income, vacant homes for sale, and total vacancy rate figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Vacant Homes For Sale and Total Vacancy Rate are both structural, once-every-5-years survey estimates - NOT live listing counts, and not equivalent to current MLS, Realtor.com, or Zillow active inventory; treat them as slow-moving structural comparisons between counties, not a current-month market-timing signal. Vacant Homes For Sale isolates only units classified as vacant and for sale (shown per 1,000 housing units); Total Vacancy Rate is the broader figure, covering units vacant for any reason - for rent, for sale, seasonal/vacation use, and more (shown as a % of the housing stock) - so it will always read notably higher than the For Sale figure alone, and the two aren't meant to be compared directly on the same scale. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. Counties with no available data for the selected layer are shown in gray. This is eleven data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, median household income, vacant homes for sale, and total vacancy rate figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Vacant Homes For Sale and Total Vacancy Rate are both structural, once-every-5-years survey estimates - NOT live listing counts, and not equivalent to current MLS, Realtor.com, or Zillow active inventory; treat them as slow-moving structural comparisons between counties, not a current-month market-timing signal. Vacant Homes For Sale isolates only units classified as vacant and for sale (shown per 1,000 housing units); Total Vacancy Rate is the broader figure, covering units vacant for any reason - for rent, for sale, seasonal/vacation use, and more (shown as a % of the housing stock) - so it will always read notably higher than the For Sale figure alone, and the two aren't meant to be compared directly on the same scale. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 housing units using the housing-unit figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. Counties with no available data for the selected layer are shown in gray. This is eleven data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <script>
@@ -10020,10 +10020,10 @@ function colorForPermitsPR(perCapita) {
   return d3.interpolateGreens(t);
 }
 
-function permitsPerCapita(rec) {
+function permitsPerHousingUnit(rec) {
   if (!rec || rec.building_permits === null || rec.building_permits === undefined) return null;
-  if (!rec.pop || rec.pop <= 0) return null; // can't compute a rate without a population figure
-  return (rec.building_permits / rec.pop) * 1000;
+  if (!rec.housing_units || rec.housing_units <= 0) return null; // can't compute a rate without a housing-stock denominator
+  return (rec.building_permits / rec.housing_units) * 1000;
 }
 
 function colorForPermits(perCapita) {
@@ -10048,7 +10048,7 @@ function colorForCounty(rec, isPR) {
   if (currentLayer === "multifamilyshare") return colorForMultifamilyShare(rec.multifamily_share_pct);
   if (currentLayer === "vacantforsale") return colorForVacantForSale(vacantForSaleRate(rec));
   if (currentLayer === "totalvacancy") return colorForTotalVacancy(totalVacancyRate(rec));
-  return isPR ? colorForPermitsPR(permitsPerCapita(rec)) : colorForPermits(permitsPerCapita(rec));
+  return isPR ? colorForPermitsPR(permitsPerHousingUnit(rec)) : colorForPermits(permitsPerHousingUnit(rec));
 }
 
 function formatMoney(n) {
@@ -10120,7 +10120,7 @@ function renderLegend() {
       var label = v >= 40 ? "40+" : String(v);
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForPermits(v) + ";'></span><span>" + label + "</span></div>";
     });
-    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 residents (most recent year)</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 housing units (most recent year)</span>";
   }
   document.getElementById("map-legend").innerHTML = html;
 }
@@ -10192,7 +10192,7 @@ function renderTerritoryLegend(containerId) {
       var label = v >= 10 ? "10+" : String(v);
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForPermitsPR(v) + ";'></span><span>" + label + "</span></div>";
     });
-    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 residents - territory scale</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 housing units - territory scale</span>";
   }
   el.innerHTML = html;
 }
@@ -10296,8 +10296,8 @@ Promise.all([
           lines.push("Median household income: " + formatMoney(rec.median_income));
         }
         if (rec.building_permits !== null && rec.building_permits !== undefined) {
-          var perCapita = permitsPerCapita(rec);
-          lines.push("Building permits: " + rec.building_permits.toLocaleString() + (perCapita !== null ? " (" + perCapita.toFixed(1) + " per 1,000 residents)" : ""));
+          var perHousingUnit = permitsPerHousingUnit(rec);
+          lines.push("Building permits: " + rec.building_permits.toLocaleString() + (perHousingUnit !== null ? " (" + perHousingUnit.toFixed(1) + " per 1,000 housing units)" : ""));
         }
         if (rec.permit_growth_pct !== null && rec.permit_growth_pct !== undefined) {
           var permitGrowthText = (rec.permit_growth_pct > 0 ? "+" : "") + rec.permit_growth_pct.toFixed(1) + "%";
@@ -10433,8 +10433,8 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
             lines.push("Median household income: " + formatMoney(rec.median_income));
           }
           if (rec.building_permits !== null && rec.building_permits !== undefined) {
-            var perCapita = permitsPerCapita(rec);
-            lines.push("Building permits: " + rec.building_permits.toLocaleString() + (perCapita !== null ? " (" + perCapita.toFixed(1) + " per 1,000 residents)" : ""));
+            var perHousingUnit = permitsPerHousingUnit(rec);
+            lines.push("Building permits: " + rec.building_permits.toLocaleString() + (perHousingUnit !== null ? " (" + perHousingUnit.toFixed(1) + " per 1,000 housing units)" : ""));
           }
           if (rec.permit_growth_pct !== null && rec.permit_growth_pct !== undefined) {
             var permitGrowthText = (rec.permit_growth_pct > 0 ? "+" : "") + rec.permit_growth_pct.toFixed(1) + "%";
