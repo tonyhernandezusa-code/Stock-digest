@@ -9824,7 +9824,14 @@ Promise.all([
   document.getElementById("map-loading").textContent = "Could not load the map. Error: " + (err && err.message ? err.message : err) + " - try refreshing the page.";
   console.error("County map load error:", err);
 });
+[Piece 1 - rewindForD3 function]
 
+// Generic territory map renderer, used for Puerto Rico+USVI, Guam+CNMI, and American Samoa -
+// same rendering, tooltip, and error-handling logic for all three, just pointed at different
+// elements and GeoJSON data. Returns the rendered path selection (or null on failure) so the
+// caller can store it in the right module-level *Paths variable for setLayer() to recolor later.
+function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, viewBoxHeight, label) {
+  try {
 // Generic territory map renderer, used for Puerto Rico+USVI, Guam+CNMI, and American Samoa -
 // same rendering, tooltip, and error-handling logic for all three, just pointed at different
 // elements and GeoJSON data. Returns the rendered path selection (or null on failure) so the
@@ -9835,7 +9842,8 @@ function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, v
       document.getElementById(loadingId).textContent = label + " map data is temporarily unavailable.";
       return null;
     }
-    var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson);
+   geojson = rewindForD3(geojson);
+var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson);
     var path = d3.geoPath().projection(projection);
     var svg = d3.select("#" + svgId);
 
