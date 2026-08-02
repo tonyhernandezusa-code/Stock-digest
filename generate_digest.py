@@ -5089,6 +5089,14 @@ SEARCH_TEMPLATE = """<!DOCTYPE html>
 .calc-panel.active { display:block; }
 .setup-banner { background:#fef3c7; border:2px solid #f59e0b; padding:15px; border-radius:10px; margin-bottom:20px; font-size:13px; color:#78350f; }
 .setup-banner code { background:#fde68a; padding:2px 5px; border-radius:3px; }
+#comp-hover-panel {
+  position: fixed; display: none; z-index: 2000; width: 300px;
+  background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3); padding: 10px; pointer-events: none;
+}
+#comp-hover-panel iframe { width: 100%; height: 170px; border: 0; border-radius: 6px; display: block; }
+#comp-hover-panel .comp-info { font-size: 12px; margin-top: 8px; line-height: 1.6; color: var(--text); }
+tr[data-comp-hover]:hover { background: rgba(31,78,121,0.08); cursor: pointer; }
 @media (max-width: 600px) {
   body { padding:12px; }
   .calc { padding:14px; max-width:100%; }
@@ -5110,6 +5118,8 @@ __NAV__
 <div class="setup-banner" id="setup-banner">
   <strong>One-time setup:</strong> replace <code>WORKER_URL</code> near the top of this page's script with your own deployed Cloudflare Worker URL (looks like <code>https://attom-proxy.YOUR-SUBDOMAIN.workers.dev</code>) before this will return real results.
 </div>
+
+<div id="comp-hover-panel"></div>
 
 <div class="calc-tabs">
   <button type="button" class="calc-tab-btn active" onclick="showSearchTab('panel-propsearch', this)">Property Search</button>
@@ -5144,6 +5154,48 @@ var WORKER_URL = "https://attom-proxy.tonyhernandezusa.workers.dev";
 if (WORKER_URL.indexOf("YOUR-SUBDOMAIN") === -1) {
   var setupBanner = document.getElementById("setup-banner");
   if (setupBanner) { setupBanner.style.display = "none"; }
+}
+
+function escAttr(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+var compPreviewTimer = null;
+function showCompPreview(event, row) {
+  clearTimeout(compPreviewTimer);
+  // Small debounce so quickly passing the mouse over several rows in a row doesn't fire off a
+  // cascade of map loads for rows the user wasn't actually trying to look at.
+  compPreviewTimer = setTimeout(function() {
+    var panel = document.getElementById("comp-hover-panel");
+    var addr = row.getAttribute("data-addr");
+    var mapSrc = "https://maps.google.com/maps?q=" + encodeURIComponent(addr) + "&z=19&t=k&output=embed";
+    panel.innerHTML = "<iframe src='" + escAttr(mapSrc) + "' loading='lazy'></iframe>" +
+      "<div class='comp-info'><strong>" + escAttr(addr) + "</strong><br>" +
+      "Sale Price: " + escAttr(row.getAttribute("data-price")) + " &middot; Sale Date: " + escAttr(row.getAttribute("data-date")) + "<br>" +
+      "Beds/Baths: " + escAttr(row.getAttribute("data-beds")) + " &middot; Sq Ft: " + escAttr(row.getAttribute("data-sqft")) +
+      " &middot; Distance: " + escAttr(row.getAttribute("data-dist")) + "</div>";
+    panel.style.display = "block";
+    positionCompPreview(event);
+  }, 150);
+}
+
+function positionCompPreview(event) {
+  var panel = document.getElementById("comp-hover-panel");
+  if (panel.style.display !== "block") return;
+  var panelWidth = 300, panelHeight = 250;
+  var x = event.clientX + 16;
+  var y = event.clientY + 16;
+  if (x + panelWidth > window.innerWidth) { x = event.clientX - panelWidth - 16; }
+  if (y + panelHeight > window.innerHeight) { y = event.clientY - panelHeight - 16; }
+  panel.style.left = Math.max(8, x) + "px";
+  panel.style.top = Math.max(8, y) + "px";
+}
+
+function hideCompPreview() {
+  clearTimeout(compPreviewTimer);
+  document.getElementById("comp-hover-panel").style.display = "none";
 }
 
 function showSearchTab(panelId, btn) {
@@ -5330,13 +5382,19 @@ async function searchProperty() {
             isRecent = saleDate >= sixMonthsAgo;
           }
           var dateCell = isRecent ? "<strong style='color:#1a8a3d;'>" + saleDateStr + "</strong>" : saleDateStr;
-          compsHtml += "<tr><td>" + addrStr + "</td><td style='text-align:right;'>" + dist + "</td>" +
-            "<td style='text-align:right;'>" + (money(sh["@PropertySalesAmount"]) || "N/A") + "</td>" +
+          var priceStr = money(sh["@PropertySalesAmount"]) || "N/A";
+          var bedsBathsStr = (st["@TotalBedroomCount"] || "N/A") + " / " + (st["@TotalBathroomCount"] || "N/A");
+          var sqftStr = st["@GrossLivingAreaSquareFeetCount"] || "N/A";
+          compsHtml += "<tr data-comp-hover data-addr='" + escAttr(addrStr) + "' data-price='" + escAttr(priceStr) +
+            "' data-date='" + escAttr(saleDateStr) + "' data-beds='" + escAttr(bedsBathsStr) + "' data-sqft='" + escAttr(sqftStr) +
+            "' data-dist='" + escAttr(dist) + "' onmouseenter='showCompPreview(event,this)' onmousemove='positionCompPreview(event)' onmouseleave='hideCompPreview()'>" +
+            "<td>" + addrStr + "</td><td style='text-align:right;'>" + dist + "</td>" +
+            "<td style='text-align:right;'>" + priceStr + "</td>" +
             "<td>" + dateCell + "</td>" +
-            "<td>" + (st["@TotalBedroomCount"] || "N/A") + " / " + (st["@TotalBathroomCount"] || "N/A") + "</td>" +
-            "<td style='text-align:right;'>" + (st["@GrossLivingAreaSquareFeetCount"] || "N/A") + "</td></tr>";
+            "<td>" + bedsBathsStr + "</td>" +
+            "<td style='text-align:right;'>" + sqftStr + "</td></tr>";
         });
-        compsHtml += "</table></div><span style='font-size:11px;color:#888;'>Sales within the last 6 months are shown in <strong style='color:#1a8a3d;'>bold green</strong>. ATTOM's comps selection is based on proximity and similarity to the subject property, not recency - the freshest sales are sorted to the top here, but the underlying set of comps returned isn't limited to a specific time window.</span>";
+        compsHtml += "</table></div><span style='font-size:11px;color:#888;'>Sales within the last 6 months are shown in <strong style='color:#1a8a3d;'>bold green</strong>. ATTOM's comps selection is based on proximity and similarity to the subject property, not recency - the freshest sales are sorted to the top here, but the underlying set of comps returned isn't limited to a specific time window. Hover any row for a satellite view and quick summary.</span>";
       }
     }
     if (!compsHtml && compsError) {
