@@ -1728,13 +1728,18 @@ def fetch_census_county_building_permits():
 
 def fetch_census_county_permit_growth():
     """Year-over-year change in new-construction building permits for every US county, used by
-    the County Investment Map's Permit Growth (YoY) layer. Uses the same Census Building Permits
-    Survey (BPS) flat-file source and the same parsing logic as
-    fetch_census_county_building_permits() above (duplicated into a local helper here rather than
-    calling that function directly, so the two stay fully independent and a change to one can
-    never accidentally break the other) - just fetching two consecutive annual files (the current
-    year and the prior year) instead of one, to compute whether permit activity is accelerating
-    or slowing, rather than only a single-year snapshot.
+    the County Investment Map's Permit Growth (YoY) layer. Also captures the single-family vs.
+    multifamily split of the current year's permits (used by the separate Multifamily Share
+    layer) - since this function already downloads and parses that file's per-structure-size
+    columns to compute the total, breaking them out separately instead of only summing them
+    needs no additional network call.
+
+    Uses the same Census Building Permits Survey (BPS) flat-file source and the same parsing
+    logic as fetch_census_county_building_permits() above (duplicated into a local helper here
+    rather than calling that function directly, so the two stay fully independent and a change
+    to one can never accidentally break the other) - just fetching two consecutive annual files
+    (the current year and the prior year) instead of one, to compute whether permit activity is
+    accelerating or slowing, rather than only a single-year snapshot.
 
     IMPORTANT: the two year numbers below should be kept in sync with the `year` variable inside
     fetch_census_county_building_permits() above - if that one is ever updated (each following
@@ -1771,11 +1776,18 @@ def fetch_census_county_permit_growth():
             fips = state_fips.zfill(2) + county_fips.zfill(3)
             county_name = parts[5]
             try:
-                total_units = int(parts[7]) + int(parts[10]) + int(parts[13]) + int(parts[16])
+                # Column layout (see fetch_census_county_building_permits() docstring above for
+                # the full field map): index 7 = 1-unit (single-family) Units column; indices
+                # 10/13/16 = 2-unit, 3-4 unit, and 5+ unit Units columns respectively - all three
+                # are conventionally grouped together as "multifamily" (anything above a single
+                # detached unit) for this kind of housing-mix analysis.
+                sf_units = int(parts[7])
+                mf_units = int(parts[10]) + int(parts[13]) + int(parts[16])
+                total_units = sf_units + mf_units
             except (ValueError, IndexError):
                 continue
             parsed_rows += 1
-            parsed[fips] = {"name": county_name, "permits": total_units}
+            parsed[fips] = {"name": county_name, "permits": total_units, "sf_units": sf_units, "mf_units": mf_units}
         if parsed_rows == 0:
             print(f"Warning: Census building permits file for {year} parsed but no matching rows found (permit growth layer) - skipping")
             return None
@@ -1792,10 +1804,16 @@ def fetch_census_county_permit_growth():
         growth_pct = None
         if prior_rec and prior_rec["permits"] > 0:
             growth_pct = round((rec["permits"] - prior_rec["permits"]) / prior_rec["permits"] * 100, 2)
+        mf_share_pct = None
+        if rec["permits"] > 0:
+            mf_share_pct = round(rec["mf_units"] / rec["permits"] * 100, 2)
         result[fips] = {
             "name": rec["name"],
             "permits_current": rec["permits"],
             "permits_prior": prior_rec["permits"] if prior_rec else None,
+            "single_family_permits": rec["sf_units"],
+            "multifamily_permits": rec["mf_units"],
+            "multifamily_share_pct": mf_share_pct,
             "permit_growth_pct": growth_pct,
         }
     return result
@@ -2466,6 +2484,9 @@ if county_permit_growth_data:
         county_population_data[fips]["permits_current"] = rec["permits_current"]
         county_population_data[fips]["permits_prior"] = rec["permits_prior"]
         county_population_data[fips]["permit_growth_pct"] = rec["permit_growth_pct"]
+        county_population_data[fips]["single_family_permits"] = rec["single_family_permits"]
+        county_population_data[fips]["multifamily_permits"] = rec["multifamily_permits"]
+        county_population_data[fips]["multifamily_share_pct"] = rec["multifamily_share_pct"]
 
 # Merge the four Island Areas (American Samoa, Guam, CNMI, USVI) into the same structure, using
 # their FIPS-equivalent state codes as keys. Unlike the merges above, TERRITORY_DATA already has
@@ -9651,6 +9672,7 @@ __NAV__
   <button id="layer-btn-permits" onclick="setLayer('permits')">Building Permits</button>
   <button id="layer-btn-housinggrowth" onclick="setLayer('housinggrowth')">Housing-Unit Growth</button>
   <button id="layer-btn-permitgrowth" onclick="setLayer('permitgrowth')">Permit Growth (YoY)</button>
+  <button id="layer-btn-multifamilyshare" onclick="setLayer('multifamilyshare')">Multifamily Share</button>
 </div>
 
 <div id="map-wrap">
@@ -9687,7 +9709,7 @@ __NAV__
 <p class="note" style="margin-top:4px;">Unlike every other layer on this page, American Samoa, Guam, CNMI, and the U.S. Virgin Islands are shown as a single figure for the whole territory rather than broken down by county or municipio - these territories are small enough (47,000 to 154,000 residents each) that further subdividing wouldn't add much. They're also not covered by the American Community Survey the way the mainland and Puerto Rico are; population, income, and home value come from the 2020 Island Areas Census instead and won't update again until the 2030 census. Rent is the one exception - it uses HUD's Fair Market Rent estimate, which HUD does publish annually for these territories, so it's more current than the other figures here. These four territories don't have a building permits figure at all currently.</p>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Counties with no available data for the selected layer are shown in gray. This is eight data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. Counties with no available data for the selected layer are shown in gray. This is nine data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <script>
@@ -9722,6 +9744,17 @@ function colorForPermitGrowth(pct) {
   var clamped = Math.max(-50, Math.min(100, pct));
   var t = (clamped + 50) / 150; // 0 at -50%, 1 at +100%
   return d3.interpolateRdYlGn(t);
+}
+
+function colorForMultifamilyShare(pct) {
+  if (pct === null || pct === undefined || isNaN(pct)) return "#ccc";
+  // Neutral sequential scale, not diverging red-green - a high or low multifamily share isn't
+  // inherently "good" or "bad" for an investor, just a description of what's being built (houses
+  // vs. apartment buildings). Runs 0-100% directly since this is already a percentage, unlike the
+  // dollar-figure layers above that needed a clamped range. Uses BuPu (a hue not already used by
+  // any other layer on this map) so it reads as its own distinct category at a glance.
+  var t = Math.max(0, Math.min(100, pct)) / 100;
+  return d3.interpolateBuPu(t);
 }
 
 function colorForUnemployment(rate) {
@@ -9823,6 +9856,7 @@ function colorForCounty(rec, isPR) {
   if (currentLayer === "income") return isPR ? colorForIncomePR(rec.median_income) : colorForIncome(rec.median_income);
   if (currentLayer === "housinggrowth") return colorForGrowth(rec.housing_growth_pct);
   if (currentLayer === "permitgrowth") return colorForPermitGrowth(rec.permit_growth_pct);
+  if (currentLayer === "multifamilyshare") return colorForMultifamilyShare(rec.multifamily_share_pct);
   return isPR ? colorForPermitsPR(permitsPerCapita(rec)) : colorForPermits(permitsPerCapita(rec));
 }
 
@@ -9873,6 +9907,11 @@ function renderLegend() {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForPermitGrowth(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>building permits, year-over-year change (construction accelerating or slowing)</span>";
+  } else if (currentLayer === "multifamilyshare") {
+    [0, 20, 40, 60, 80, 100].forEach(function(v) {
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForMultifamilyShare(v) + ";'></span><span>" + v + "%</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>share of new permits that are multifamily (not a good/bad scale, just a mix indicator)</span>";
   } else {
     [0, 8, 16, 24, 32, 40].forEach(function(v) {
       var label = v >= 40 ? "40+" : String(v);
@@ -9928,6 +9967,11 @@ function renderTerritoryLegend(containerId) {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForPermitGrowth(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>building permits, year-over-year change (construction accelerating or slowing)</span>";
+  } else if (currentLayer === "multifamilyshare") {
+    [0, 20, 40, 60, 80, 100].forEach(function(v) {
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForMultifamilyShare(v) + ";'></span><span>" + v + "%</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>share of new permits that are multifamily (not a good/bad scale, just a mix indicator)</span>";
   } else {
     [0, 2, 4, 6, 8, 10].forEach(function(v) {
       var label = v >= 10 ? "10+" : String(v);
@@ -9948,6 +9992,7 @@ function setLayer(layer) {
   document.getElementById("layer-btn-permits").classList.toggle("active", layer === "permits");
   document.getElementById("layer-btn-housinggrowth").classList.toggle("active", layer === "housinggrowth");
   document.getElementById("layer-btn-permitgrowth").classList.toggle("active", layer === "permitgrowth");
+  document.getElementById("layer-btn-multifamilyshare").classList.toggle("active", layer === "multifamilyshare");
   renderLegend();
   renderTerritoryLegend("pr-map-legend");
   renderTerritoryLegend("mariana-map-legend");
@@ -10040,6 +10085,9 @@ Promise.all([
         if (rec.permit_growth_pct !== null && rec.permit_growth_pct !== undefined) {
           var permitGrowthText = (rec.permit_growth_pct > 0 ? "+" : "") + rec.permit_growth_pct.toFixed(1) + "%";
           lines.push("Permit growth (YoY): " + permitGrowthText + (rec.permits_current !== undefined ? " (" + rec.permits_current.toLocaleString() + " permits)" : ""));
+        }
+        if (rec.multifamily_share_pct !== null && rec.multifamily_share_pct !== undefined) {
+          lines.push("New permits: " + rec.multifamily_share_pct.toFixed(0) + "% multifamily / " + (100 - rec.multifamily_share_pct).toFixed(0) + "% single-family");
         }
         tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
       }
@@ -10166,6 +10214,9 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
           if (rec.permit_growth_pct !== null && rec.permit_growth_pct !== undefined) {
             var permitGrowthText = (rec.permit_growth_pct > 0 ? "+" : "") + rec.permit_growth_pct.toFixed(1) + "%";
             lines.push("Permit growth (YoY): " + permitGrowthText + (rec.permits_current !== undefined ? " (" + rec.permits_current.toLocaleString() + " permits)" : ""));
+          }
+          if (rec.multifamily_share_pct !== null && rec.multifamily_share_pct !== undefined) {
+            lines.push("New permits: " + rec.multifamily_share_pct.toFixed(0) + "% multifamily / " + (100 - rec.multifamily_share_pct).toFixed(0) + "% single-family");
           }
           tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
         }
