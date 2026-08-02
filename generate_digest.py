@@ -1702,6 +1702,123 @@ def fetch_puerto_rico_municipio_boundaries():
 
     return pueblos
 
+# FIPS-equivalent state codes for the four Pacific/Caribbean Island Areas, per the standard
+# Census/ANSI state-code convention (same scheme already used throughout this file for the 50
+# states + DC + Puerto Rico). Each territory is treated as a single county-equivalent unit for
+# map purposes (population is small enough - 47K to 154K - that further subdividing into
+# municipalities/villages/estates wouldn't add much, unlike Puerto Rico's 78 municipios).
+TERRITORY_FIPS = {
+    "American Samoa": "60",
+    "Guam": "66",
+    "Northern Mariana Islands": "69",
+    "U.S. Virgin Islands": "78",
+}
+
+# Manually-researched data for the four U.S. Island Areas (American Samoa, Guam, CNMI, USVI).
+# These are NOT covered by the American Community Survey - Census's own press materials state
+# this explicitly ("Other surveys such as the American Community Survey (ACS) are not conducted
+# in these territories"). Instead they rely on the decennial "Island Areas Census" - population,
+# income, and home value below are from the 2020 count (income reflects 2019, the year the 2020
+# census asked about) and won't update again until the 2030 census. Source: U.S. Census Bureau
+# 2020 Island Areas Censuses Demographic and Housing Characteristics (DHC) press releases,
+# census.gov/newsroom/press-releases/2023/2020-dhc-summary-file-{territory}.html and the
+# accompanying 2024 detailed cross-tabulation releases (for unemployment).
+#
+# Rent is the one exception: rather than also using the static 2020 figure, this uses HUD's Fair
+# Market Rent (FY2025, 2-bedroom, 40th percentile) instead, since HUD publishes and updates FMRs
+# for these same four territories every fiscal year - so unlike the other figures, rent here can
+# actually be refreshed on a future update rather than staying frozen until 2030. Source: HUD FMR
+# data as compiled by rentdata.org for FY2025 (effective 10/1/2024).
+#
+# IMPORTANT: unlike every other data source on this map, none of this refreshes automatically.
+# Population/income/home value need a manual update once the 2030 Island Areas Census results are
+# released; rent should be manually refreshed against HUD's new FMRs each time this file gets a
+# broader update, since HUD does publish new figures annually even though these other figures
+# don't.
+TERRITORY_DATA = {
+    "American Samoa": {
+        "pop": 49710, "median_income": 28352, "median_home_value": 84400,
+        "median_rent": 1012, "unemployment_rate": 13.2,
+    },
+    "Guam": {
+        "pop": 153836, "median_income": 58289, "median_home_value": 277800,
+        "median_rent": 1765, "unemployment_rate": 10.2,
+    },
+    "Northern Mariana Islands": {
+        "pop": 47329, "median_income": 31362, "median_home_value": 184200,
+        "median_rent": 996, "unemployment_rate": 14.1,
+    },
+    "U.S. Virgin Islands": {
+        "pop": 87146, "median_income": 40408, "median_home_value": 290600,
+        "median_rent": 1723, "unemployment_rate": 9.7,
+    },
+}
+
+def fetch_territory_boundaries():
+    """GeoJSON boundaries for the four U.S. Island Areas not otherwise covered by the county
+    map: American Samoa, Guam, the Northern Mariana Islands, and the U.S. Virgin Islands.
+
+    Source: georgique/world-geojson, a general-purpose world GeoJSON project (verified directly
+    - installed via npm and inspected before using). Fetched here from its GitHub repo (same
+    reliable "fetch once at build time, embed the result" pattern already used for Puerto Rico's
+    boundaries) rather than a CDN, since this is a smaller, less established package than the
+    Census-derived files used for the mainland map.
+
+    One known data issue, found by checking every feature's coordinates against real-world
+    geography before trusting this file: the U.S. Virgin Islands file contains one invalid
+    feature (of 11) whose coordinates actually fall within Puerto Rico, roughly 2 degrees of
+    longitude away from the other 10 (which all check out correctly against known USVI geography
+    - St. Croix, St. Thomas, St. John, and nearby cays). That one feature is dropped here.
+
+    Returns a dict of {territory_name: GeoJSON FeatureCollection}, using only territories that
+    fetched and validated successfully - a failure on one territory doesn't block the others."""
+    base_url = "https://raw.githubusercontent.com/georgique/world-geojson/master/areas/usa/"
+    files = {
+        "American Samoa": "american_samoa.json",
+        "Guam": "guam.json",
+        "Northern Mariana Islands": "northern_mariana_islands.json",
+        "U.S. Virgin Islands": "us_virgin_islands.json",
+    }
+    result = {}
+    for territory, filename in files.items():
+        try:
+            resp = requests.get(base_url + filename, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+        except Exception as e:
+            print(f"Warning: could not fetch {territory} boundary data -", e)
+            continue
+
+        if data.get("type") != "FeatureCollection" or not data.get("features"):
+            print(f"Warning: {territory} boundary file fetched but did not have the expected "
+                  "FeatureCollection structure - the source file may have changed. Skipping.")
+            continue
+
+        features = data["features"]
+        if territory == "U.S. Virgin Islands":
+            # Drop the one known-bad feature (see docstring) - identified by its longitude
+            # falling far outside the real USVI range, rather than a hardcoded index, so this
+            # stays correct even if the source file's feature order ever changes.
+            def is_valid_usvi_feature(feat):
+                coords = feat["geometry"]["coordinates"]
+                # Walk to find any single coordinate pair to sample this feature's longitude
+                c = coords
+                while isinstance(c[0], list):
+                    c = c[0]
+                lon = c[0]
+                return -66.0 <= lon <= -64.0  # real USVI longitude range, with margin
+            valid_features = [f for f in features if is_valid_usvi_feature(f)]
+            if len(valid_features) != 10:
+                print(f"Warning: expected to keep 10 of 11 U.S. Virgin Islands features after "
+                      f"filtering the known bad one, got {len(valid_features)} - the source file "
+                      "may have changed. Using all fetched features instead of guessing.")
+            else:
+                features = valid_features
+
+        result[territory] = {"type": "FeatureCollection", "features": features}
+
+    return result
+
 def fetch_bls_county_unemployment():
     """County-level unemployment rate for every US county, used by the County Investment Map.
 
@@ -2109,6 +2226,7 @@ county_rent_data = fetch_census_county_median_rent()
 county_income_data = fetch_census_county_median_income()
 county_permits_data = fetch_census_county_building_permits()
 puerto_rico_geojson = fetch_puerto_rico_municipio_boundaries()
+territory_geojson = fetch_territory_boundaries()
 
 # Merge unemployment into the same per-FIPS dict the population data uses, so the client only
 # needs one data structure with a layer toggle, rather than two separate fetches/objects.
@@ -2164,6 +2282,28 @@ if county_permits_data:
         elif not county_population_data[fips].get("name"):
             county_population_data[fips]["name"] = rec["name"]
         county_population_data[fips]["building_permits"] = rec["building_permits"]
+
+# Merge the four Island Areas (American Samoa, Guam, CNMI, USVI) into the same structure, using
+# their FIPS-equivalent state codes as keys. Unlike the merges above, TERRITORY_DATA already has
+# every field in one place per territory (it's manually-researched, not built up incrementally
+# from several separate API calls), so this merge is simpler - no per-field existence checks
+# needed.
+if county_population_data is None:
+    county_population_data = {}
+for territory_name, fips in TERRITORY_FIPS.items():
+    rec = TERRITORY_DATA[territory_name]
+    county_population_data[fips + "000"] = {
+        "name": territory_name,
+        "pop": rec["pop"],
+        "pop_5yr_ago": None,
+        "growth_pct": None,
+        "unemployment_rate": rec["unemployment_rate"],
+        "unemployment_period": "2020 Island Areas Census",
+        "median_home_value": rec["median_home_value"],
+        "median_rent": rec["median_rent"],
+        "median_income": rec["median_income"],
+        "building_permits": None,
+    }
 
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
@@ -9229,7 +9369,53 @@ portfolio_html = (PORTFOLIO_TEMPLATE
 # at build time and fetched by the browser alongside the boundary file.
 
 county_data_json = json.dumps(county_population_data) if county_population_data else "null"
+
+def _with_territory_properties(geojson, territory_name):
+    """Stamp every feature in a territory's GeoJSON with STATE/COUNTY/NAME properties matching
+    the TERRITORY_FIPS convention, so the same client-side fipsKey lookup (STATE + COUNTY) used
+    for the mainland and Puerto Rico works identically here - these source files ship with empty
+    properties since the whole territory is treated as a single data unit, not per-island."""
+    if not geojson:
+        return None
+    fips = TERRITORY_FIPS[territory_name]
+    stamped = []
+    for feat in geojson["features"]:
+        new_feat = dict(feat)
+        new_feat["properties"] = {"STATE": fips, "COUNTY": "000", "NAME": territory_name}
+        stamped.append(new_feat)
+    return {"type": "FeatureCollection", "features": stamped}
+
+# U.S. Virgin Islands joins the same map as Puerto Rico rather than getting its own - they're
+# geographically adjacent (both in the northeast Caribbean, within about 3 degrees of longitude
+# of each other) so a single combined projection fits both reasonably well without distortion.
+_usvi_stamped = _with_territory_properties(territory_geojson.get("U.S. Virgin Islands"), "U.S. Virgin Islands")
+if puerto_rico_geojson and _usvi_stamped:
+    puerto_rico_geojson = {
+        "type": "FeatureCollection",
+        "features": puerto_rico_geojson["features"] + _usvi_stamped["features"],
+    }
+elif _usvi_stamped and not puerto_rico_geojson:
+    puerto_rico_geojson = _usvi_stamped
+
+# Guam and the Northern Mariana Islands are both in the Mariana Islands chain, close enough
+# together to share one small map. American Samoa is thousands of miles further south in the
+# Pacific and needs its own separate map - combining it with Guam/CNMI would force a projection
+# spanning most of the Pacific Ocean, making all three islands tiny and hard to see.
+_guam_stamped = _with_territory_properties(territory_geojson.get("Guam"), "Guam")
+_cnmi_stamped = _with_territory_properties(territory_geojson.get("Northern Mariana Islands"), "Northern Mariana Islands")
+mariana_geojson = None
+if _guam_stamped or _cnmi_stamped:
+    mariana_geojson = {
+        "type": "FeatureCollection",
+        "features": (_guam_stamped["features"] if _guam_stamped else []) + (_cnmi_stamped["features"] if _cnmi_stamped else []),
+    }
+
+american_samoa_geojson = _with_territory_properties(territory_geojson.get("American Samoa"), "American Samoa")
+
 pr_geojson_json = json.dumps(puerto_rico_geojson) if puerto_rico_geojson else "null"
+mariana_geojson_json = json.dumps(mariana_geojson) if mariana_geojson else "null"
+american_samoa_geojson_json = json.dumps(american_samoa_geojson) if american_samoa_geojson else "null"
+
 
 INVESTMENT_MAP_TEMPLATE = """<!DOCTYPE html>
 <html>
@@ -9285,14 +9471,31 @@ __NAV__
 </div>
 <div id="map-legend"></div>
 
-<h2 style="margin-top:28px;font-size:18px;">Puerto Rico</h2>
-<p class="timestamp">Same six layers, same toggle above - Puerto Rico's 78 municipios shown separately since they don't fit the mainland map's projection.</p>
+<h2 style="margin-top:28px;font-size:18px;">Puerto Rico &amp; U.S. Virgin Islands</h2>
+<p class="timestamp">Same six layers, same toggle above - shown separately since they don't fit the mainland map's projection. Puerto Rico's 78 municipios are individually mapped; the U.S. Virgin Islands is shown as a single territory-wide figure (see note below).</p>
 <div id="pr-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
-  <div id="pr-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading Puerto Rico map...</div>
+  <div id="pr-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading map...</div>
   <svg id="pr-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
 </div>
 <div id="pr-map-legend"></div>
-<p class="note" style="margin-top:4px;">On the dollar-figure and building-permit layers, Puerto Rico uses its own color scale rather than the mainland scale above - island-wide figures run considerably lower than mainland ranges, so a shared scale would show almost every municipio at the same pale end regardless of real differences between them.</p>
+<p class="note" style="margin-top:4px;">On the dollar-figure and building-permit layers, this map uses a territory-wide color scale rather than the mainland scale above - figures here run considerably lower (Puerto Rico) to considerably higher (parts of the Virgin Islands) than typical mainland ranges, so a shared scale would show almost every area at the same end regardless of real differences.</p>
+
+<h2 style="margin-top:28px;font-size:18px;">Guam &amp; Northern Mariana Islands</h2>
+<p class="timestamp">Shown together as they're both part of the Mariana Islands chain. Each is a single territory-wide figure, not broken out by island or village - see note below.</p>
+<div id="mariana-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
+  <div id="mariana-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading map...</div>
+  <svg id="mariana-map" viewBox="0 0 500 320" style="display:none; width:100%; height:auto;"></svg>
+</div>
+<div id="mariana-map-legend"></div>
+
+<h2 style="margin-top:28px;font-size:18px;">American Samoa</h2>
+<p class="timestamp">Shown on its own map since it's thousands of miles from Guam/CNMI in the Pacific. A single territory-wide figure, not broken out by island or district.</p>
+<div id="american-samoa-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
+  <div id="american-samoa-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading map...</div>
+  <svg id="american-samoa-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
+</div>
+<div id="american-samoa-map-legend"></div>
+<p class="note" style="margin-top:4px;">Unlike every other layer on this page, American Samoa, Guam, CNMI, and the U.S. Virgin Islands are shown as a single figure for the whole territory rather than broken down by county or municipio - these territories are small enough (47,000 to 154,000 residents each) that further subdividing wouldn't add much. They're also not covered by the American Community Survey the way the mainland and Puerto Rico are; population, income, and home value come from the 2020 Island Areas Census instead and won't update again until the 2030 census. Rent is the one exception - it uses HUD's Fair Market Rent estimate, which HUD does publish annually for these territories, so it's more current than the other figures here. These four territories don't have a building permits figure at all currently.</p>
 
 <p class="note" style="margin-top:14px;">
 <strong>Methodology:</strong> Population, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Counties with no available data for the selected layer are shown in gray. This is six data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
@@ -9303,7 +9506,11 @@ var COUNTY_DATA = __COUNTY_DATA_JSON__;
 var currentLayer = "growth";
 var countyPaths = null; // set once the map itself has rendered, reused when the layer toggles
 var PR_GEOJSON = __PR_GEOJSON__;
-var prPaths = null; // same idea as countyPaths, for the separate Puerto Rico map
+var prPaths = null; // same idea as countyPaths, for the separate Puerto Rico (+ USVI) map
+var MARIANA_GEOJSON = __MARIANA_GEOJSON__;
+var marianaPaths = null; // Guam + Northern Mariana Islands, sharing one small map
+var AMERICAN_SAMOA_GEOJSON = __AMERICAN_SAMOA_GEOJSON__;
+var americanSamoaPaths = null; // American Samoa, far enough from Guam/CNMI to need its own map
 
 function fipsKey(id) {
   return String(id).padStart(5, "0");
@@ -9354,28 +9561,32 @@ function colorForIncome(value) {
 // Puerto Rico's dollar-figure ranges run considerably lower than the mainland's (median
 // household income roughly half the lowest mainland state's, for example) - using the mainland
 // clamp ranges above would push nearly every municipio to the very bottom of the scale, reading
-// as uniformly pale or gray even though real variation exists between municipios. These PR-only
-// variants use ranges scaled to Puerto Rico's own figures instead, so the map actually shows
-// that variation. Building permits per capita is likewise lower island-wide, given considerably
-// less new construction activity than fast-growing mainland suburbs in recent years.
+// as uniformly pale or gray even though real variation exists between municipios. These variants
+// use ranges scaled to cover Puerto Rico and the four other U.S. territories on this map
+// (American Samoa, Guam, CNMI, USVI) instead - Guam and USVI in particular run notably higher
+// than Puerto Rico on income/home value/rent, so the ranges are wide enough to fit all five
+// without clipping the higher end. Building permits per capita is likewise lower island-wide,
+// given considerably less new construction activity than fast-growing mainland suburbs in
+// recent years (though the four newer territories don't have a permits figure at all yet, so
+// this only actually applies to Puerto Rico's municipios in practice).
 function colorForHomeValuePR(value) {
   if (value === null || value === undefined || isNaN(value)) return "#ccc";
-  var clamped = Math.max(60000, Math.min(250000, value));
-  var t = (clamped - 60000) / 190000;
+  var clamped = Math.max(60000, Math.min(300000, value));
+  var t = (clamped - 60000) / 240000;
   return d3.interpolateBlues(t);
 }
 
 function colorForRentPR(value) {
   if (value === null || value === undefined || isNaN(value)) return "#ccc";
-  var clamped = Math.max(350, Math.min(900, value));
-  var t = (clamped - 350) / 550;
+  var clamped = Math.max(350, Math.min(1800, value));
+  var t = (clamped - 350) / 1450;
   return d3.interpolatePurples(t);
 }
 
 function colorForIncomePR(value) {
   if (value === null || value === undefined || isNaN(value)) return "#ccc";
-  var clamped = Math.max(15000, Math.min(40000, value));
-  var t = (clamped - 15000) / 25000;
+  var clamped = Math.max(15000, Math.min(60000, value));
+  var t = (clamped - 15000) / 45000;
   return d3.interpolateOranges(t);
 }
 
@@ -9457,7 +9668,9 @@ function renderLegend() {
   document.getElementById("map-legend").innerHTML = html;
 }
 
-function renderPRLegend() {
+function renderTerritoryLegend(containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
   var html = "<div class='legend-item'><span class='swatch' style='background:#ccc;'></span><span>No data</span></div>";
   if (currentLayer === "growth") {
     [-10, -5, 0, 5, 10, 15, 20].forEach(function(v) {
@@ -9471,31 +9684,31 @@ function renderPRLegend() {
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>unemployment rate (lower is greener)</span>";
   } else if (currentLayer === "homevalue") {
-    [60000, 100000, 140000, 180000, 220000, 250000].forEach(function(v) {
-      var label = v >= 250000 ? "$250K+" : "$" + Math.round(v / 1000) + "K";
+    [60000, 110000, 160000, 210000, 260000, 300000].forEach(function(v) {
+      var label = v >= 300000 ? "$300K+" : "$" + Math.round(v / 1000) + "K";
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForHomeValuePR(v) + ";'></span><span>" + label + "</span></div>";
     });
-    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median home value - Puerto Rico scale (darker = higher, not &quot;better&quot;)</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median home value - territory scale (darker = higher, not &quot;better&quot;)</span>";
   } else if (currentLayer === "rent") {
-    [350, 460, 570, 680, 790, 900].forEach(function(v) {
-      var label = v >= 900 ? "$900+" : "$" + Math.round(v);
+    [350, 640, 930, 1220, 1510, 1800].forEach(function(v) {
+      var label = v >= 1800 ? "$1.8K+" : "$" + Math.round(v);
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForRentPR(v) + ";'></span><span>" + label + "</span></div>";
     });
-    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median rent - Puerto Rico scale (darker = higher, not &quot;better&quot;)</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median rent - territory scale (darker = higher, not &quot;better&quot;)</span>";
   } else if (currentLayer === "income") {
-    [15000, 20000, 25000, 30000, 35000, 40000].forEach(function(v) {
-      var label = v >= 40000 ? "$40K+" : "$" + Math.round(v / 1000) + "K";
+    [15000, 24000, 33000, 42000, 51000, 60000].forEach(function(v) {
+      var label = v >= 60000 ? "$60K+" : "$" + Math.round(v / 1000) + "K";
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForIncomePR(v) + ";'></span><span>" + label + "</span></div>";
     });
-    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median household income - Puerto Rico scale (darker = higher, not &quot;better&quot;)</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median household income - territory scale (darker = higher, not &quot;better&quot;)</span>";
   } else {
     [0, 2, 4, 6, 8, 10].forEach(function(v) {
       var label = v >= 10 ? "10+" : String(v);
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForPermitsPR(v) + ";'></span><span>" + label + "</span></div>";
     });
-    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 residents - Puerto Rico scale</span>";
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 residents - territory scale</span>";
   }
-  document.getElementById("pr-map-legend").innerHTML = html;
+  el.innerHTML = html;
 }
 
 function setLayer(layer) {
@@ -9507,7 +9720,9 @@ function setLayer(layer) {
   document.getElementById("layer-btn-income").classList.toggle("active", layer === "income");
   document.getElementById("layer-btn-permits").classList.toggle("active", layer === "permits");
   renderLegend();
-  renderPRLegend();
+  renderTerritoryLegend("pr-map-legend");
+  renderTerritoryLegend("mariana-map-legend");
+  renderTerritoryLegend("american-samoa-map-legend");
   if (countyPaths) {
     countyPaths.attr("fill", function(d) {
       var rec = COUNTY_DATA ? COUNTY_DATA[fipsKey(d.id)] : null;
@@ -9516,6 +9731,20 @@ function setLayer(layer) {
   }
   if (prPaths) {
     prPaths.attr("fill", function(d) {
+      var fips = d.properties.STATE + d.properties.COUNTY;
+      var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
+      return colorForCounty(rec, true);
+    });
+  }
+  if (marianaPaths) {
+    marianaPaths.attr("fill", function(d) {
+      var fips = d.properties.STATE + d.properties.COUNTY;
+      var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
+      return colorForCounty(rec, true);
+    });
+  }
+  if (americanSamoaPaths) {
+    americanSamoaPaths.attr("fill", function(d) {
       var fips = d.properties.STATE + d.properties.COUNTY;
       var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
       return colorForCounty(rec, true);
@@ -9596,22 +9825,26 @@ Promise.all([
   console.error("County map load error:", err);
 });
 
-// Puerto Rico map - independent of the mainland map above, since a failure in one shouldn't
-// block the other. No fetch needed here - PR_GEOJSON is already embedded in the page.
-try {
-  if (!PR_GEOJSON) {
-    document.getElementById("pr-map-loading").textContent = "Puerto Rico map data is temporarily unavailable.";
-  } else {
-    var prProjection = d3.geoMercator().fitSize([500, 260], PR_GEOJSON);
-    var prPath = d3.geoPath().projection(prProjection);
-    var prD3svg = d3.select("#pr-map");
+// Generic territory map renderer, used for Puerto Rico+USVI, Guam+CNMI, and American Samoa -
+// same rendering, tooltip, and error-handling logic for all three, just pointed at different
+// elements and GeoJSON data. Returns the rendered path selection (or null on failure) so the
+// caller can store it in the right module-level *Paths variable for setLayer() to recolor later.
+function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, viewBoxHeight, label) {
+  try {
+    if (!geojson) {
+      document.getElementById(loadingId).textContent = label + " map data is temporarily unavailable.";
+      return null;
+    }
+    var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson);
+    var path = d3.geoPath().projection(projection);
+    var svg = d3.select("#" + svgId);
 
-    prPaths = prD3svg.append("g")
+    var paths = svg.append("g")
       .selectAll("path")
-      .data(PR_GEOJSON.features)
+      .data(geojson.features)
       .join("path")
       .attr("class", "county")
-      .attr("d", prPath)
+      .attr("d", path)
       .attr("fill", function(d) {
         var fips = d.properties.STATE + d.properties.COUNTY;
         var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
@@ -9657,14 +9890,20 @@ try {
         document.getElementById("map-tooltip").style.display = "none";
       });
 
-    document.getElementById("pr-map").style.display = "block";
-    document.getElementById("pr-map-loading").style.display = "none";
-    renderPRLegend();
+    document.getElementById(svgId).style.display = "block";
+    document.getElementById(loadingId).style.display = "none";
+    renderTerritoryLegend(legendId);
+    return paths;
+  } catch (err) {
+    document.getElementById(loadingId).textContent = "Could not load the " + label + " map.";
+    console.error(label + " map load error:", err);
+    return null;
   }
-} catch (prErr) {
-  document.getElementById("pr-map-loading").textContent = "Could not load the Puerto Rico map.";
-  console.error("Puerto Rico map load error:", prErr);
 }
+
+prPaths = renderTerritoryMap(PR_GEOJSON, "pr-map", "pr-map-loading", "pr-map-legend", 500, 260, "Puerto Rico / USVI");
+marianaPaths = renderTerritoryMap(MARIANA_GEOJSON, "mariana-map", "mariana-map-loading", "mariana-map-legend", 500, 320, "Guam / CNMI");
+americanSamoaPaths = renderTerritoryMap(AMERICAN_SAMOA_GEOJSON, "american-samoa-map", "american-samoa-map-loading", "american-samoa-map-legend", 500, 260, "American Samoa");
 </script>
 __FOOTER__
 </body>
@@ -9681,7 +9920,9 @@ investment_map_html = (INVESTMENT_MAP_TEMPLATE
                         .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                         .replace("__FOOTER__", FOOTER_HTML)
                         .replace("__COUNTY_DATA_JSON__", county_data_json)
-                        .replace("__PR_GEOJSON__", pr_geojson_json))
+                        .replace("__PR_GEOJSON__", pr_geojson_json)
+                        .replace("__MARIANA_GEOJSON__", mariana_geojson_json)
+                        .replace("__AMERICAN_SAMOA_GEOJSON__", american_samoa_geojson_json))
 
 with open("index.html", "w") as f:
     f.write(stocks_html)
