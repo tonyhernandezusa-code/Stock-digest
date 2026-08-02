@@ -81,9 +81,9 @@ body.dark-mode .beginner-box { background:#132a1a; border-color:#1e4a2c; }
 #county-map path.county:hover { stroke:#111; stroke-width:1; }
 #county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
 #map-tooltip { position:fixed; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:1000; max-width:220px; }
-#map-legend, #pr-map-legend, #mariana-map-legend, #american-samoa-map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
-.legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; }
-.swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
+#map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
+#map-legend, #pr-map-legend, #mariana-map-legend, #american-samoa-map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; } .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; } .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); } { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+#map-legend .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
 #map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
 #layer-toggle { display:flex; gap:8px; margin-bottom:12px; }
 #layer-toggle button { padding:8px 14px; border-radius:8px; border:1px solid var(--card-border); background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; }
@@ -521,7 +521,14 @@ Promise.all([
   document.getElementById("map-loading").textContent = "Could not load the map. Error: " + (err && err.message ? err.message : err) + " - try refreshing the page.";
   console.error("County map load error:", err);
 });
+[Piece 1 - rewindForD3 function]
 
+// Generic territory map renderer, used for Puerto Rico+USVI, Guam+CNMI, and American Samoa -
+// same rendering, tooltip, and error-handling logic for all three, just pointed at different
+// elements and GeoJSON data. Returns the rendered path selection (or null on failure) so the
+// caller can store it in the right module-level *Paths variable for setLayer() to recolor later.
+function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, viewBoxHeight, label) {
+  try {
 // Generic territory map renderer, used for Puerto Rico+USVI, Guam+CNMI, and American Samoa -
 // same rendering, tooltip, and error-handling logic for all three, just pointed at different
 // elements and GeoJSON data. Returns the rendered path selection (or null on failure) so the
@@ -532,7 +539,8 @@ function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, v
       document.getElementById(loadingId).textContent = label + " map data is temporarily unavailable.";
       return null;
     }
-    var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson);
+   geojson = rewindForD3(geojson);
+var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson);
     var path = d3.geoPath().projection(projection);
     var svg = d3.select("#" + svgId);
 
