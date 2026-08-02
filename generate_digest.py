@@ -1522,6 +1522,63 @@ def fetch_census_county_building_permits():
 
     return result
 
+def fetch_puerto_rico_municipio_boundaries():
+    """GeoJSON boundaries for Puerto Rico's 78 municipios, used to render a dedicated Puerto
+    Rico map on the County Investment Map page. Puerto Rico is NOT included in the standard
+    us-atlas TopoJSON file used for the main US map - that package's Albers USA projection is
+    built only for the 50 states + DC, and territories don't fit into it (confirmed against the
+    package's own documentation, plus the existence of multiple third-party forks whose entire
+    purpose is adding territory support the base package lacks).
+
+    Rather than pull in one of those forks (the main one found is explicitly documented as
+    unstable/pre-1.0 - not something to add as a dependency for a paid product), this fetches a
+    small, standalone GeoJSON of just Puerto Rico's municipios and renders it as its own small
+    map with its own projection, fitted to Puerto Rico's own bounds - conceptually the same idea
+    as how Alaska/Hawaii get their own inset treatment on the main map, just built directly.
+
+    Source: miguelrios/atlaspr, a GitHub project built specifically for D3.js maps of Puerto
+    Rico. Verified directly (fetched and inspected before writing this): the file's "pueblos"
+    key contains a proper 78-feature GeoJSON FeatureCollection, one per municipio, each with
+    properties.STATE="72" and properties.COUNTY (3-digit) - the exact same FIPS scheme already
+    used throughout this file, so no separate FIPS-mapping logic is needed. Coordinates are raw,
+    unprojected lat/long (verified: longitude -67.27 to -65.24, latitude 17.93 to 18.52, matching
+    Puerto Rico's real-world location).
+
+    This is a personal repository, not a versioned/CDN-distributed package like the mainland
+    boundary file - so unlike that one (which the client fetches live from jsdelivr on every
+    page load), this is fetched once here at build time and embedded directly into the page.
+    That way the map keeps working even if this particular repo is ever renamed or taken down;
+    a build-time fetch failure just means Puerto Rico's map section doesn't render until the
+    next successful build, not that visitors' pages break.
+
+    Returns the "pueblos" GeoJSON FeatureCollection (as a Python dict, ready to embed as JSON),
+    or None if the fetch/parse fails."""
+    url = "https://raw.githubusercontent.com/miguelrios/atlaspr/master/geotiles/puertorico-geo.json"
+    try:
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print("Warning: could not fetch Puerto Rico municipio boundaries -", e)
+        return None
+
+    pueblos = data.get("pueblos")
+    if not pueblos or pueblos.get("type") != "FeatureCollection" or not pueblos.get("features"):
+        print("Warning: Puerto Rico boundary file fetched but did not have the expected "
+              "'pueblos' FeatureCollection structure - the source file may have changed. Skipping.")
+        return None
+
+    valid_count = sum(
+        1 for f in pueblos["features"]
+        if f.get("properties", {}).get("STATE") == "72" and f.get("properties", {}).get("COUNTY")
+    )
+    if valid_count < 78:
+        print(f"Warning: expected 78 Puerto Rico municipios, found {valid_count} with valid "
+              "STATE/COUNTY properties - the source file may have changed. Skipping.")
+        return None
+
+    return pueblos
+
 def fetch_bls_county_unemployment():
     """County-level unemployment rate for every US county, used by the County Investment Map.
 
@@ -1915,6 +1972,7 @@ county_home_value_data = fetch_census_county_median_home_value()
 county_rent_data = fetch_census_county_median_rent()
 county_income_data = fetch_census_county_median_income()
 county_permits_data = fetch_census_county_building_permits()
+puerto_rico_geojson = fetch_puerto_rico_municipio_boundaries()
 
 # Merge unemployment into the same per-FIPS dict the population data uses, so the client only
 # needs one data structure with a layer toggle, rather than two separate fetches/objects.
@@ -8992,6 +9050,7 @@ portfolio_html = (PORTFOLIO_TEMPLATE
 # at build time and fetched by the browser alongside the boundary file.
 
 county_data_json = json.dumps(county_population_data) if county_population_data else "null"
+pr_geojson_json = json.dumps(puerto_rico_geojson) if puerto_rico_geojson else "null"
 
 INVESTMENT_MAP_TEMPLATE = """<!DOCTYPE html>
 <html>
@@ -9047,6 +9106,13 @@ __NAV__
 </div>
 <div id="map-legend"></div>
 
+<h2 style="margin-top:28px;font-size:18px;">Puerto Rico</h2>
+<p class="timestamp">Same six layers, same toggle above - Puerto Rico's 78 municipios shown separately since they don't fit the mainland map's projection.</p>
+<div id="pr-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
+  <div id="pr-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading Puerto Rico map...</div>
+  <svg id="pr-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
+</div>
+
 <p class="note" style="margin-top:14px;">
 <strong>Methodology:</strong> Population, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Counties with no available data for the selected layer are shown in gray. This is six data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
@@ -9055,6 +9121,8 @@ __NAV__
 var COUNTY_DATA = __COUNTY_DATA_JSON__;
 var currentLayer = "growth";
 var countyPaths = null; // set once the map itself has rendered, reused when the layer toggles
+var PR_GEOJSON = __PR_GEOJSON__;
+var prPaths = null; // same idea as countyPaths, for the separate Puerto Rico map
 
 function fipsKey(id) {
   return String(id).padStart(5, "0");
@@ -9188,6 +9256,13 @@ function setLayer(layer) {
       return colorForCounty(rec);
     });
   }
+  if (prPaths) {
+    prPaths.attr("fill", function(d) {
+      var fips = d.properties.STATE + d.properties.COUNTY;
+      var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
+      return colorForCounty(rec);
+    });
+  }
 }
 
 Promise.all([
@@ -9263,6 +9338,76 @@ Promise.all([
   document.getElementById("map-loading").textContent = "Could not load the map. Error: " + (err && err.message ? err.message : err) + " - try refreshing the page.";
   console.error("County map load error:", err);
 });
+
+// Puerto Rico map - independent of the mainland map above, since a failure in one shouldn't
+// block the other. No fetch needed here - PR_GEOJSON is already embedded in the page.
+try {
+  if (!PR_GEOJSON) {
+    document.getElementById("pr-map-loading").textContent = "Puerto Rico map data is temporarily unavailable.";
+  } else {
+    var prProjection = d3.geoMercator().fitSize([500, 260], PR_GEOJSON);
+    var prPath = d3.geoPath().projection(prProjection);
+    var prD3svg = d3.select("#pr-map");
+
+    prPaths = prD3svg.append("g")
+      .selectAll("path")
+      .data(PR_GEOJSON.features)
+      .join("path")
+      .attr("class", "county")
+      .attr("d", prPath)
+      .attr("fill", function(d) {
+        var fips = d.properties.STATE + d.properties.COUNTY;
+        var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
+        return colorForCounty(rec);
+      })
+      .on("mousemove", function(event, d) {
+        var tooltip = document.getElementById("map-tooltip");
+        var fips = d.properties.STATE + d.properties.COUNTY;
+        var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
+        if (!rec) {
+          tooltip.innerHTML = "No data available";
+        } else {
+          var lines = [];
+          if (rec.name) { lines.push("<strong>" + rec.name + "</strong>"); }
+          else { lines.push("<strong>" + d.properties.NAME + "</strong>"); }
+          if (rec.pop) {
+            var growthText = (rec.growth_pct === null || rec.growth_pct === undefined) ? "N/A" : (rec.growth_pct > 0 ? "+" : "") + rec.growth_pct.toFixed(1) + "%";
+            lines.push("Population: " + rec.pop.toLocaleString() + " (5-yr growth: " + growthText + ")");
+          }
+          if (rec.unemployment_rate !== null && rec.unemployment_rate !== undefined) {
+            lines.push("Unemployment: " + rec.unemployment_rate.toFixed(1) + "% (" + rec.unemployment_period + ")");
+          }
+          if (rec.median_home_value !== null && rec.median_home_value !== undefined) {
+            lines.push("Median home value: " + formatMoney(rec.median_home_value));
+          }
+          if (rec.median_rent !== null && rec.median_rent !== undefined) {
+            lines.push("Median rent: " + formatMoney(rec.median_rent) + "/mo");
+          }
+          if (rec.median_income !== null && rec.median_income !== undefined) {
+            lines.push("Median household income: " + formatMoney(rec.median_income));
+          }
+          if (rec.building_permits !== null && rec.building_permits !== undefined) {
+            var perCapita = permitsPerCapita(rec);
+            lines.push("Building permits: " + rec.building_permits.toLocaleString() + (perCapita !== null ? " (" + perCapita.toFixed(1) + " per 1,000 residents)" : ""));
+          }
+          tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
+        }
+        var wrapRect = document.getElementById("pr-map-wrap").getBoundingClientRect();
+        tooltip.style.left = (event.clientX - wrapRect.left + 14) + "px";
+        tooltip.style.top = (event.clientY - wrapRect.top + 10) + "px";
+        tooltip.style.display = "block";
+      })
+      .on("mouseleave", function() {
+        document.getElementById("map-tooltip").style.display = "none";
+      });
+
+    document.getElementById("pr-map").style.display = "block";
+    document.getElementById("pr-map-loading").style.display = "none";
+  }
+} catch (prErr) {
+  document.getElementById("pr-map-loading").textContent = "Could not load the Puerto Rico map.";
+  console.error("Puerto Rico map load error:", prErr);
+}
 </script>
 __FOOTER__
 </body>
@@ -9278,7 +9423,8 @@ investment_map_html = (INVESTMENT_MAP_TEMPLATE
                         .replace("__LEARNINGMODE_BUTTON__", LEARNING_MODE_BUTTON)
                         .replace("__LEARNINGMODE_JS__", LEARNING_MODE_JS)
                         .replace("__FOOTER__", FOOTER_HTML)
-                        .replace("__COUNTY_DATA_JSON__", county_data_json))
+                        .replace("__COUNTY_DATA_JSON__", county_data_json)
+                        .replace("__PR_GEOJSON__", pr_geojson_json))
 
 with open("index.html", "w") as f:
     f.write(stocks_html)
