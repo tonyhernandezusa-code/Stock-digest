@@ -9112,6 +9112,8 @@ __NAV__
   <div id="pr-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading Puerto Rico map...</div>
   <svg id="pr-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
 </div>
+<div id="pr-map-legend"></div>
+<p class="note" style="margin-top:4px;">On the dollar-figure and building-permit layers, Puerto Rico uses its own color scale rather than the mainland scale above - island-wide figures run considerably lower than mainland ranges, so a shared scale would show almost every municipio at the same pale end regardless of real differences between them.</p>
 
 <p class="note" style="margin-top:14px;">
 <strong>Methodology:</strong> Population, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Counties with no available data for the selected layer are shown in gray. This is six data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
@@ -9170,6 +9172,41 @@ function colorForIncome(value) {
   return d3.interpolateOranges(t);
 }
 
+// Puerto Rico's dollar-figure ranges run considerably lower than the mainland's (median
+// household income roughly half the lowest mainland state's, for example) - using the mainland
+// clamp ranges above would push nearly every municipio to the very bottom of the scale, reading
+// as uniformly pale or gray even though real variation exists between municipios. These PR-only
+// variants use ranges scaled to Puerto Rico's own figures instead, so the map actually shows
+// that variation. Building permits per capita is likewise lower island-wide, given considerably
+// less new construction activity than fast-growing mainland suburbs in recent years.
+function colorForHomeValuePR(value) {
+  if (value === null || value === undefined || isNaN(value)) return "#ccc";
+  var clamped = Math.max(60000, Math.min(250000, value));
+  var t = (clamped - 60000) / 190000;
+  return d3.interpolateBlues(t);
+}
+
+function colorForRentPR(value) {
+  if (value === null || value === undefined || isNaN(value)) return "#ccc";
+  var clamped = Math.max(350, Math.min(900, value));
+  var t = (clamped - 350) / 550;
+  return d3.interpolatePurples(t);
+}
+
+function colorForIncomePR(value) {
+  if (value === null || value === undefined || isNaN(value)) return "#ccc";
+  var clamped = Math.max(15000, Math.min(40000, value));
+  var t = (clamped - 15000) / 25000;
+  return d3.interpolateOranges(t);
+}
+
+function colorForPermitsPR(perCapita) {
+  if (perCapita === null || perCapita === undefined || isNaN(perCapita)) return "#ccc";
+  var clamped = Math.max(0, Math.min(10, perCapita));
+  var t = clamped / 10;
+  return d3.interpolateGreens(t);
+}
+
 function permitsPerCapita(rec) {
   if (!rec || rec.building_permits === null || rec.building_permits === undefined) return null;
   if (!rec.pop || rec.pop <= 0) return null; // can't compute a rate without a population figure
@@ -9186,14 +9223,14 @@ function colorForPermits(perCapita) {
   return d3.interpolateGreens(t);
 }
 
-function colorForCounty(rec) {
+function colorForCounty(rec, isPR) {
   if (!rec) return "#ccc";
   if (currentLayer === "growth") return colorForGrowth(rec.growth_pct);
   if (currentLayer === "unemployment") return colorForUnemployment(rec.unemployment_rate);
-  if (currentLayer === "homevalue") return colorForHomeValue(rec.median_home_value);
-  if (currentLayer === "rent") return colorForRent(rec.median_rent);
-  if (currentLayer === "income") return colorForIncome(rec.median_income);
-  return colorForPermits(permitsPerCapita(rec));
+  if (currentLayer === "homevalue") return isPR ? colorForHomeValuePR(rec.median_home_value) : colorForHomeValue(rec.median_home_value);
+  if (currentLayer === "rent") return isPR ? colorForRentPR(rec.median_rent) : colorForRent(rec.median_rent);
+  if (currentLayer === "income") return isPR ? colorForIncomePR(rec.median_income) : colorForIncome(rec.median_income);
+  return isPR ? colorForPermitsPR(permitsPerCapita(rec)) : colorForPermits(permitsPerCapita(rec));
 }
 
 function formatMoney(n) {
@@ -9241,6 +9278,47 @@ function renderLegend() {
   document.getElementById("map-legend").innerHTML = html;
 }
 
+function renderPRLegend() {
+  var html = "<div class='legend-item'><span class='swatch' style='background:#ccc;'></span><span>No data</span></div>";
+  if (currentLayer === "growth") {
+    [-10, -5, 0, 5, 10, 15, 20].forEach(function(v) {
+      var label = (v > 0 ? "+" : "") + v + "%";
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForGrowth(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>5-yr population growth</span>";
+  } else if (currentLayer === "unemployment") {
+    [2, 4, 6, 8, 10, 12].forEach(function(v) {
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForUnemployment(v) + ";'></span><span>" + v + "%</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>unemployment rate (lower is greener)</span>";
+  } else if (currentLayer === "homevalue") {
+    [60000, 100000, 140000, 180000, 220000, 250000].forEach(function(v) {
+      var label = v >= 250000 ? "$250K+" : "$" + Math.round(v / 1000) + "K";
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForHomeValuePR(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median home value - Puerto Rico scale (darker = higher, not &quot;better&quot;)</span>";
+  } else if (currentLayer === "rent") {
+    [350, 460, 570, 680, 790, 900].forEach(function(v) {
+      var label = v >= 900 ? "$900+" : "$" + Math.round(v);
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForRentPR(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median rent - Puerto Rico scale (darker = higher, not &quot;better&quot;)</span>";
+  } else if (currentLayer === "income") {
+    [15000, 20000, 25000, 30000, 35000, 40000].forEach(function(v) {
+      var label = v >= 40000 ? "$40K+" : "$" + Math.round(v / 1000) + "K";
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForIncomePR(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>median household income - Puerto Rico scale (darker = higher, not &quot;better&quot;)</span>";
+  } else {
+    [0, 2, 4, 6, 8, 10].forEach(function(v) {
+      var label = v >= 10 ? "10+" : String(v);
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForPermitsPR(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 residents - Puerto Rico scale</span>";
+  }
+  document.getElementById("pr-map-legend").innerHTML = html;
+}
+
 function setLayer(layer) {
   currentLayer = layer;
   document.getElementById("layer-btn-growth").classList.toggle("active", layer === "growth");
@@ -9250,6 +9328,7 @@ function setLayer(layer) {
   document.getElementById("layer-btn-income").classList.toggle("active", layer === "income");
   document.getElementById("layer-btn-permits").classList.toggle("active", layer === "permits");
   renderLegend();
+  renderPRLegend();
   if (countyPaths) {
     countyPaths.attr("fill", function(d) {
       var rec = COUNTY_DATA ? COUNTY_DATA[fipsKey(d.id)] : null;
@@ -9260,7 +9339,7 @@ function setLayer(layer) {
     prPaths.attr("fill", function(d) {
       var fips = d.properties.STATE + d.properties.COUNTY;
       var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
-      return colorForCounty(rec);
+      return colorForCounty(rec, true);
     });
   }
 }
@@ -9357,7 +9436,7 @@ try {
       .attr("fill", function(d) {
         var fips = d.properties.STATE + d.properties.COUNTY;
         var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
-        return colorForCounty(rec);
+        return colorForCounty(rec, true);
       })
       .on("mousemove", function(event, d) {
         var tooltip = document.getElementById("map-tooltip");
@@ -9401,6 +9480,7 @@ try {
 
     document.getElementById("pr-map").style.display = "block";
     document.getElementById("pr-map-loading").style.display = "none";
+    renderPRLegend();
   }
 } catch (prErr) {
   document.getElementById("pr-map-loading").textContent = "Could not load the Puerto Rico map.";
