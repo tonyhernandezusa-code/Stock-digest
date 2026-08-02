@@ -8640,7 +8640,7 @@ INVESTMENT_MAP_TEMPLATE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>County Investment Map - Stock Digest</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson-client/3.1.0/topojson-client.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <style>__CSS__
 __DARKMODE_CSS__
 __LEARNINGMODE_CSS__
@@ -8752,7 +8752,7 @@ Promise.all([
 
   renderLegend();
 }).catch(function(err) {
-  document.getElementById("map-loading").textContent = "Could not load the map (county boundary data failed to load). Try refreshing the page.";
+  document.getElementById("map-loading").textContent = "Could not load the map. Error: " + (err && err.message ? err.message : err) + " - try refreshing the page.";
   console.error("County map load error:", err);
 });
 </script>
