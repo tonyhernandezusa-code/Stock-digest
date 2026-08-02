@@ -384,6 +384,22 @@ RE_NATIONAL = [
     ("Homeowner Vacancy Rate", "RHVRUSQ156N", "%"),
 ]
 
+# International housing: verified free data only. Each entry is (country name, nominal BIS
+# series ID, real/inflation-adjusted BIS series ID). Sourced from the Bank for International
+# Settlements' Residential Property Price database via FRED - the same free, no-key-cost
+# infrastructure already used for every other FRED series on this site, just a different
+# country code. Deliberately limited to countries actually verified to have this data -
+# Bahamas, Dominican Republic, and Turks & Caicos were researched and found to have no genuine
+# free official house price index (confirmed directly: a commercial real-estate-data company
+# explicitly states Bahamas "does not publish official house price statistics"; what circulates
+# publicly for the other two traces back to private brokerage reports, not government data).
+# Argentina has some BIS data but it's Buenos Aires-only, narrow property type, and USD-
+# denominated - left out for now given those caveats, not included here.
+INTERNATIONAL_HOUSING = [
+    ("Mexico", "QMXN628BIS", "QMXR628BIS"),
+    ("Colombia", "QCON628BIS", "QCOR628BIS"),
+]
+
 # Consumer debt indicators - each tuple includes a conversion factor to normalize to Billions
 # of Dollars for display, since FRED reports these in different native units: TOTALSL is in
 # Millions (divide by 1000), CCLACBM027SBOG is already in Billions (factor of 1) - verified
@@ -479,6 +495,7 @@ DEFINITIONS = {
     "Homeownership Rate": "The share of occupied housing units that are owned (rather than rented) by their occupants.\nA broad gauge of housing affordability and access - it tends to fall when home prices or mortgage rates rise faster than incomes.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
     "Rental Vacancy Rate": "The share of rental housing units that are vacant and available for rent.\nA rising rate signals softer demand or oversupply in rental markets (downward pressure on rents); a falling rate signals a tightening market.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
     "Homeowner Vacancy Rate": "The share of owner-occupied-eligible housing units that are vacant and for sale.\nA rising rate can signal softening demand for home purchases; a falling rate signals tighter for-sale inventory.\nCalculated and published quarterly by the U.S. Census Bureau's Housing Vacancies and Homeownership survey.",
+    "International Residential Property Prices": "Year-over-year home price growth for a country, shown both as a nominal figure and adjusted for inflation (the inflation-adjusted version is often called the real figure).\nUnlike US-only figures, these come from each country's own national data source as compiled by an international body, so methodology and coverage can vary - for example, Colombia's figure covers 8 major cities rather than the whole country.\nCalculated and published quarterly by the Bank for International Settlements' Residential Property Price database, using each country's own central bank or statistics agency as the underlying source.",
     "CPI Inflation (YoY)": "The Consumer Price Index, year-over-year change.\nIt measures how much prices consumers actually pay for a broad basket of goods and services rose over the past 12 months - the most widely cited inflation gauge, and the one compared here to the Fed's 2% target.\nCalculated and published monthly by the U.S. Bureau of Labor Statistics (BLS).",
     "Core PCE Inflation (YoY)": "Core Personal Consumption Expenditures Price Index, year-over-year change.\nIt measures inflation in consumer spending but excludes food and energy, since those categories are volatile and can distort the underlying trend.\nCalculated and published monthly by the Bureau of Economic Analysis (BEA), and it's the Federal Reserve's own preferred inflation gauge for setting monetary policy.",
     "Unemployment Rate": "The share of the labor force that is jobless and actively looking for work.\nIt measures labor-market slack; the Fed watches it alongside inflation as part of its dual mandate (maximum employment and stable prices).\nCalculated and published monthly by the U.S. Bureau of Labor Statistics (BLS), based on the Current Population Survey.",
@@ -2021,6 +2038,19 @@ for name, series_id, unit in RE_NATIONAL:
     if r:
         re_national_rows.append({"name": name, "unit": unit, **r})
 
+international_housing_rows = []
+for country, nominal_id, real_id in INTERNATIONAL_HOUSING:
+    nominal = fetch_fred_yoy_quarterly(nominal_id)
+    real = fetch_fred_yoy_quarterly(real_id)
+    if nominal:
+        international_housing_rows.append({
+            "country": country,
+            "nominal_yoy": nominal["num"],
+            "real_yoy": real["num"] if real else None,
+            "date": nominal["date"],
+            "history": nominal["history"],
+        })
+
 consumer_debt_rows = []
 for name, series_id, unit, factor in CONSUMER_DEBT:
     r = fetch_fred_rate(series_id)
@@ -2409,6 +2439,27 @@ def re_national_cards(items):
     </div>"""
     return out
 
+def international_housing_cards(items):
+    out = ""
+    for i in items:
+        val = f"{i['nominal_yoy']:+.1f}% YoY"
+        real_line = (
+            f"<p style='margin:4px 0 0;font-size:12px;color:var(--text-secondary);'>Inflation-adjusted: {i['real_yoy']:+.1f}% YoY</p>"
+            if i.get("real_yoy") is not None else ""
+        )
+        spark = sparkline_svg(i.get("history", []))
+        insight = ai_insight_button(f"{i['country']} House Prices (YoY)", i['nominal_yoy'], "%", None, None, i.get('history'))
+        out += f"""
+    <div class="card" title="{def_for('International Residential Property Prices')}">
+      <p class="label">{i['country']}</p>
+      <p class="value">{val}</p>
+      {real_line}
+      <p style="margin:2px 0 0;font-size:11px;color:#999;">as of {i['date']}</p>
+      {spark}
+      {insight}
+    </div>"""
+    return out
+
 def currency_cards(items):
     out = ""
     for i in items:
@@ -2793,6 +2844,14 @@ realestate_html = f"""<!DOCTYPE html>
 <h2>National Housing Indicators</h2>
 <div class="row">{re_national_cards(re_national_rows)}</div>
 <p class="note">Housing starts, permits, and new home sales are seasonally adjusted annual rates in thousands. "6 mo ago" compares to the reading six months earlier. Source: Federal Reserve (FRED).</p>
+
+<h2>International Housing Snapshot</h2>
+<div class="beginner-box learning-mode-only">
+<h3>&#127891; What This Section Shows</h3>
+<p style="font-size:13px;line-height:1.6;margin:0;">Year-over-year home price growth for a small set of countries where a genuine, official house price index actually exists and is freely available. Many countries don't have this - it's tempting to substitute real estate listing-site prices instead, but those come from private commercial platforms, not government sources, so they're deliberately left out here. "Inflation-adjusted" strips out each country's own general price inflation, so it reflects real purchasing-power change in housing, not just rising prices across the board.</p>
+</div>
+<div class="row">{international_housing_cards(international_housing_rows)}</div>
+<p class="note">Source: Bank for International Settlements Residential Property Price database (National sources, BIS Residential Property Price database, http://www.bis.org/statistics/pp.htm), via Federal Reserve (FRED). Mexico is national coverage; Colombia covers 8 major cities. Limited to countries with a verified official house price index - several countries commonly covered by real estate listing sites (e.g. Bahamas, Dominican Republic, Turks &amp; Caicos) don't have one, so aren't included here.</p>
 
 <h2>House Price Change by State (1-Year, FHFA Index)</h2>
 <div class="table-wrap">
