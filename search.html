@@ -354,20 +354,37 @@ async function searchProperty() {
       var comps = compsList
         .map(function(p) { return p.COMPARABLE_PROPERTY_ext; })
         .filter(function(c) { return c; });
+      // Sort most-recent-sale-first - ATTOM's own comps order is similarity/proximity-based,
+      // not recency-based, so without this the freshest sales could end up buried at the bottom
+      // of the list rather than surfaced at the top where they're most useful.
+      comps.sort(function(a, b) {
+        var dateA = (a.SALES_HISTORY && a.SALES_HISTORY["@TransferDate_ext"]) || "";
+        var dateB = (b.SALES_HISTORY && b.SALES_HISTORY["@TransferDate_ext"]) || "";
+        return dateB.localeCompare(dateA); // descending - newest first, missing dates sort last
+      });
       if (comps.length) {
-        compsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Comparable Sales (" + comps.length + " found)</h4><div class='table-wrap'><table><tr><th>Address</th><th style='text-align:right;'>Distance</th><th style='text-align:right;'>Sale Price</th><th>Sale Date</th><th>Beds/Baths</th><th style='text-align:right;'>Sq Ft</th></tr>";
+        compsHtml = "<h4 style='font-size:13px;margin:14px 0 6px;'>Comparable Sales (" + comps.length + " found, most recent first)</h4><div class='table-wrap'><table><tr><th>Address</th><th style='text-align:right;'>Distance</th><th style='text-align:right;'>Sale Price</th><th>Sale Date</th><th>Beds/Baths</th><th style='text-align:right;'>Sq Ft</th></tr>";
         comps.forEach(function(c) {
           var sh = c.SALES_HISTORY || {};
           var st = c.STRUCTURE || {};
           var addrStr = (c["@_StreetAddress"] || "N/A") + ", " + (c["@_City"] || "");
           var dist = c["@DistanceFromSubjectPropertyMilesCount"] ? (+c["@DistanceFromSubjectPropertyMilesCount"]).toFixed(2) + " mi" : "N/A";
+          var saleDateStr = sh["@TransferDate_ext"] ? sh["@TransferDate_ext"].slice(0, 10) : "N/A";
+          var isRecent = false;
+          if (sh["@TransferDate_ext"]) {
+            var saleDate = new Date(sh["@TransferDate_ext"]);
+            var sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+            isRecent = saleDate >= sixMonthsAgo;
+          }
+          var dateCell = isRecent ? "<strong style='color:#1a8a3d;'>" + saleDateStr + "</strong>" : saleDateStr;
           compsHtml += "<tr><td>" + addrStr + "</td><td style='text-align:right;'>" + dist + "</td>" +
             "<td style='text-align:right;'>" + (money(sh["@PropertySalesAmount"]) || "N/A") + "</td>" +
-            "<td>" + (sh["@TransferDate_ext"] ? sh["@TransferDate_ext"].slice(0, 10) : "N/A") + "</td>" +
+            "<td>" + dateCell + "</td>" +
             "<td>" + (st["@TotalBedroomCount"] || "N/A") + " / " + (st["@TotalBathroomCount"] || "N/A") + "</td>" +
             "<td style='text-align:right;'>" + (st["@GrossLivingAreaSquareFeetCount"] || "N/A") + "</td></tr>";
         });
-        compsHtml += "</table></div>";
+        compsHtml += "</table></div><span style='font-size:11px;color:#888;'>Sales within the last 6 months are shown in <strong style='color:#1a8a3d;'>bold green</strong>. ATTOM's comps selection is based on proximity and similarity to the subject property, not recency - the freshest sales are sorted to the top here, but the underlying set of comps returned isn't limited to a specific time window.</span>";
       }
     }
     if (!compsHtml && compsError) {
