@@ -1459,6 +1459,69 @@ def fetch_census_county_median_income():
         result[fips] = {"name": row[idx_name], "median_income": value}
     return result
 
+def fetch_census_county_building_permits():
+    """Total new housing units authorized by building permits for every US county in the most
+    recent full calendar year, used by the County Investment Map. Unlike the ACS-based layers
+    above, this uses a completely different Census data pathway - the Building Permits Survey
+    (BPS), delivered as a flat comma-delimited text file, not the ACS wildcard-query API. Full
+    coverage of all 3,143 counties is available at the annual release (per Census's own 2022
+    methodology change announcement), unlike the sampled coverage at some other BPS geographies.
+
+    File format verified directly against Census's own documentation sample file
+    (www.census.gov/construction/bps/sample/co2002a.txt, fetched and inspected byte-for-byte
+    before writing this): comma-delimited, 2 header rows + 1 blank row, then one row per county
+    with 30 columns:
+      [0]=Year [1]=State FIPS [2]=County FIPS [3]=Region [4]=Division [5]=County Name
+      [6..8]=1-unit (Bldgs,Units,Value) [9..11]=2-units [12..14]=3-4 units [15..17]=5+ units
+      [18..29]=same 4 categories again, "reported only" (respondents only, not imputed)
+    Total housing units authorized = sum of the Units column (index 7, 10, 13, 16) across all
+    four structure-size categories, using the full imputed total, not the reported-only subset.
+
+    This needs a fresh year number periodically - Census releases the final annual file for a
+    given year on the first workday of May the following year. If this starts returning no
+    data, ask Claude to "update my building permits year" - the file for the year below may not
+    exist yet, or a newer one may now be the current release.
+    """
+    year = 2025  # See docstring - update once a newer annual file is released (each following May).
+    url = f"https://www2.census.gov/econ/bps/County/co{year}a.txt"
+    try:
+        resp = requests.get(url, timeout=60, headers={"User-Agent": "USA Tools Inc Stock Digest contact@usatoolsinc.com"})
+        resp.raise_for_status()
+        text = resp.text
+    except Exception as e:
+        print(f"Warning: could not download Census building permits data for {year} -", e)
+        return None
+
+    lines = text.splitlines()
+    if len(lines) < 4:
+        print("Warning: Census building permits file was empty or malformed - skipping")
+        return None
+
+    result = {}
+    parsed_rows = 0
+    for line in lines[3:]:  # skip 2 header rows + 1 blank row
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) < 17:
+            continue
+        state_fips, county_fips = parts[1], parts[2]
+        if not (state_fips.isdigit() and county_fips.isdigit()):
+            continue
+        fips = state_fips.zfill(2) + county_fips.zfill(3)
+        county_name = parts[5]
+        try:
+            total_units = int(parts[7]) + int(parts[10]) + int(parts[13]) + int(parts[16])
+        except (ValueError, IndexError):
+            continue
+        parsed_rows += 1
+        result[fips] = {"name": county_name, "building_permits": total_units}
+
+    if parsed_rows == 0:
+        print("Warning: Census building permits file parsed but no matching rows found - "
+              "the file format may have changed, or the year in the URL may not exist yet. Skipping.")
+        return None
+
+    return result
+
 def fetch_bls_county_unemployment():
     """County-level unemployment rate for every US county, used by the County Investment Map.
 
@@ -1851,6 +1914,7 @@ county_unemployment_data = fetch_bls_county_unemployment()
 county_home_value_data = fetch_census_county_median_home_value()
 county_rent_data = fetch_census_county_median_rent()
 county_income_data = fetch_census_county_median_income()
+county_permits_data = fetch_census_county_building_permits()
 
 # Merge unemployment into the same per-FIPS dict the population data uses, so the client only
 # needs one data structure with a layer toggle, rather than two separate fetches/objects.
@@ -1895,6 +1959,17 @@ if county_income_data:
         elif not county_population_data[fips].get("name"):
             county_population_data[fips]["name"] = rec["name"]
         county_population_data[fips]["median_income"] = rec["median_income"]
+
+# Same merge pattern for building permits.
+if county_permits_data:
+    if county_population_data is None:
+        county_population_data = {}
+    for fips, rec in county_permits_data.items():
+        if fips not in county_population_data:
+            county_population_data[fips] = {"name": rec["name"], "pop": None, "pop_5yr_ago": None, "growth_pct": None}
+        elif not county_population_data[fips].get("name"):
+            county_population_data[fips]["name"] = rec["name"]
+        county_population_data[fips]["building_permits"] = rec["building_permits"]
 
 oversold_count = sum(1 for r in rows if r["rsi"] <= RSI_OVERSOLD)
 overbought_count = sum(1 for r in rows if r["rsi"] >= RSI_OVERBOUGHT)
@@ -8949,11 +9024,11 @@ __DARKMODE_BUTTON__<script>__DARKMODE_JS__</script>
 __LEARNINGMODE_BUTTON__<script>__LEARNINGMODE_JS__</script>
 __NAV__
 <h1>County Investment Map</h1>
-<p class="timestamp">Population growth, unemployment, median home value, median rent, and median household income by U.S. county.</p>
+<p class="timestamp">Population growth, unemployment, median home value, median rent, median household income, and building permits by U.S. county.</p>
 
 <div class="beginner-box learning-mode-only">
 <h3>&#127891; What This Map Shows</h3>
-<p style="font-size:13px;line-height:1.6;margin:0;">Switch between five views of the same counties: population growth over the last 5 years (green = growing, red = shrinking), current unemployment rate (green = lower/better, red = higher/worse), median home value, median rent, and median household income (all three dollar figures shown on neutral scales - darker just means a higher number, not "better," since a high value, rent, or income can mean either a desirable, appreciating area or a less affordable one, depending on what you're looking for). All five are inputs real estate investors watch, but each is one factor among many, not a standalone signal.</p>
+<p style="font-size:13px;line-height:1.6;margin:0;">Switch between six views of the same counties: population growth over the last 5 years (green = growing, red = shrinking), current unemployment rate (green = lower/better, red = higher/worse), median home value, median rent, median household income (all three dollar figures shown on neutral scales - darker just means a higher number, not "better"), and new building permits per 1,000 residents in the most recent year (shown per-capita, not as a raw count, so a small fast-growing county isn't dwarfed by a huge slow-growing one just because it's smaller). All six are inputs real estate investors watch, but each is one factor among many, not a standalone signal.</p>
 </div>
 
 <div id="layer-toggle">
@@ -8962,6 +9037,7 @@ __NAV__
   <button id="layer-btn-homevalue" onclick="setLayer('homevalue')">Median Home Value</button>
   <button id="layer-btn-rent" onclick="setLayer('rent')">Median Rent</button>
   <button id="layer-btn-income" onclick="setLayer('income')">Median Household Income</button>
+  <button id="layer-btn-permits" onclick="setLayer('permits')">Building Permits</button>
 </div>
 
 <div id="map-wrap">
@@ -8972,7 +9048,7 @@ __NAV__
 <div id="map-legend"></div>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Counties with no available data for the selected layer are shown in gray. This is five data layers of a planned multi-factor County Investment Map - additional layers (building permits, housing affordability) and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population, median home value, median rent, and median household income figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population growth compares that to the 2014-2018 vintage). Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 residents using the population figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Counties with no available data for the selected layer are shown in gray. This is six data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <script>
@@ -9026,13 +9102,30 @@ function colorForIncome(value) {
   return d3.interpolateOranges(t);
 }
 
+function permitsPerCapita(rec) {
+  if (!rec || rec.building_permits === null || rec.building_permits === undefined) return null;
+  if (!rec.pop || rec.pop <= 0) return null; // can't compute a rate without a population figure
+  return (rec.building_permits / rec.pop) * 1000;
+}
+
+function colorForPermits(perCapita) {
+  if (perCapita === null || perCapita === undefined || isNaN(perCapita)) return "#ccc";
+  // Neutral scale, distinct hue (green) from the diverging red-green used for growth/unemployment -
+  // this uses a single-hue sequential Greens scale, not the diverging RdYlGn, so it doesn't
+  // accidentally read as "green = good" the same way the two rate layers do.
+  var clamped = Math.max(0, Math.min(40, perCapita));
+  var t = clamped / 40;
+  return d3.interpolateGreens(t);
+}
+
 function colorForCounty(rec) {
   if (!rec) return "#ccc";
   if (currentLayer === "growth") return colorForGrowth(rec.growth_pct);
   if (currentLayer === "unemployment") return colorForUnemployment(rec.unemployment_rate);
   if (currentLayer === "homevalue") return colorForHomeValue(rec.median_home_value);
   if (currentLayer === "rent") return colorForRent(rec.median_rent);
-  return colorForIncome(rec.median_income);
+  if (currentLayer === "income") return colorForIncome(rec.median_income);
+  return colorForPermits(permitsPerCapita(rec));
 }
 
 function formatMoney(n) {
@@ -9064,12 +9157,18 @@ function renderLegend() {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForRent(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>median rent (darker = higher, not &quot;better&quot;)</span>";
-  } else {
+  } else if (currentLayer === "income") {
     [30000, 55000, 80000, 105000, 130000, 150000].forEach(function(v) {
       var label = v >= 150000 ? "$150K+" : "$" + Math.round(v / 1000) + "K";
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForIncome(v) + ";'></span><span>" + label + "</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>median household income (darker = higher, not &quot;better&quot;)</span>";
+  } else {
+    [0, 8, 16, 24, 32, 40].forEach(function(v) {
+      var label = v >= 40 ? "40+" : String(v);
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForPermits(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>new building permits per 1,000 residents (most recent year)</span>";
   }
   document.getElementById("map-legend").innerHTML = html;
 }
@@ -9081,6 +9180,7 @@ function setLayer(layer) {
   document.getElementById("layer-btn-homevalue").classList.toggle("active", layer === "homevalue");
   document.getElementById("layer-btn-rent").classList.toggle("active", layer === "rent");
   document.getElementById("layer-btn-income").classList.toggle("active", layer === "income");
+  document.getElementById("layer-btn-permits").classList.toggle("active", layer === "permits");
   renderLegend();
   if (countyPaths) {
     countyPaths.attr("fill", function(d) {
@@ -9137,6 +9237,10 @@ Promise.all([
         }
         if (rec.median_income !== null && rec.median_income !== undefined) {
           lines.push("Median household income: " + formatMoney(rec.median_income));
+        }
+        if (rec.building_permits !== null && rec.building_permits !== undefined) {
+          var perCapita = permitsPerCapita(rec);
+          lines.push("Building permits: " + rec.building_permits.toLocaleString() + (perCapita !== null ? " (" + perCapita.toFixed(1) + " per 1,000 residents)" : ""));
         }
         tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
       }
