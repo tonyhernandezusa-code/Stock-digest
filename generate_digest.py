@@ -10184,8 +10184,8 @@ function renderRankingTable() {
   var nameArrow = rankingSortColumn === "name" ? (rankingSortDir === "asc" ? " \u25B2" : " \u25BC") : "";
   var valueArrow = rankingSortColumn === "value" ? (rankingSortDir === "asc" ? " \u25B2" : " \u25BC") : "";
   var html = "<div class='table-wrap'><table><tr>" +
-    "<th style='cursor:pointer;' onclick=\"setRankingSort('name')\">County / Municipio" + nameArrow + "</th>" +
-    "<th style='text-align:right;cursor:pointer;' onclick=\"setRankingSort('value')\">Value" + valueArrow + "</th>" +
+    "<th style='cursor:pointer;' onclick='setRankingSort(&quot;name&quot;)'>County / Municipio" + nameArrow + "</th>" +
+"<th style='text-align:right;cursor:pointer;' onclick='setRankingSort(&quot;value&quot;)'>Value" + valueArrow + "</th>" +
     "</tr>";
   // Cap the rendered rows for performance - with search/sort already narrowing things down,
   // showing the top 500 of whatever's currently sorted/filtered covers every realistic use case
