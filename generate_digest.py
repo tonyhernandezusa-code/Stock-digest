@@ -10155,7 +10155,7 @@ function renderRankingTable() {
     return rankingSortDir === "desc" ? b.raw - a.raw : a.raw - b.raw;
   });
 
-  countEl.textContent = rows.length.toLocaleString() + " counties/municipios with data for this layer" + (searchTerm ? " matching \"" + searchTerm + "\"" : "");
+  countEl.textContent = rows.length.toLocaleString() + " counties/municipios with data for this layer" + (searchTerm ? " matching " + JSON.stringify(searchTerm) : "");
 
   var nameArrow = rankingSortColumn === "name" ? (rankingSortDir === "asc" ? " \u25B2" : " \u25BC") : "";
   var valueArrow = rankingSortColumn === "value" ? (rankingSortDir === "asc" ? " \u25B2" : " \u25BC") : "";
