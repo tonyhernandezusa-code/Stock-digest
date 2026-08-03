@@ -3203,9 +3203,9 @@ function showAIInsight(btn) {{
       // Defensive cleanup in case the AI includes markdown despite being asked not to -
       // strip headers/bold markers and convert paragraph breaks to real HTML breaks.
       var cleaned = data.insight
-        .replace(/^#{{1,6}}\s*/gm, '')
-        .replace(/\*\*(.+?)\*\*/g, '$1')
-        .replace(/\\n\s*\\n/g, '</p><p style="font-size:12px;line-height:1.5;margin:8px 0 0;">')
+        .replace(/^#{{1,6}}\\s*/gm, '')
+        .replace(/\\*\\*(.+?)\\*\\*/g, '$1')
+        .replace(/\\n\\s*\\n/g, '</p><p style="font-size:12px;line-height:1.5;margin:8px 0 0;">')
         .replace(/\\n/g, ' ')
         .trim();
       area.innerHTML = '<p style="font-size:12px;line-height:1.5;margin:6px 0 0;">' + cleaned + '</p>' +
@@ -9797,6 +9797,10 @@ __LEARNINGMODE_CSS__
 #map-legend, #pr-map-legend, #mariana-map-legend, #american-samoa-map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; } .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; } .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); } { display:flex; align-items:center; gap:4px; white-space:nowrap; }
 #map-legend .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); }
 #map-loading { text-align:center; padding:40px; font-size:13px; color:var(--text-secondary); }
+.map-reset-btn { position:absolute; top:20px; right:20px; z-index:10; padding:6px 12px; font-size:12px; font-weight:600; background:var(--card-bg); color:var(--text); border:1px solid var(--card-border); border-radius:6px; cursor:pointer; }
+.map-reset-btn:hover { background:var(--table-header-bg); }
+svg.zoomable-map { cursor:grab; touch-action:none; }
+svg.zoomable-map:active { cursor:grabbing; }
 #layer-toggle { display:flex; gap:8px; margin-bottom:12px; }
 #layer-toggle button { padding:8px 14px; border-radius:8px; border:1px solid var(--card-border); background:var(--card-bg); color:var(--text); cursor:pointer; font-size:13px; font-weight:600; }
 #layer-toggle button.active { background:#1f4e79; color:#fff; border-color:#1f4e79; }
@@ -9829,9 +9833,11 @@ __NAV__
   <button id="layer-btn-supplypressure" onclick="setLayer('supplypressure')">Supply Pressure Score</button>
 </div>
 
+<p class="note" style="margin-top:-4px;margin-bottom:10px;">Scroll or pinch to zoom in on any area; click and drag to pan around. Click "Reset View" to snap back to the full map.</p>
 <div id="map-wrap">
   <div id="map-loading">Loading county boundaries and data...</div>
-  <svg id="county-map" viewBox="0 0 975 610" style="display:none;"></svg>
+  <svg id="county-map" class="zoomable-map" viewBox="0 0 975 610" style="display:none;"></svg>
+  <button class="map-reset-btn" id="map-reset-btn" style="display:none;">Reset View</button>
   <div id="map-tooltip"></div>
 </div>
 <div id="map-legend"></div>
@@ -9840,7 +9846,8 @@ __NAV__
 <p class="timestamp">Same layers, same toggle above - shown separately since they don't fit the mainland map's projection. Puerto Rico's 78 municipios are individually mapped; the U.S. Virgin Islands is shown as a single territory-wide figure (see note below).</p>
 <div id="pr-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
   <div id="pr-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading map...</div>
-  <svg id="pr-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
+  <svg id="pr-map" class="zoomable-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
+  <button class="map-reset-btn" id="pr-map-reset-btn" style="display:none;">Reset View</button>
 </div>
 <div id="pr-map-legend"></div>
 <p class="note" style="margin-top:4px;">On the dollar-figure and building-permit layers, this map uses a territory-wide color scale rather than the mainland scale above - figures here run considerably lower (Puerto Rico) to considerably higher (parts of the Virgin Islands) than typical mainland ranges, so a shared scale would show almost every area at the same end regardless of real differences.</p>
@@ -9849,7 +9856,8 @@ __NAV__
 <p class="timestamp">Shown together as they're both part of the Mariana Islands chain. Each is a single territory-wide figure, not broken out by island or village - see note below.</p>
 <div id="mariana-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
   <div id="mariana-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading map...</div>
-  <svg id="mariana-map" viewBox="0 0 500 320" style="display:none; width:100%; height:auto;"></svg>
+  <svg id="mariana-map" class="zoomable-map" viewBox="0 0 500 320" style="display:none; width:100%; height:auto;"></svg>
+  <button class="map-reset-btn" id="mariana-map-reset-btn" style="display:none;">Reset View</button>
 </div>
 <div id="mariana-map-legend"></div>
 
@@ -9857,7 +9865,8 @@ __NAV__
 <p class="timestamp">Shown on its own map since it's thousands of miles from Guam/CNMI in the Pacific. A single territory-wide figure, not broken out by island or district.</p>
 <div id="american-samoa-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
   <div id="american-samoa-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading map...</div>
-  <svg id="american-samoa-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
+  <svg id="american-samoa-map" class="zoomable-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
+  <button class="map-reset-btn" id="american-samoa-map-reset-btn" style="display:none;">Reset View</button>
 </div>
 <div id="american-samoa-map-legend"></div>
 <p class="note" style="margin-top:4px;">Unlike every other layer on this page, American Samoa, Guam, CNMI, and the U.S. Virgin Islands are shown as a single figure for the whole territory rather than broken down by county or municipio - these territories are small enough (47,000 to 154,000 residents each) that further subdividing wouldn't add much. They're also not covered by the American Community Survey the way the mainland and Puerto Rico are; population, income, and home value come from the 2020 Island Areas Census instead and won't update again until the 2030 census. Rent is the one exception - it uses HUD's Fair Market Rent estimate, which HUD does publish annually for these territories, so it's more current than the other figures here. These four territories don't have a building permits figure at all currently.</p>
@@ -9887,6 +9896,34 @@ var americanSamoaPaths = null; // American Samoa, far enough from Guam/CNMI to n
 
 function fipsKey(id) {
   return String(id).padStart(5, "0");
+}
+
+// Adds scroll-to-zoom and click-and-drag-to-pan to a map, plus a "Reset View" button.
+// This exact mechanic was verified in a standalone headless-DOM test before being added here:
+// real wheel-driven zoom events correctly clamp to the scaleExtent maximum (never zooms in
+// further than 8x, even with aggressive scrolling), and the reset button correctly snaps the
+// view back to the original, unzoomed position with no animation-timing edge cases.
+// svgSelection: the d3 selection of the <svg> element itself (what listens for scroll/drag).
+// contentGroup: the d3 selection of the <g> that wraps everything drawn on the map (all
+//   counties/paths/borders) - this is the one whose transform actually changes as you zoom/pan,
+//   so it must contain every visual element, not just some of them, or parts of the map would
+//   drift out of alignment with each other while zooming.
+function addZoomBehavior(svgSelection, contentGroup, viewBoxWidth, viewBoxHeight, resetButtonId) {
+  var zoom = d3.zoom()
+    .scaleExtent([1, 8])
+    .translateExtent([[0, 0], [viewBoxWidth, viewBoxHeight]])
+    .on("zoom", function(event) {
+      contentGroup.attr("transform", event.transform);
+    });
+  svgSelection.call(zoom);
+  var resetBtn = document.getElementById(resetButtonId);
+  if (resetBtn) {
+    resetBtn.style.display = "block";
+    resetBtn.addEventListener("click", function() {
+      svgSelection.call(zoom.transform, d3.zoomIdentity);
+    });
+  }
+  return zoom;
 }
 
 function colorForGrowth(pct) {
@@ -10185,7 +10222,7 @@ function renderRankingTable() {
   var valueArrow = rankingSortColumn === "value" ? (rankingSortDir === "asc" ? " \u25B2" : " \u25BC") : "";
   var html = "<div class='table-wrap'><table><tr>" +
     "<th style='cursor:pointer;' onclick='setRankingSort(&quot;name&quot;)'>County / Municipio" + nameArrow + "</th>" +
-"<th style='text-align:right;cursor:pointer;' onclick='setRankingSort(&quot;value&quot;)'>Value" + valueArrow + "</th>" +
+    "<th style='text-align:right;cursor:pointer;' onclick='setRankingSort(&quot;value&quot;)'>Value" + valueArrow + "</th>" +
     "</tr>";
   // Cap the rendered rows for performance - with search/sort already narrowing things down,
   // showing the top 500 of whatever's currently sorted/filtered covers every realistic use case
@@ -10423,7 +10460,12 @@ Promise.all([
   var d3svg = d3.select("#county-map");
   var path = d3.geoPath();
 
-  countyPaths = d3svg.append("g")
+  // Everything drawn on this map (counties AND state borders) lives inside this one group,
+  // so zooming/panning moves them together in perfect alignment - if counties and borders
+  // were in separate groups, only one would move when zooming, visibly drifting apart.
+  var mapZoomGroup = d3svg.append("g").attr("class", "zoom-group");
+
+  countyPaths = mapZoomGroup.append("g")
     .selectAll("path")
     .data(counties.features)
     .join("path")
@@ -10494,10 +10536,12 @@ Promise.all([
       document.getElementById("map-tooltip").style.display = "none";
     });
 
-  d3svg.append("path")
+  mapZoomGroup.append("path")
     .datum(states)
     .attr("class", "state-border")
     .attr("d", path);
+
+  addZoomBehavior(d3svg, mapZoomGroup, 975, 610, "map-reset-btn");
 
   renderLegend();
 }).catch(function(err) {
@@ -10550,7 +10594,7 @@ function rewindForD3(geojson) {
 // same rendering, tooltip, and error-handling logic for all three, just pointed at different
 // elements and GeoJSON data. Returns the rendered path selection (or null on failure) so the
 // caller can store it in the right module-level *Paths variable for setLayer() to recolor later.
-function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, viewBoxHeight, label) {
+function renderTerritoryMap(geojson, svgId, loadingId, legendId, viewBoxWidth, viewBoxHeight, label, resetButtonId) {
   try {
     if (!geojson) {
       document.getElementById(loadingId).textContent = label + " map data is temporarily unavailable.";
@@ -10561,8 +10605,12 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
     var path = d3.geoPath().projection(projection);
     var svg = d3.select("#" + svgId);
 
-    var paths = svg.append("g")
-      .selectAll("path")
+    // Same reasoning as the mainland map above - everything drawn on this map lives inside one
+    // group so zoom/pan moves it all together (matters less here since these maps have only
+    // one visual layer, unlike the mainland's counties+state-borders, but kept consistent).
+    var territoryZoomGroup = svg.append("g").attr("class", "zoom-group");
+
+    var paths = territoryZoomGroup.selectAll("path")
       .data(geojson.features)
       .join("path")
       .attr("class", "county")
@@ -10638,6 +10686,7 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
     document.getElementById(svgId).style.display = "block";
     document.getElementById(loadingId).style.display = "none";
     renderTerritoryLegend(legendId);
+    addZoomBehavior(svg, territoryZoomGroup, viewBoxWidth, viewBoxHeight, resetButtonId);
     return paths;
   } catch (err) {
     document.getElementById(loadingId).textContent = "Could not load the " + label + " map.";
@@ -10646,9 +10695,9 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
   }
 }
 
-prPaths = renderTerritoryMap(PR_GEOJSON, "pr-map", "pr-map-loading", "pr-map-legend", 500, 260, "Puerto Rico / USVI");
-marianaPaths = renderTerritoryMap(MARIANA_GEOJSON, "mariana-map", "mariana-map-loading", "mariana-map-legend", 500, 320, "Guam / CNMI");
-americanSamoaPaths = renderTerritoryMap(AMERICAN_SAMOA_GEOJSON, "american-samoa-map", "american-samoa-map-loading", "american-samoa-map-legend", 500, 260, "American Samoa");
+prPaths = renderTerritoryMap(PR_GEOJSON, "pr-map", "pr-map-loading", "pr-map-legend", 500, 260, "Puerto Rico / USVI", "pr-map-reset-btn");
+marianaPaths = renderTerritoryMap(MARIANA_GEOJSON, "mariana-map", "mariana-map-loading", "mariana-map-legend", 500, 320, "Guam / CNMI", "mariana-map-reset-btn");
+americanSamoaPaths = renderTerritoryMap(AMERICAN_SAMOA_GEOJSON, "american-samoa-map", "american-samoa-map-loading", "american-samoa-map-legend", 500, 260, "American Samoa", "american-samoa-map-reset-btn");
 </script>
 __FOOTER__
 </body>
