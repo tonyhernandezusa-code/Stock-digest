@@ -9792,6 +9792,10 @@ __LEARNINGMODE_CSS__
 #county-map path.county { stroke:#fff; stroke-width:0.3; cursor:pointer; }
 #county-map path.county:hover { stroke:#111; stroke-width:1; }
 #county-map path.state-border { fill:none; stroke:#555; stroke-width:0.7; pointer-events:none; }
+.map-label { pointer-events:none; text-anchor:middle; dominant-baseline:central; font-weight:700; fill:#111; stroke:rgba(255,255,255,0.9); stroke-width:2.5px; paint-order:stroke; stroke-linejoin:round; }
+body.dark-mode .map-label { fill:#fff; stroke:rgba(0,0,0,0.9); }
+.state-label { font-size:11px; }
+.county-label { font-size:9px; font-weight:600; }
 #map-tooltip { position:fixed; display:none; background:#111; color:#fff; font-size:12px; padding:6px 10px; border-radius:6px; pointer-events:none; z-index:1000; max-width:220px; }
 #map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; }
 #map-legend, #pr-map-legend, #mariana-map-legend, #american-samoa-map-legend { display:flex; align-items:center; flex-wrap:wrap; gap:12px; font-size:11px; color:var(--text); margin-top:10px; } .legend-item { display:flex; align-items:center; gap:4px; white-space:nowrap; } .swatch { width:16px; height:12px; display:inline-block; border-radius:2px; border:1px solid rgba(0,0,0,0.15); } { display:flex; align-items:center; gap:4px; white-space:nowrap; }
@@ -9908,14 +9912,16 @@ function fipsKey(id) {
 //   counties/paths/borders) - this is the one whose transform actually changes as you zoom/pan,
 //   so it must contain every visual element, not just some of them, or parts of the map would
 //   drift out of alignment with each other while zooming.
-function addZoomBehavior(svgSelection, contentGroup, viewBoxWidth, viewBoxHeight, resetButtonId) {
+function addZoomBehavior(svgSelection, contentGroup, viewBoxWidth, viewBoxHeight, resetButtonId, onZoom) {
   var zoom = d3.zoom()
     .scaleExtent([1, 8])
     .translateExtent([[0, 0], [viewBoxWidth, viewBoxHeight]])
     .on("zoom", function(event) {
       contentGroup.attr("transform", event.transform);
+      if (onZoom) onZoom(event.transform);
     });
   svgSelection.call(zoom);
+  if (onZoom) onZoom(d3.zoomIdentity);
   var resetBtn = document.getElementById(resetButtonId);
   if (resetBtn) {
     resetBtn.style.display = "block";
@@ -10451,6 +10457,7 @@ Promise.all([
 ]).then(function(results) {
   var us = results[0];
   var counties = topojson.feature(us, us.objects.counties);
+  var stateFeatures = topojson.feature(us, us.objects.states).features;
   var states = topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; });
 
   document.getElementById("map-loading").style.display = "none";
@@ -10541,7 +10548,48 @@ Promise.all([
     .attr("class", "state-border")
     .attr("d", path);
 
-  addZoomBehavior(d3svg, mapZoomGroup, 975, 610, "map-reset-btn");
+  var stateAbbreviations = {
+    "01":"AL","02":"AK","04":"AZ","05":"AR","06":"CA","08":"CO","09":"CT","10":"DE","11":"DC","12":"FL","13":"GA","15":"HI","16":"ID","17":"IL","18":"IN","19":"IA","20":"KS","21":"KY","22":"LA","23":"ME","24":"MD","25":"MA","26":"MI","27":"MN","28":"MS","29":"MO","30":"MT","31":"NE","32":"NV","33":"NH","34":"NJ","35":"NM","36":"NY","37":"NC","38":"ND","39":"OH","40":"OK","41":"OR","42":"PA","44":"RI","45":"SC","46":"SD","47":"TN","48":"TX","49":"UT","50":"VT","51":"VA","53":"WA","54":"WV","55":"WI","56":"WY"
+  };
+
+  var stateLabels = mapZoomGroup.append("g").attr("class", "state-labels")
+    .selectAll("text")
+    .data(stateFeatures)
+    .join("text")
+    .attr("class", "map-label state-label")
+    .attr("x", function(d) { return path.centroid(d)[0]; })
+    .attr("y", function(d) { return path.centroid(d)[1]; })
+    .text(function(d) { return stateAbbreviations[String(d.id).padStart(2, "0")] || ""; });
+
+  var countyLabels = mapZoomGroup.append("g").attr("class", "county-labels")
+    .selectAll("text")
+    .data(counties.features)
+    .join("text")
+    .attr("class", "map-label county-label")
+    .attr("x", function(d) { return path.centroid(d)[0]; })
+    .attr("y", function(d) { return path.centroid(d)[1]; })
+    .text(function(d) {
+      var rec = COUNTY_DATA ? COUNTY_DATA[fipsKey(d.id)] : null;
+      return rec && rec.name ? rec.name.split(",")[0].replace(/ County$/, "") : "";
+    });
+
+  function updateMainlandLabels(transform) {
+    var k = transform.k;
+    stateLabels
+      .style("display", k < 4 ? null : "none")
+      .style("font-size", (11 / k) + "px")
+      .style("stroke-width", (2.5 / k) + "px");
+    countyLabels
+      .style("display", function(d) {
+        if (k < 4) return "none";
+        var bounds = path.bounds(d);
+        return ((bounds[1][0] - bounds[0][0]) * k >= 42 && (bounds[1][1] - bounds[0][1]) * k >= 13) ? null : "none";
+      })
+      .style("font-size", (9 / k) + "px")
+      .style("stroke-width", (2.2 / k) + "px");
+  }
+
+  addZoomBehavior(d3svg, mapZoomGroup, 975, 610, "map-reset-btn", updateMainlandLabels);
 
   renderLegend();
 }).catch(function(err) {
@@ -10683,10 +10731,37 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
         document.getElementById("map-tooltip").style.display = "none";
       });
 
+    var bestFeatureByArea = {};
+    geojson.features.forEach(function(feature) {
+      var key = feature.properties.STATE + feature.properties.COUNTY;
+      if (!bestFeatureByArea[key] || path.area(feature) > path.area(bestFeatureByArea[key])) bestFeatureByArea[key] = feature;
+    });
+    var territoryLabelData = Object.keys(bestFeatureByArea).map(function(key) { return bestFeatureByArea[key]; });
+    var territoryLabels = territoryZoomGroup.append("g").attr("class", "county-labels")
+      .selectAll("text")
+      .data(territoryLabelData)
+      .join("text")
+      .attr("class", "map-label county-label")
+      .attr("x", function(d) { return path.centroid(d)[0]; })
+      .attr("y", function(d) { return path.centroid(d)[1]; })
+      .text(function(d) {
+        var fips = d.properties.STATE + d.properties.COUNTY;
+        var rec = COUNTY_DATA ? COUNTY_DATA[fips] : null;
+        return rec && rec.name ? rec.name.split(",")[0].replace(/ Municipio$/, "") : (d.properties.NAME || "");
+      });
+
+    function updateTerritoryLabels(transform) {
+      var k = transform.k;
+      territoryLabels
+        .style("display", k >= 2 ? null : "none")
+        .style("font-size", (9 / k) + "px")
+        .style("stroke-width", (2.2 / k) + "px");
+    }
+
     document.getElementById(svgId).style.display = "block";
     document.getElementById(loadingId).style.display = "none";
     renderTerritoryLegend(legendId);
-    addZoomBehavior(svg, territoryZoomGroup, viewBoxWidth, viewBoxHeight, resetButtonId);
+    addZoomBehavior(svg, territoryZoomGroup, viewBoxWidth, viewBoxHeight, resetButtonId, updateTerritoryLabels);
     return paths;
   } catch (err) {
     document.getElementById(loadingId).textContent = "Could not load the " + label + " map.";
