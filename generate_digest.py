@@ -9826,6 +9826,7 @@ __NAV__
   <button id="layer-btn-multifamilyshare" onclick="setLayer('multifamilyshare')">Multifamily Share</button>
   <button id="layer-btn-vacantforsale" onclick="setLayer('vacantforsale')">Vacant Homes For Sale</button>
   <button id="layer-btn-totalvacancy" onclick="setLayer('totalvacancy')">Total Vacancy Rate</button>
+  <button id="layer-btn-supplypressure" onclick="setLayer('supplypressure')">Supply Pressure Score</button>
 </div>
 
 <div id="map-wrap">
@@ -9836,7 +9837,7 @@ __NAV__
 <div id="map-legend"></div>
 
 <h2 style="margin-top:28px;font-size:18px;">Puerto Rico &amp; U.S. Virgin Islands</h2>
-<p class="timestamp">Same six layers, same toggle above - shown separately since they don't fit the mainland map's projection. Puerto Rico's 78 municipios are individually mapped; the U.S. Virgin Islands is shown as a single territory-wide figure (see note below).</p>
+<p class="timestamp">Same layers, same toggle above - shown separately since they don't fit the mainland map's projection. Puerto Rico's 78 municipios are individually mapped; the U.S. Virgin Islands is shown as a single territory-wide figure (see note below).</p>
 <div id="pr-map-wrap" style="position:relative; background:var(--card-bg); border:1px solid var(--card-border); border-radius:10px; padding:12px; max-width:500px;">
   <div id="pr-map-loading" style="text-align:center; padding:30px; font-size:13px; color:var(--text-secondary);">Loading map...</div>
   <svg id="pr-map" viewBox="0 0 500 260" style="display:none; width:100%; height:auto;"></svg>
@@ -9862,7 +9863,7 @@ __NAV__
 <p class="note" style="margin-top:4px;">Unlike every other layer on this page, American Samoa, Guam, CNMI, and the U.S. Virgin Islands are shown as a single figure for the whole territory rather than broken down by county or municipio - these territories are small enough (47,000 to 154,000 residents each) that further subdividing wouldn't add much. They're also not covered by the American Community Survey the way the mainland and Puerto Rico are; population, income, and home value come from the 2020 Island Areas Census instead and won't update again until the 2030 census. Rent is the one exception - it uses HUD's Fair Market Rent estimate, which HUD does publish annually for these territories, so it's more current than the other figures here. These four territories don't have a building permits figure at all currently.</p>
 
 <p class="note" style="margin-top:14px;">
-<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, median household income, vacant homes for sale, and total vacancy rate figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Vacant Homes For Sale and Total Vacancy Rate are both structural, once-every-5-years survey estimates - NOT live listing counts, and not equivalent to current MLS, Realtor.com, or Zillow active inventory; treat them as slow-moving structural comparisons between counties, not a current-month market-timing signal. Vacant Homes For Sale isolates only units classified as vacant and for sale (shown per 1,000 housing units); Total Vacancy Rate is the broader figure, covering units vacant for any reason - for rent, for sale, seasonal/vacation use, and more (shown as a % of the housing stock) - so it will always read notably higher than the For Sale figure alone, and the two aren't meant to be compared directly on the same scale. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 housing units using the housing-unit figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. Counties with no available data for the selected layer are shown in gray. This is eleven data layers of a planned multi-factor County Investment Map - a housing affordability layer and a documented, transparent Investment Opportunity Score are planned additions, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
+<strong>Methodology:</strong> Population, housing-unit growth, median home value, median rent, median household income, vacant homes for sale, and total vacancy rate figures are from the Census Bureau's American Community Survey 5-Year Estimates (2019-2023 vintage; population and housing-unit growth compare that to the 2014-2018 vintage). Housing-Unit Growth measures the actual change in the housing stock over 5 years - homes that have actually been built and occupied or made available, as opposed to Building Permits, which measures construction requests that may not yet be completed. Vacant Homes For Sale and Total Vacancy Rate are both structural, once-every-5-years survey estimates - NOT live listing counts, and not equivalent to current MLS, Realtor.com, or Zillow active inventory; treat them as slow-moving structural comparisons between counties, not a current-month market-timing signal. Vacant Homes For Sale isolates only units classified as vacant and for sale (shown per 1,000 housing units); Total Vacancy Rate is the broader figure, covering units vacant for any reason - for rent, for sale, seasonal/vacation use, and more (shown as a % of the housing stock) - so it will always read notably higher than the For Sale figure alone, and the two aren't meant to be compared directly on the same scale. Unemployment rates are from the Bureau of Labor Statistics' Local Area Unemployment Statistics program, showing each county's most recent available month. Building permits are new housing units authorized in the most recent full calendar year (Census Building Permits Survey), shown per 1,000 housing units using the housing-unit figure above (a different data vintage than the permits year, so treat this as an approximation, not an exact same-year ratio). Permit Growth (YoY) compares that same annual permits count to the prior year, from the same Census Building Permits Survey - a rising figure means construction activity is accelerating, a falling figure means builders are pulling back; in smaller counties, a handful of additional permits can swing this percentage widely, so treat outsized moves in low-population counties with extra caution. Multifamily Share shows what portion of that same year's new permits are for multifamily structures (2+ units, including apartment and condo buildings) versus single-family homes, from the same Census Building Permits Survey - this describes the character of new construction, not whether it's good or bad for any particular investor's strategy. <strong>Supply Pressure Score</strong> is a computed, illustrative combination of three layers already on this map - Housing-Unit Growth (weighted 40%), Permit Growth YoY (weighted 30%), and Total Vacancy Rate (weighted 30%) - each normalized to the same scale used by its own individual layer above, then combined with these documented, editable weights (not statistically fitted or empirically validated against any outcome). All three inputs move the score in the same direction: more housing-stock growth, more permit growth, and higher vacancy all push it higher. This is intentional, since all three describe one underlying idea (how much housing supply exists or is being added relative to how fully it's being absorbed) - but it also means a high score does NOT mean "good investment" or "bad investment," and a low score does not mean the opposite. A high score could describe a fast-growing market building new supply to keep up with demand, or a market building faster than demand can absorb - Census data alone cannot distinguish those two situations, which is exactly why this score is presented as a transparent combination of the individual layers already shown here, not as a standalone verdict. It intentionally uses a purple-orange color scale rather than red-green, specifically so it isn't misread as a "bad-to-good" gradient. Counties with no available data for the selected layer are shown in gray. This is twelve data layers of a planned multi-factor County Investment Map - a housing affordability layer is a planned addition, not yet included here. <strong>This map is an educational and informational tool, not a recommendation to buy, sell, or invest in property in any specific location.</strong> None of these figures alone indicates whether an area is a good investment - consult a licensed real estate professional and do your own diligence before making any investment decision.
 </p>
 
 <h2 style="margin-top:28px;">County Ranking Table</h2>
@@ -9952,6 +9953,25 @@ function colorForTotalVacancy(pct) {
   var clamped = Math.max(0, Math.min(30, pct));
   var t = clamped / 30;
   return d3.interpolateOrRd(t);
+}
+
+function housingSupplyPressureScore(rec) {
+  if (!rec) return null;
+  var hg = rec.housing_growth_pct;
+  var pg = rec.permit_growth_pct;
+  var vac = totalVacancyRate(rec);
+  if (hg === null || hg === undefined || pg === null || pg === undefined || vac === null || vac === undefined) return null;
+  var hgScore = ((Math.max(-10, Math.min(20, hg)) + 10) / 30) * 100 - 50;
+  var pgScore = ((Math.max(-50, Math.min(100, pg)) + 50) / 150) * 100 - 50;
+  var vacScore = (Math.max(0, Math.min(30, vac)) / 30) * 100 - 50;
+  return 0.4 * hgScore + 0.3 * pgScore + 0.3 * vacScore;
+}
+
+function colorForSupplyPressure(score) {
+  if (score === null || score === undefined || isNaN(score)) return "#ccc";
+  var clamped = Math.max(-50, Math.min(50, score));
+  var t = (clamped + 50) / 100;
+  return d3.interpolatePuOr(t);
 }
 
 function colorForUnemployment(rate) {
@@ -10056,6 +10076,7 @@ function colorForCounty(rec, isPR) {
   if (currentLayer === "multifamilyshare") return colorForMultifamilyShare(rec.multifamily_share_pct);
   if (currentLayer === "vacantforsale") return colorForVacantForSale(vacantForSaleRate(rec));
   if (currentLayer === "totalvacancy") return colorForTotalVacancy(totalVacancyRate(rec));
+  if (currentLayer === "supplypressure") return colorForSupplyPressure(housingSupplyPressureScore(rec));
   return isPR ? colorForPermitsPR(permitsPerHousingUnit(rec)) : colorForPermits(permitsPerHousingUnit(rec));
 }
 
@@ -10101,6 +10122,9 @@ function getLayerValue(rec, layer) {
   } else if (layer === "totalvacancy") {
     raw = totalVacancyRate(rec);
     if (raw !== null && raw !== undefined) formatted = raw.toFixed(1) + "%";
+  } else if (layer === "supplypressure") {
+    raw = housingSupplyPressureScore(rec);
+    if (raw !== null && raw !== undefined) formatted = (raw > 0 ? "+" : "") + raw.toFixed(0);
   } else {
     raw = permitsPerHousingUnit(rec); // "permits" fallback, matches colorForCounty's own fallback
     if (raw !== null && raw !== undefined) formatted = raw.toFixed(1) + " per 1,000 housing units";
@@ -10238,6 +10262,12 @@ function renderLegend() {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForTotalVacancy(v) + ";'></span><span>" + label + "%</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>total vacant units, all reasons, as % of housing stock (5-yr survey estimate)</span>";
+  } else if (currentLayer === "supplypressure") {
+    [-50, -25, 0, 25, 50].forEach(function(v) {
+      var label = (v > 0 ? "+" : "") + v;
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForSupplyPressure(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>illustrative combined score - not a good/bad judgment, see methodology note below</span>";
   } else {
     [0, 8, 16, 24, 32, 40].forEach(function(v) {
       var label = v >= 40 ? "40+" : String(v);
@@ -10310,6 +10340,12 @@ function renderTerritoryLegend(containerId) {
       html += "<div class='legend-item'><span class='swatch' style='background:" + colorForTotalVacancy(v) + ";'></span><span>" + label + "%</span></div>";
     });
     html += "<span style='margin-left:6px;color:var(--text-secondary);'>total vacant units, all reasons, as % of housing stock (5-yr survey estimate)</span>";
+  } else if (currentLayer === "supplypressure") {
+    [-50, -25, 0, 25, 50].forEach(function(v) {
+      var label = (v > 0 ? "+" : "") + v;
+      html += "<div class='legend-item'><span class='swatch' style='background:" + colorForSupplyPressure(v) + ";'></span><span>" + label + "</span></div>";
+    });
+    html += "<span style='margin-left:6px;color:var(--text-secondary);'>illustrative combined score - not a good/bad judgment, see methodology note below</span>";
   } else {
     [0, 2, 4, 6, 8, 10].forEach(function(v) {
       var label = v >= 10 ? "10+" : String(v);
@@ -10333,6 +10369,7 @@ function setLayer(layer) {
   document.getElementById("layer-btn-multifamilyshare").classList.toggle("active", layer === "multifamilyshare");
   document.getElementById("layer-btn-vacantforsale").classList.toggle("active", layer === "vacantforsale");
   document.getElementById("layer-btn-totalvacancy").classList.toggle("active", layer === "totalvacancy");
+  document.getElementById("layer-btn-supplypressure").classList.toggle("active", layer === "supplypressure");
   renderLegend();
   renderTerritoryLegend("pr-map-legend");
   renderTerritoryLegend("mariana-map-legend");
@@ -10442,6 +10479,10 @@ Promise.all([
         if (rec.vacant_total !== null && rec.vacant_total !== undefined) {
           var totalVacRate = totalVacancyRate(rec);
           lines.push("Total vacant (all reasons): " + rec.vacant_total.toLocaleString() + (totalVacRate !== null ? " (" + totalVacRate.toFixed(1) + "% of housing stock, 5-yr survey estimate)" : ""));
+        }
+        var supplyScore = housingSupplyPressureScore(rec);
+        if (supplyScore !== null) {
+          lines.push("Supply Pressure Score: " + (supplyScore > 0 ? "+" : "") + supplyScore.toFixed(0) + " (illustrative, see methodology note)");
         }
         tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
       }
@@ -10579,6 +10620,10 @@ var projection = d3.geoMercator().fitSize([viewBoxWidth, viewBoxHeight], geojson
           if (rec.vacant_total !== null && rec.vacant_total !== undefined) {
             var totalVacRate = totalVacancyRate(rec);
             lines.push("Total vacant (all reasons): " + rec.vacant_total.toLocaleString() + (totalVacRate !== null ? " (" + totalVacRate.toFixed(1) + "% of housing stock, 5-yr survey estimate)" : ""));
+          }
+          var supplyScore = housingSupplyPressureScore(rec);
+          if (supplyScore !== null) {
+            lines.push("Supply Pressure Score: " + (supplyScore > 0 ? "+" : "") + supplyScore.toFixed(0) + " (illustrative, see methodology note)");
           }
           tooltip.innerHTML = lines.length ? lines.join("<br>") : "No data available";
         }
