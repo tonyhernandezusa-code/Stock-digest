@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
-  "generated_at": "2026-08-04T02:17:13.991544+00:00",
-  "status": "live prototype",
+  "schema_version": 2,
+  "generated_at": "2026-08-04T02:58:12.434344+00:00",
+  "status": "live Phase 2 prototype",
   "market_summary": {
     "direction": "Moderate Uptrend",
     "return_30d_pct": 1.33,
@@ -472,7 +472,7 @@
     },
     {
       "date": "2018-01-19",
-      "ai_index": 199.71,
+      "ai_index": 199.711,
       "nasdaq100": 144.068,
       "sp500": 129.851
     },
@@ -1102,7 +1102,7 @@
     },
     {
       "date": "2020-01-24",
-      "ai_index": 325.092,
+      "ai_index": 325.093,
       "nasdaq100": 192.703,
       "sp500": 152.268
     },
@@ -1480,7 +1480,7 @@
     },
     {
       "date": "2021-04-09",
-      "ai_index": 452.108,
+      "ai_index": 452.109,
       "nasdaq100": 291.855,
       "sp500": 190.773
     },
@@ -1624,7 +1624,7 @@
     },
     {
       "date": "2021-09-24",
-      "ai_index": 530.643,
+      "ai_index": 530.644,
       "nasdaq100": 323.151,
       "sp500": 205.867
     },
@@ -1834,7 +1834,7 @@
     },
     {
       "date": "2022-05-27",
-      "ai_index": 446.572,
+      "ai_index": 446.571,
       "nasdaq100": 267.326,
       "sp500": 192.133
     },
@@ -2122,7 +2122,7 @@
     },
     {
       "date": "2023-04-28",
-      "ai_index": 475.226,
+      "ai_index": 475.227,
       "nasdaq100": 279.227,
       "sp500": 192.652
     },
@@ -2356,7 +2356,7 @@
     },
     {
       "date": "2024-01-26",
-      "ai_index": 903.825,
+      "ai_index": 903.826,
       "nasdaq100": 367.237,
       "sp500": 225.989
     },
@@ -2470,7 +2470,7 @@
     },
     {
       "date": "2024-06-07",
-      "ai_index": 1283.054,
+      "ai_index": 1283.055,
       "nasdaq100": 400.542,
       "sp500": 247.06
     },
@@ -2536,7 +2536,7 @@
     },
     {
       "date": "2024-08-23",
-      "ai_index": 1341.013,
+      "ai_index": 1341.014,
       "nasdaq100": 415.718,
       "sp500": 260.349
     },
@@ -2548,7 +2548,7 @@
     },
     {
       "date": "2024-09-06",
-      "ai_index": 1123.419,
+      "ai_index": 1123.42,
       "nasdaq100": 388.323,
       "sp500": 249.898
     },
@@ -2560,7 +2560,7 @@
     },
     {
       "date": "2024-09-20",
-      "ai_index": 1280.559,
+      "ai_index": 1280.56,
       "nasdaq100": 417.207,
       "sp500": 263.488
     },
@@ -2674,7 +2674,7 @@
     },
     {
       "date": "2025-01-31",
-      "ai_index": 1383.471,
+      "ai_index": 1383.472,
       "nasdaq100": 452.76,
       "sp500": 279.105
     },
@@ -2686,7 +2686,7 @@
     },
     {
       "date": "2025-02-14",
-      "ai_index": 1522.452,
+      "ai_index": 1522.453,
       "nasdaq100": 466.18,
       "sp500": 282.529
     },
@@ -2758,13 +2758,13 @@
     },
     {
       "date": "2025-05-09",
-      "ai_index": 1303.166,
+      "ai_index": 1303.167,
       "nasdaq100": 422.897,
       "sp500": 261.518
     },
     {
       "date": "2025-05-16",
-      "ai_index": 1471.802,
+      "ai_index": 1471.803,
       "nasdaq100": 451.703,
       "sp500": 275.309
     },
@@ -2980,7 +2980,7 @@
     },
     {
       "date": "2026-01-23",
-      "ai_index": 2119.075,
+      "ai_index": 2119.076,
       "nasdaq100": 539.766,
       "sp500": 319.538
     },
@@ -3040,7 +3040,7 @@
     },
     {
       "date": "2026-04-03",
-      "ai_index": 1966.743,
+      "ai_index": 1966.744,
       "nasdaq100": 506.882,
       "sp500": 304.156
     },
@@ -3058,7 +3058,7 @@
     },
     {
       "date": "2026-04-24",
-      "ai_index": 2465.208,
+      "ai_index": 2465.209,
       "nasdaq100": 575.564,
       "sp500": 331.065
     },
@@ -3130,7 +3130,7 @@
     },
     {
       "date": "2026-07-17",
-      "ai_index": 2595.689,
+      "ai_index": 2595.69,
       "nasdaq100": 602.736,
       "sp500": 344.585
     },
@@ -3153,6 +3153,123 @@
       "sp500": 351.184
     }
   ],
+  "weekly_leaders": {
+    "week_start": "2026-08-03",
+    "as_of": "2026-08-04T02:58:12.434834+00:00",
+    "status": "Preliminary research ranking; refreshes with the daily dataset",
+    "leaders": [
+      {
+        "rank": 1,
+        "ticker": "SNOW",
+        "name": "Snowflake",
+        "subsector": "AI Software & Growth",
+        "score": 85.2,
+        "subsector_rank": 1,
+        "data_coverage_pct": 90.0,
+        "key_strength": "One-year price momentum ranks favorably within the peer group.",
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      },
+      {
+        "rank": 2,
+        "ticker": "GOOGL",
+        "name": "Alphabet",
+        "subsector": "Cloud & AI Platforms",
+        "score": 84.0,
+        "subsector_rank": 1,
+        "data_coverage_pct": 100.0,
+        "key_strength": "One-year price momentum ranks favorably within the peer group.",
+        "key_risk": "Free-cash-flow margin is weak relative to peers."
+      },
+      {
+        "rank": 3,
+        "ticker": "NVDA",
+        "name": "NVIDIA",
+        "subsector": "Semiconductors & Infrastructure",
+        "score": 83.7,
+        "subsector_rank": 1,
+        "data_coverage_pct": 90.0,
+        "key_strength": "Revenue growth is among the stronger results in its peer group.",
+        "key_risk": "One-year price momentum trails the peer group."
+      },
+      {
+        "rank": 4,
+        "ticker": "AMD",
+        "name": "Advanced Micro Devices",
+        "subsector": "Semiconductors & Infrastructure",
+        "score": 83.3,
+        "subsector_rank": 2,
+        "data_coverage_pct": 100.0,
+        "key_strength": "One-year price momentum ranks favorably within the peer group.",
+        "key_risk": "Net profitability is weak relative to peers."
+      },
+      {
+        "rank": 5,
+        "ticker": "MSFT",
+        "name": "Microsoft",
+        "subsector": "Cloud & AI Platforms",
+        "score": 82.9,
+        "subsector_rank": 2,
+        "data_coverage_pct": 100.0,
+        "key_strength": "Net profitability is strong relative to peers.",
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      },
+      {
+        "rank": 6,
+        "ticker": "PATH",
+        "name": "UiPath",
+        "subsector": "AI Software & Growth",
+        "score": 82.9,
+        "subsector_rank": 2,
+        "data_coverage_pct": 80.0,
+        "key_strength": "The latest standardized free cash flow is positive.",
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      },
+      {
+        "rank": 7,
+        "ticker": "PLTR",
+        "name": "Palantir Technologies",
+        "subsector": "AI Software & Growth",
+        "score": 80.3,
+        "subsector_rank": 3,
+        "data_coverage_pct": 100.0,
+        "key_strength": "Revenue growth is among the stronger results in its peer group.",
+        "key_risk": "The share price is below both its 50-day and 200-day averages."
+      },
+      {
+        "rank": 8,
+        "ticker": "MRVL",
+        "name": "Marvell Technology",
+        "subsector": "Semiconductors & Infrastructure",
+        "score": 79.9,
+        "subsector_rank": 3,
+        "data_coverage_pct": 100.0,
+        "key_strength": "The latest standardized free cash flow is positive.",
+        "key_risk": "Free-cash-flow margin is weak relative to peers."
+      },
+      {
+        "rank": 9,
+        "ticker": "META",
+        "name": "Meta Platforms",
+        "subsector": "Cloud & AI Platforms",
+        "score": 77.6,
+        "subsector_rank": 3,
+        "data_coverage_pct": 90.0,
+        "key_strength": "Revenue growth is among the stronger results in its peer group.",
+        "key_risk": "One-year price momentum trails the peer group."
+      },
+      {
+        "rank": 10,
+        "ticker": "AVGO",
+        "name": "Broadcom",
+        "subsector": "Semiconductors & Infrastructure",
+        "score": 75.5,
+        "subsector_rank": 4,
+        "data_coverage_pct": 100.0,
+        "key_strength": "Free-cash-flow margin compares favorably with peers.",
+        "key_risk": "Revenue growth trails most companies in its peer group."
+      }
+    ]
+  },
   "companies": [
     {
       "ticker": "SNOW",
@@ -3305,7 +3422,94 @@
       "above_200_day": true,
       "market_cap": 106589898000.0,
       "overall_rank": 1,
-      "subsector_rank": 1
+      "subsector_rank": 1,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 85.2,
+          "peer_median": 81.6,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 29.16,
+          "peer_median": 20.91,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 23.92,
+          "peer_median": 22.9,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": -28.43,
+          "peer_median": -5.45,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 50.0,
+          "peer_median": -0.54,
+          "peer_percentile": 87.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "score": 85.2,
+          "revenue_growth_pct": 29.16,
+          "fcf_margin_pct": 23.92,
+          "return_1y_pct": 50.0
+        },
+        {
+          "ticker": "PATH",
+          "name": "UiPath",
+          "score": 82.9,
+          "revenue_growth_pct": 12.65,
+          "fcf_margin_pct": 21.87,
+          "return_1y_pct": 17.46
+        },
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 80.3,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": -18.55
+        },
+        {
+          "ticker": "AI",
+          "name": "C3.ai",
+          "score": 32.0,
+          "revenue_growth_pct": -35.67,
+          "fcf_margin_pct": -76.77,
+          "return_1y_pct": -56.62
+        }
+      ],
+      "data_coverage_pct": 90.0,
+      "data_quality": "High",
+      "data_warnings": [
+        "Total debt was not fully retrieved."
+      ],
+      "strengths": [
+        "One-year price momentum ranks favorably within the peer group.",
+        "The latest standardized free cash flow is positive.",
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      ],
+      "cap_group_rank": 1,
+      "cap_group_count": 2
     },
     {
       "ticker": "GOOGL",
@@ -3477,7 +3681,93 @@
       "above_200_day": true,
       "market_cap": 4568027300000.0,
       "overall_rank": 2,
-      "subsector_rank": 1
+      "subsector_rank": 1,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 84.0,
+          "peer_median": 80.25,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 15.09,
+          "peer_median": 16.44,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 18.19,
+          "peer_median": 20.19,
+          "peer_percentile": 16.7
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 32.81,
+          "peer_median": 31.45,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 98.05,
+          "peer_median": 13.02,
+          "peer_percentile": 87.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet",
+          "score": 84.0,
+          "revenue_growth_pct": 15.09,
+          "fcf_margin_pct": 18.19,
+          "return_1y_pct": 98.05
+        },
+        {
+          "ticker": "MSFT",
+          "name": "Microsoft",
+          "score": 82.9,
+          "revenue_growth_pct": 17.79,
+          "fcf_margin_pct": 20.19,
+          "return_1y_pct": -6.21
+        },
+        {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "score": 77.6,
+          "revenue_growth_pct": 22.17,
+          "fcf_margin_pct": 22.94,
+          "return_1y_pct": -21.04
+        },
+        {
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "score": 69.0,
+          "revenue_growth_pct": 12.38,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 32.26
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "One-year price momentum ranks favorably within the peer group.",
+        "The latest standardized free cash flow is positive.",
+        "Cash and short-term investments exceed reported debt.",
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "Free-cash-flow margin is weak relative to peers."
+      ],
+      "cap_group_rank": 1,
+      "cap_group_count": 7
     },
     {
       "ticker": "NVDA",
@@ -3645,7 +3935,95 @@
       "above_200_day": true,
       "market_cap": 5000688000000.0,
       "overall_rank": 3,
-      "subsector_rank": 1
+      "subsector_rank": 1,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 83.7,
+          "peer_median": 81.6,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 65.47,
+          "peer_median": 38.22,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": null,
+          "peer_median": 19.44,
+          "peer_percentile": null
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 55.6,
+          "peer_median": 34.39,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 19.11,
+          "peer_median": 98.86,
+          "peer_percentile": 12.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "score": 83.7,
+          "revenue_growth_pct": 65.47,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 19.11
+        },
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 83.3,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 182.26
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "score": 79.9,
+          "revenue_growth_pct": 42.09,
+          "fcf_margin_pct": 17.04,
+          "return_1y_pct": 160.83
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "score": 75.5,
+          "revenue_growth_pct": 23.87,
+          "fcf_margin_pct": 42.13,
+          "return_1y_pct": 36.88
+        }
+      ],
+      "data_coverage_pct": 90.0,
+      "data_quality": "High",
+      "data_warnings": [
+        "Cash capital expenditures were not retrieved; standardized free cash flow may be unavailable."
+      ],
+      "strengths": [
+        "Revenue growth is among the stronger results in its peer group.",
+        "Net profitability is strong relative to peers.",
+        "Cash and short-term investments exceed reported debt.",
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "One-year price momentum trails the peer group."
+      ],
+      "cap_group_rank": 2,
+      "cap_group_count": 7
     },
     {
       "ticker": "AMD",
@@ -3817,7 +4195,92 @@
       "above_200_day": true,
       "market_cap": 790254293684.96,
       "overall_rank": 4,
-      "subsector_rank": 2
+      "subsector_rank": 2,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 83.3,
+          "peer_median": 81.6,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 34.34,
+          "peer_median": 38.22,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 19.44,
+          "peer_median": 19.44,
+          "peer_percentile": 50.0
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 12.51,
+          "peer_median": 34.39,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 182.26,
+          "peer_median": 98.86,
+          "peer_percentile": 87.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "score": 83.7,
+          "revenue_growth_pct": 65.47,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 19.11
+        },
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 83.3,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 182.26
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "score": 79.9,
+          "revenue_growth_pct": 42.09,
+          "fcf_margin_pct": 17.04,
+          "return_1y_pct": 160.83
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "score": 75.5,
+          "revenue_growth_pct": 23.87,
+          "fcf_margin_pct": 42.13,
+          "return_1y_pct": 36.88
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "One-year price momentum ranks favorably within the peer group.",
+        "The latest standardized free cash flow is positive.",
+        "Cash and short-term investments exceed reported debt."
+      ],
+      "risks": [
+        "Net profitability is weak relative to peers."
+      ],
+      "cap_group_rank": 3,
+      "cap_group_count": 7
     },
     {
       "ticker": "MSFT",
@@ -3989,7 +4452,93 @@
       "above_200_day": true,
       "market_cap": 3621067258686.15,
       "overall_rank": 5,
-      "subsector_rank": 2
+      "subsector_rank": 2,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 82.9,
+          "peer_median": 80.25,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 17.79,
+          "peer_median": 16.44,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 20.19,
+          "peer_median": 20.19,
+          "peer_percentile": 50.0
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 40.31,
+          "peer_median": 31.45,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": -6.21,
+          "peer_median": 13.02,
+          "peer_percentile": 37.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet",
+          "score": 84.0,
+          "revenue_growth_pct": 15.09,
+          "fcf_margin_pct": 18.19,
+          "return_1y_pct": 98.05
+        },
+        {
+          "ticker": "MSFT",
+          "name": "Microsoft",
+          "score": 82.9,
+          "revenue_growth_pct": 17.79,
+          "fcf_margin_pct": 20.19,
+          "return_1y_pct": -6.21
+        },
+        {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "score": 77.6,
+          "revenue_growth_pct": 22.17,
+          "fcf_margin_pct": 22.94,
+          "return_1y_pct": -21.04
+        },
+        {
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "score": 69.0,
+          "revenue_growth_pct": 12.38,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 32.26
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "Net profitability is strong relative to peers.",
+        "The latest standardized free cash flow is positive.",
+        "Cash and short-term investments exceed reported debt.",
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      ],
+      "cap_group_rank": 4,
+      "cap_group_count": 7
     },
     {
       "ticker": "PATH",
@@ -4131,7 +4680,94 @@
       "above_50_day": true,
       "above_200_day": true,
       "overall_rank": 6,
-      "subsector_rank": 2
+      "subsector_rank": 2,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 82.9,
+          "peer_median": 81.6,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 12.65,
+          "peer_median": 20.91,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 21.87,
+          "peer_median": 22.9,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 17.53,
+          "peer_median": -5.45,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 17.46,
+          "peer_median": -0.54,
+          "peer_percentile": 62.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "score": 85.2,
+          "revenue_growth_pct": 29.16,
+          "fcf_margin_pct": 23.92,
+          "return_1y_pct": 50.0
+        },
+        {
+          "ticker": "PATH",
+          "name": "UiPath",
+          "score": 82.9,
+          "revenue_growth_pct": 12.65,
+          "fcf_margin_pct": 21.87,
+          "return_1y_pct": 17.46
+        },
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 80.3,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": -18.55
+        },
+        {
+          "ticker": "AI",
+          "name": "C3.ai",
+          "score": 32.0,
+          "revenue_growth_pct": -35.67,
+          "fcf_margin_pct": -76.77,
+          "return_1y_pct": -56.62
+        }
+      ],
+      "data_coverage_pct": 80.0,
+      "data_quality": "High",
+      "data_warnings": [
+        "Total debt was not fully retrieved.",
+        "Current market capitalization was unavailable."
+      ],
+      "strengths": [
+        "The latest standardized free cash flow is positive.",
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      ],
+      "cap_group_rank": 1,
+      "cap_group_count": 2
     },
     {
       "ticker": "PLTR",
@@ -4285,7 +4921,93 @@
       "above_200_day": false,
       "market_cap": 301199761450.0,
       "overall_rank": 7,
-      "subsector_rank": 3
+      "subsector_rank": 3,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 80.3,
+          "peer_median": 81.6,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 56.18,
+          "peer_median": 20.91,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 46.94,
+          "peer_median": 22.9,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 36.31,
+          "peer_median": -5.45,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": -18.55,
+          "peer_median": -0.54,
+          "peer_percentile": 37.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "score": 85.2,
+          "revenue_growth_pct": 29.16,
+          "fcf_margin_pct": 23.92,
+          "return_1y_pct": 50.0
+        },
+        {
+          "ticker": "PATH",
+          "name": "UiPath",
+          "score": 82.9,
+          "revenue_growth_pct": 12.65,
+          "fcf_margin_pct": 21.87,
+          "return_1y_pct": 17.46
+        },
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 80.3,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": -18.55
+        },
+        {
+          "ticker": "AI",
+          "name": "C3.ai",
+          "score": 32.0,
+          "revenue_growth_pct": -35.67,
+          "fcf_margin_pct": -76.77,
+          "return_1y_pct": -56.62
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "Revenue growth is among the stronger results in its peer group.",
+        "Free-cash-flow margin compares favorably with peers.",
+        "Net profitability is strong relative to peers.",
+        "The latest standardized free cash flow is positive."
+      ],
+      "risks": [
+        "The share price is below both its 50-day and 200-day averages."
+      ],
+      "cap_group_rank": 5,
+      "cap_group_count": 7
     },
     {
       "ticker": "MRVL",
@@ -4430,7 +5152,90 @@
       "above_200_day": true,
       "market_cap": 169514370000.0,
       "overall_rank": 8,
-      "subsector_rank": 3
+      "subsector_rank": 3,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 79.9,
+          "peer_median": 81.6,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 42.09,
+          "peer_median": 38.22,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 17.04,
+          "peer_median": 19.44,
+          "peer_percentile": 16.7
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 32.58,
+          "peer_median": 34.39,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 160.83,
+          "peer_median": 98.86,
+          "peer_percentile": 62.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "score": 83.7,
+          "revenue_growth_pct": 65.47,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 19.11
+        },
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 83.3,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 182.26
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "score": 79.9,
+          "revenue_growth_pct": 42.09,
+          "fcf_margin_pct": 17.04,
+          "return_1y_pct": 160.83
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "score": 75.5,
+          "revenue_growth_pct": 23.87,
+          "fcf_margin_pct": 42.13,
+          "return_1y_pct": 36.88
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "The latest standardized free cash flow is positive."
+      ],
+      "risks": [
+        "Free-cash-flow margin is weak relative to peers."
+      ],
+      "cap_group_rank": 2,
+      "cap_group_count": 2
     },
     {
       "ticker": "META",
@@ -4600,7 +5405,96 @@
       "above_50_day": false,
       "above_200_day": false,
       "overall_rank": 9,
-      "subsector_rank": 3
+      "subsector_rank": 3,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 77.6,
+          "peer_median": 80.25,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 22.17,
+          "peer_median": 16.44,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 22.94,
+          "peer_median": 20.19,
+          "peer_percentile": 83.3
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 30.08,
+          "peer_median": 31.45,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": -21.04,
+          "peer_median": 13.02,
+          "peer_percentile": 12.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet",
+          "score": 84.0,
+          "revenue_growth_pct": 15.09,
+          "fcf_margin_pct": 18.19,
+          "return_1y_pct": 98.05
+        },
+        {
+          "ticker": "MSFT",
+          "name": "Microsoft",
+          "score": 82.9,
+          "revenue_growth_pct": 17.79,
+          "fcf_margin_pct": 20.19,
+          "return_1y_pct": -6.21
+        },
+        {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "score": 77.6,
+          "revenue_growth_pct": 22.17,
+          "fcf_margin_pct": 22.94,
+          "return_1y_pct": -21.04
+        },
+        {
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "score": 69.0,
+          "revenue_growth_pct": 12.38,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 32.26
+        }
+      ],
+      "data_coverage_pct": 90.0,
+      "data_quality": "High",
+      "data_warnings": [
+        "Current market capitalization was unavailable."
+      ],
+      "strengths": [
+        "Revenue growth is among the stronger results in its peer group.",
+        "Free-cash-flow margin compares favorably with peers.",
+        "The latest standardized free cash flow is positive.",
+        "Cash and short-term investments exceed reported debt."
+      ],
+      "risks": [
+        "One-year price momentum trails the peer group.",
+        "The share price is below both its 50-day and 200-day averages."
+      ],
+      "cap_group_rank": 2,
+      "cap_group_count": 2
     },
     {
       "ticker": "AVGO",
@@ -4772,7 +5666,92 @@
       "above_200_day": true,
       "market_cap": 1866065681061.54,
       "overall_rank": 10,
-      "subsector_rank": 4
+      "subsector_rank": 4,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 75.5,
+          "peer_median": 81.6,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 23.87,
+          "peer_median": 38.22,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 42.13,
+          "peer_median": 19.44,
+          "peer_percentile": 83.3
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 36.2,
+          "peer_median": 34.39,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 36.88,
+          "peer_median": 98.86,
+          "peer_percentile": 37.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "score": 83.7,
+          "revenue_growth_pct": 65.47,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 19.11
+        },
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 83.3,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 182.26
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "score": 79.9,
+          "revenue_growth_pct": 42.09,
+          "fcf_margin_pct": 17.04,
+          "return_1y_pct": 160.83
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "score": 75.5,
+          "revenue_growth_pct": 23.87,
+          "fcf_margin_pct": 42.13,
+          "return_1y_pct": 36.88
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "Free-cash-flow margin compares favorably with peers.",
+        "The latest standardized free cash flow is positive."
+      ],
+      "risks": [
+        "Revenue growth trails most companies in its peer group.",
+        "Reported debt materially exceeds cash and short-term investments."
+      ],
+      "cap_group_rank": 6,
+      "cap_group_count": 7
     },
     {
       "ticker": "AMZN",
@@ -4938,7 +5917,94 @@
       "above_200_day": true,
       "market_cap": 3063528780719.44,
       "overall_rank": 11,
-      "subsector_rank": 4
+      "subsector_rank": 4,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 69.0,
+          "peer_median": 80.25,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 12.38,
+          "peer_median": 16.44,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": null,
+          "peer_median": 20.19,
+          "peer_percentile": null
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 10.83,
+          "peer_median": 31.45,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 32.26,
+          "peer_median": 13.02,
+          "peer_percentile": 62.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet",
+          "score": 84.0,
+          "revenue_growth_pct": 15.09,
+          "fcf_margin_pct": 18.19,
+          "return_1y_pct": 98.05
+        },
+        {
+          "ticker": "MSFT",
+          "name": "Microsoft",
+          "score": 82.9,
+          "revenue_growth_pct": 17.79,
+          "fcf_margin_pct": 20.19,
+          "return_1y_pct": -6.21
+        },
+        {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "score": 77.6,
+          "revenue_growth_pct": 22.17,
+          "fcf_margin_pct": 22.94,
+          "return_1y_pct": -21.04
+        },
+        {
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "score": 69.0,
+          "revenue_growth_pct": 12.38,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 32.26
+        }
+      ],
+      "data_coverage_pct": 80.0,
+      "data_quality": "High",
+      "data_warnings": [
+        "Cash capital expenditures were not retrieved; standardized free cash flow may be unavailable.",
+        "Research and development expense was not separately retrieved."
+      ],
+      "strengths": [
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "Revenue growth trails most companies in its peer group.",
+        "Net profitability is weak relative to peers."
+      ],
+      "cap_group_rank": 7,
+      "cap_group_count": 7
     },
     {
       "ticker": "AI",
@@ -5091,7 +6157,95 @@
       "above_200_day": false,
       "market_cap": 34054922.16,
       "overall_rank": 12,
-      "subsector_rank": 4
+      "subsector_rank": 4,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 32.0,
+          "peer_median": 81.6,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": -35.67,
+          "peer_median": 20.91,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": -76.77,
+          "peer_median": 22.9,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": -187.95,
+          "peer_median": -5.45,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": -56.62,
+          "peer_median": -0.54,
+          "peer_percentile": 12.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "score": 85.2,
+          "revenue_growth_pct": 29.16,
+          "fcf_margin_pct": 23.92,
+          "return_1y_pct": 50.0
+        },
+        {
+          "ticker": "PATH",
+          "name": "UiPath",
+          "score": 82.9,
+          "revenue_growth_pct": 12.65,
+          "fcf_margin_pct": 21.87,
+          "return_1y_pct": 17.46
+        },
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 80.3,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": -18.55
+        },
+        {
+          "ticker": "AI",
+          "name": "C3.ai",
+          "score": 32.0,
+          "revenue_growth_pct": -35.67,
+          "fcf_margin_pct": -76.77,
+          "return_1y_pct": -56.62
+        }
+      ],
+      "data_coverage_pct": 90.0,
+      "data_quality": "High",
+      "data_warnings": [
+        "Total debt was not fully retrieved."
+      ],
+      "strengths": [
+        "No standout strength was identified from the currently available standardized metrics."
+      ],
+      "risks": [
+        "Revenue growth trails most companies in its peer group.",
+        "Free-cash-flow margin is weak relative to peers.",
+        "Net profitability is weak relative to peers.",
+        "One-year price momentum trails the peer group."
+      ],
+      "cap_group_rank": 1,
+      "cap_group_count": 1
     }
   ],
   "errors": [],
@@ -5109,7 +6263,16 @@
       "The score is not a probability or investment recommendation.",
       "Reported total CapEx is not automatically AI-only CapEx.",
       "XBRL tags and fiscal calendars can differ across companies.",
-      "Historical-price licensing must be reviewed before commercial redistribution."
+      "Historical-price licensing must be reviewed before commercial redistribution.",
+      "Peer percentiles are based only on the companies currently included in each prototype subsector.",
+      "Strengths and risks are deterministic summaries of available metrics, not qualitative due diligence."
+    ],
+    "phase_2_features": [
+      "Peer medians and percentiles",
+      "Market-cap group rank",
+      "Data coverage and missing-data warnings",
+      "Deterministic strengths and risks",
+      "Preliminary weekly leaders"
     ]
   }
 }
