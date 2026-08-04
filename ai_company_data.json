@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-03T21:10:00-04:00",
+  "status": "awaiting first live refresh",
+  "market_summary": {},
+  "market_index": [],
+  "companies": [
+    {"ticker":"MSFT","name":"Microsoft","subsector":"Cloud & AI Platforms","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"GOOGL","name":"Alphabet","subsector":"Cloud & AI Platforms","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"AMZN","name":"Amazon","subsector":"Cloud & AI Platforms","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"META","name":"Meta Platforms","subsector":"Cloud & AI Platforms","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"NVDA","name":"NVIDIA","subsector":"Semiconductors & Infrastructure","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"AMD","name":"Advanced Micro Devices","subsector":"Semiconductors & Infrastructure","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"AVGO","name":"Broadcom","subsector":"Semiconductors & Infrastructure","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"MRVL","name":"Marvell Technology","subsector":"Semiconductors & Infrastructure","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"PLTR","name":"Palantir Technologies","subsector":"AI Software & Growth","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"SNOW","name":"Snowflake","subsector":"AI Software & Growth","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"AI","name":"C3.ai","subsector":"AI Software & Growth","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."},
+    {"ticker":"PATH","name":"UiPath","subsector":"AI Software & Growth","market_cap_tier":"Unclassified","score":null,"score_components":{},"history":[],"latest_filings":[],"automated_summary":"Run the AI Intelligence update workflow to retrieve live SEC financial facts and market-price history."}
+  ],
+  "errors": [],
+  "methodology": {
+    "score_weights": {"growth":25,"free_cash_flow":20,"financial_strength":15,"profitability":10,"momentum":20,"strategic_investment":10},
+    "free_cash_flow": "Operating cash flow minus cash capital expenditures"
+  }
+}
