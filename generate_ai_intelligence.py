@@ -15,7 +15,9 @@ Data sources:
 The scoring model is a transparent research score, not an investment recommendation
 and not a probability forecast. Missing inputs are excluded and the remaining weights
 are renormalized. Phase 2 adds deterministic peer comparisons, strengths, risks,
-data-coverage warnings, and a preliminary weekly-leaders view.
+data-coverage warnings, and a preliminary weekly-leaders view. Phase 3 adds a
+permanent weekly snapshot history, live-versus-official ranking changes, and a
+track-record scorecard that measures subsequent returns against subsector peers.
 """
 
 from __future__ import annotations
@@ -26,9 +28,10 @@ import os
 import statistics
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Iterable
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -39,6 +42,7 @@ except ImportError as exc:  # Clear message for GitHub Actions/local runs.
 
 OUTPUT_JSON = Path("ai_company_data.json")
 OUTPUT_HTML = Path("ai-intelligence.html")
+EASTERN = ZoneInfo("America/New_York")
 
 SEC_USER_AGENT = os.environ.get(
     "SEC_USER_AGENT",
@@ -401,7 +405,7 @@ def nearest_return(series: Any, days: int) -> float | None:
     return pct_change(latest, prior_value)
 
 
-def build_price_data(tickers: list[str]) -> tuple[dict[str, Any], list[dict[str, Any]], list[str]]:
+def build_price_data(tickers: list[str]) -> tuple[dict[str, Any], list[dict[str, Any]], list[str], dict[str, Any]]:
     errors: list[str] = []
     all_symbols = tickers + list(BENCHMARKS.values())
     try:
@@ -416,9 +420,10 @@ def build_price_data(tickers: list[str]) -> tuple[dict[str, Any], list[dict[str,
         )
         close = downloaded["Close"] if hasattr(downloaded.columns, "levels") else downloaded
     except Exception as exc:  # noqa: BLE001 - preserve prior data when an upstream service fails.
-        return {}, [], [f"Price download failed: {exc}"]
+        return {}, [], [f"Price download failed: {exc}"], {}
 
     company_market: dict[str, Any] = {}
+    price_history: dict[str, Any] = {}
     normalized_daily = []
     for ticker in tickers:
         try:
@@ -434,6 +439,7 @@ def build_price_data(tickers: list[str]) -> tuple[dict[str, Any], list[dict[str,
         normalized = series / first_price * 100 if first_price else series * math.nan
         normalized.name = ticker
         normalized_daily.append(normalized)
+        price_history[ticker] = series.copy()
         ma50 = safe_float(series.tail(50).mean()) if len(series) >= 20 else None
         ma200 = safe_float(series.tail(200).mean()) if len(series) >= 50 else None
         market_cap = None
@@ -478,7 +484,7 @@ def build_price_data(tickers: list[str]) -> tuple[dict[str, Any], list[dict[str,
                 row[key] = round(float(subset.iloc[-1]), 3) if not subset.empty else None
             index_rows.append(row)
 
-    return company_market, index_rows[-530:], errors
+    return company_market, index_rows[-530:], errors, price_history
 
 
 def component_scores(record: dict[str, Any]) -> dict[str, float | None]:
@@ -742,6 +748,247 @@ def build_weekly_leaders(companies: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+
+def current_week_start(now: datetime | None = None) -> str:
+    """Return Monday's date for the current New York trading week."""
+    current = (now or datetime.now(timezone.utc)).astimezone(EASTERN)
+    return (current.date() - timedelta(days=current.weekday())).isoformat()
+
+
+def create_or_preserve_weekly_snapshots(
+    old_data: dict[str, Any], companies: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Create one immutable official snapshot per week and preserve all prior weeks."""
+    snapshots = [
+        item for item in old_data.get("weekly_snapshots", [])
+        if isinstance(item, dict) and item.get("week_start")
+    ]
+    # Deduplicate older files by week, preferring the earliest saved snapshot.
+    by_week: dict[str, dict[str, Any]] = {}
+    for item in sorted(snapshots, key=lambda row: (row.get("week_start", ""), row.get("captured_at", ""))):
+        by_week.setdefault(str(item.get("week_start")), item)
+
+    week = current_week_start()
+    eligible = [
+        company for company in companies
+        if company.get("score") is not None and company.get("latest_price") is not None
+    ]
+    if week not in by_week and len(eligible) >= 6:
+        ranked = sorted(eligible, key=lambda item: item.get("score") or -1, reverse=True)
+        universe = [
+            {
+                "ticker": company.get("ticker"),
+                "name": company.get("name"),
+                "subsector": company.get("subsector"),
+                "market_cap_tier": company.get("market_cap_tier"),
+                "official_rank": company.get("overall_rank"),
+                "score": company.get("score"),
+                "entry_price": company.get("latest_price"),
+                "price_date": company.get("price_date"),
+            }
+            for company in ranked
+        ]
+        by_week[week] = {
+            "week_start": week,
+            "captured_at": datetime.now(timezone.utc).isoformat(),
+            "capture_policy": "First successful AI Intelligence refresh of the New York trading week",
+            "leaders": universe[:10],
+            "universe": universe,
+        }
+    return [by_week[key] for key in sorted(by_week)]
+
+
+def snapshot_return(entry_price: Any, current_price: Any) -> float | None:
+    return pct_change(safe_float(current_price), safe_float(entry_price))
+
+
+def build_live_weekly_leaders(
+    snapshots: list[dict[str, Any]], companies: list[dict[str, Any]]
+) -> dict[str, Any]:
+    now = datetime.now(timezone.utc)
+    week = current_week_start(now)
+    snapshot = next((item for item in snapshots if item.get("week_start") == week), None)
+    if snapshot is None and snapshots:
+        snapshot = snapshots[-1]
+    if snapshot is None:
+        return {
+            "week_start": None,
+            "as_of": now.isoformat(),
+            "status": "Awaiting the first official Phase 3 weekly snapshot",
+            "leaders": [],
+        }
+
+    current = {company.get("ticker"): company for company in companies}
+    snapshot_universe = snapshot.get("universe", [])
+    peer_returns: dict[str, list[float]] = {}
+    for item in snapshot_universe:
+        ticker = item.get("ticker")
+        company = current.get(ticker, {})
+        result = snapshot_return(item.get("entry_price"), company.get("latest_price"))
+        if result is not None:
+            peer_returns.setdefault(str(item.get("subsector")), []).append(result)
+
+    leaders = []
+    for official_rank, item in enumerate(snapshot.get("leaders", []), start=1):
+        ticker = item.get("ticker")
+        company = current.get(ticker, {})
+        company_return = snapshot_return(item.get("entry_price"), company.get("latest_price"))
+        peer_values = peer_returns.get(str(item.get("subsector")), [])
+        peer_return = round(statistics.fmean(peer_values), 2) if peer_values else None
+        relative = (
+            round(company_return - peer_return, 2)
+            if company_return is not None and peer_return is not None else None
+        )
+        live_rank = company.get("overall_rank")
+        rank_change = (
+            official_rank - live_rank
+            if isinstance(live_rank, int) else None
+        )
+        leaders.append({
+            "official_rank": official_rank,
+            "live_rank": live_rank,
+            "rank_change": rank_change,
+            "ticker": ticker,
+            "name": item.get("name"),
+            "subsector": item.get("subsector"),
+            "market_cap_tier": item.get("market_cap_tier"),
+            "official_score": item.get("score"),
+            "live_score": company.get("score"),
+            "entry_price": item.get("entry_price"),
+            "entry_price_date": item.get("price_date"),
+            "current_price": company.get("latest_price"),
+            "current_price_date": company.get("price_date"),
+            "return_since_selection_pct": company_return,
+            "peer_return_since_selection_pct": peer_return,
+            "relative_return_pct": relative,
+            "data_coverage_pct": company.get("data_coverage_pct"),
+            "key_strength": (company.get("strengths") or [None])[0],
+            "key_risk": (company.get("risks") or [None])[0],
+        })
+    return {
+        "week_start": snapshot.get("week_start"),
+        "captured_at": snapshot.get("captured_at"),
+        "as_of": now.isoformat(),
+        "status": "Official weekly snapshot with daily live performance updates",
+        "leaders": leaders,
+    }
+
+
+def price_at_or_after(series: Any, target_date: datetime) -> float | None:
+    """Return the first available closing price on or after a target date."""
+    try:
+        index = series.index
+        # yfinance can return timezone-aware or timezone-naive indexes.
+        target = target_date
+        if getattr(index, "tz", None) is None:
+            target = target.replace(tzinfo=None)
+        subset = series.loc[index >= target]
+        return safe_float(subset.iloc[0]) if not subset.empty else None
+    except Exception:
+        return None
+
+
+def build_performance_scorecard(
+    snapshots: list[dict[str, Any]], companies: list[dict[str, Any]], price_history: dict[str, Any]
+) -> dict[str, Any]:
+    """Evaluate matured weekly selections at fixed horizons versus their subsector peers."""
+    now = datetime.now(timezone.utc)
+    horizons = [(30, "30 days"), (90, "3 months"), (180, "6 months"), (365, "12 months")]
+    current = {company.get("ticker"): company for company in companies}
+    horizon_rows = []
+
+    for days, label in horizons:
+        observations = []
+        for snapshot in snapshots:
+            try:
+                start = datetime.fromisoformat(str(snapshot.get("captured_at", "")).replace("Z", "+00:00"))
+                if start.tzinfo is None:
+                    start = start.replace(tzinfo=timezone.utc)
+            except ValueError:
+                continue
+            target = start + timedelta(days=days)
+            if now < target:
+                continue
+
+            universe = snapshot.get("universe", [])
+            peer_outcomes: dict[str, list[float]] = {}
+            outcome_by_ticker: dict[str, float] = {}
+            for item in universe:
+                ticker = item.get("ticker")
+                entry = safe_float(item.get("entry_price"))
+                series = price_history.get(ticker)
+                end_price = price_at_or_after(series, target) if series is not None else None
+                result = pct_change(end_price, entry)
+                if result is not None:
+                    outcome_by_ticker[str(ticker)] = result
+                    peer_outcomes.setdefault(str(item.get("subsector")), []).append(result)
+
+            for leader in snapshot.get("leaders", []):
+                ticker = str(leader.get("ticker"))
+                company_return = outcome_by_ticker.get(ticker)
+                peers = peer_outcomes.get(str(leader.get("subsector")), [])
+                peer_return = statistics.fmean(peers) if peers else None
+                if company_return is None or peer_return is None:
+                    continue
+                observations.append({
+                    "company_return": company_return,
+                    "peer_return": peer_return,
+                    "excess_return": company_return - peer_return,
+                })
+
+        count = len(observations)
+        winners = sum(item["excess_return"] > 0 for item in observations)
+        horizon_rows.append({
+            "days": days,
+            "label": label,
+            "evaluated_selections": count,
+            "outperformed_count": winners,
+            "hit_rate_pct": round(winners / count * 100.0, 1) if count else None,
+            "average_selection_return_pct": round(statistics.fmean(item["company_return"] for item in observations), 2) if count else None,
+            "average_peer_return_pct": round(statistics.fmean(item["peer_return"] for item in observations), 2) if count else None,
+            "average_excess_return_pct": round(statistics.fmean(item["excess_return"] for item in observations), 2) if count else None,
+        })
+
+    recent_weeks = []
+    for snapshot in snapshots[-12:]:
+        universe_current = {item.get("ticker"): item for item in snapshot.get("universe", [])}
+        leader_returns = []
+        excess_returns = []
+        for leader in snapshot.get("leaders", []):
+            ticker = leader.get("ticker")
+            company = current.get(ticker, {})
+            result = snapshot_return(leader.get("entry_price"), company.get("latest_price"))
+            peer_results = []
+            for item in snapshot.get("universe", []):
+                if item.get("subsector") != leader.get("subsector"):
+                    continue
+                peer_company = current.get(item.get("ticker"), {})
+                peer_result = snapshot_return(item.get("entry_price"), peer_company.get("latest_price"))
+                if peer_result is not None:
+                    peer_results.append(peer_result)
+            peer_return = statistics.fmean(peer_results) if peer_results else None
+            if result is not None:
+                leader_returns.append(result)
+            if result is not None and peer_return is not None:
+                excess_returns.append(result - peer_return)
+        recent_weeks.append({
+            "week_start": snapshot.get("week_start"),
+            "captured_at": snapshot.get("captured_at"),
+            "top_company": (snapshot.get("leaders") or [{}])[0].get("name"),
+            "selection_count": len(snapshot.get("leaders", [])),
+            "average_return_to_date_pct": round(statistics.fmean(leader_returns), 2) if leader_returns else None,
+            "average_excess_to_date_pct": round(statistics.fmean(excess_returns), 2) if excess_returns else None,
+        })
+
+    return {
+        "tracking_started": snapshots[0].get("captured_at") if snapshots else None,
+        "weeks_recorded": len(snapshots),
+        "method": "Each official weekly Top 10 is frozen at the first successful refresh of the week and compared with the equal-weighted return of companies in the same prototype subsector.",
+        "horizons": horizon_rows,
+        "recent_weeks": recent_weeks,
+    }
+
+
 def merge_old_company(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
     merged = dict(old)
     for key, value in new.items():
@@ -813,7 +1060,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
 <style>
 :root{--bg:#f7f7f5;--text:#111;--secondary:#666;--muted:#888;--card:#fff;--border:#e4e2dc;--header:#f0efe9;--accent:#1f4e79;--positive:#1a7f37;--negative:#b42318;--shadow:0 8px 24px rgba(0,0,0,.05)}
 body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;--card:#191919;--border:#333;--header:#222;--accent:#82b9e6;--positive:#67c587;--negative:#ff8b84;--shadow:none}
-*{box-sizing:border-box}body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}a{color:var(--accent)}.container{max-width:1250px;margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px;flex-wrap:wrap}.nav a{font-size:14px;font-weight:650;text-decoration:none;margin-right:16px}.theme-btn{border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--text);padding:8px 14px;cursor:pointer}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:800}.title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:28px;margin:5px 0}.premium{background:#f4c95d;color:#342800;font-size:11px;font-weight:800;border-radius:999px;padding:5px 9px}.timestamp{font-size:13px;color:var(--secondary);margin:0 0 18px}.notice{border:1px solid var(--border);background:var(--card);border-radius:10px;padding:12px 14px;color:var(--secondary);font-size:12px;line-height:1.5;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.label{font-size:11px;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em}.value{font-size:22px;font-weight:750;margin-top:5px}.subvalue{font-size:11px;color:var(--muted);margin-top:4px}.positive{color:var(--positive)}.negative{color:var(--negative)}h2{font-size:19px;margin:28px 0 10px}.section-note{font-size:12px;color:var(--secondary);margin:0 0 12px;line-height:1.5}.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.chart-wrap{height:390px}.range-buttons,.metric-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.range-buttons button,.metric-buttons button,.filter-row select,.filter-row input{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:7px;padding:7px 10px;font-size:12px}.range-buttons button,.metric-buttons button{cursor:pointer}.range-buttons button.active,.metric-buttons button.active{background:var(--accent);color:#fff;border-color:var(--accent)}.filter-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px}.filter-row input{min-width:230px}.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%;min-width:1040px}th{position:sticky;top:0;background:var(--header);color:var(--secondary);font-size:11px;text-align:left;padding:9px;white-space:nowrap;cursor:pointer}td{border-top:1px solid var(--border);padding:9px;font-size:12px;white-space:nowrap}tr.company-row{cursor:pointer}tr.company-row:hover{background:var(--header)}.score-pill{display:inline-block;min-width:48px;text-align:center;padding:4px 7px;border-radius:999px;background:var(--header);font-weight:750}.detail{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:14px}.detail-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;box-shadow:var(--shadow)}.detail h3{margin:0 0 5px}.summary-text{font-size:13px;line-height:1.6;color:var(--secondary)}.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px}.mini{border:1px solid var(--border);border-radius:9px;padding:10px}.mini .value{font-size:16px}.component-row{display:grid;grid-template-columns:135px 1fr 42px;align-items:center;gap:8px;margin:9px 0;font-size:12px}.bar{height:8px;border-radius:6px;background:var(--header);overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}.filings{padding-left:18px;margin:8px 0}.filings li{margin:7px 0;font-size:12px}.source-note{font-size:11px;color:var(--muted);line-height:1.5}.empty{padding:22px;text-align:center;color:var(--secondary)}.leaders-table{min-width:980px}.leaders-table td{white-space:normal;vertical-align:top}.leaders-table .company-link{cursor:pointer;color:var(--accent);font-weight:750}.tag{display:inline-block;border:1px solid var(--border);background:var(--header);border-radius:999px;padding:3px 7px;font-size:10px;font-weight:700}.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.analysis-box{border:1px solid var(--border);border-radius:10px;padding:12px}.analysis-box h4{margin:0 0 8px;font-size:13px}.analysis-box ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5}.warning-box{border:1px solid #d9a441;background:rgba(217,164,65,.08);border-radius:10px;padding:11px;margin-top:12px;font-size:12px;line-height:1.5}.peer-table{min-width:650px}.peer-table th{cursor:default}.peer-table td{white-space:nowrap}.selected-peer{font-weight:750;background:var(--header)}.quality-high{color:var(--positive)}.quality-limited{color:var(--negative)}@media(max-width:800px){body{padding:14px}.detail{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}.chart-wrap{height:320px}}
+*{box-sizing:border-box}body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}a{color:var(--accent)}.container{max-width:1250px;margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px;flex-wrap:wrap}.nav a{font-size:14px;font-weight:650;text-decoration:none;margin-right:16px}.theme-btn{border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--text);padding:8px 14px;cursor:pointer}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:800}.title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:28px;margin:5px 0}.premium{background:#f4c95d;color:#342800;font-size:11px;font-weight:800;border-radius:999px;padding:5px 9px}.timestamp{font-size:13px;color:var(--secondary);margin:0 0 18px}.notice{border:1px solid var(--border);background:var(--card);border-radius:10px;padding:12px 14px;color:var(--secondary);font-size:12px;line-height:1.5;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.label{font-size:11px;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em}.value{font-size:22px;font-weight:750;margin-top:5px}.subvalue{font-size:11px;color:var(--muted);margin-top:4px}.positive{color:var(--positive)}.negative{color:var(--negative)}h2{font-size:19px;margin:28px 0 10px}.section-note{font-size:12px;color:var(--secondary);margin:0 0 12px;line-height:1.5}.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.chart-wrap{height:390px}.range-buttons,.metric-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.range-buttons button,.metric-buttons button,.filter-row select,.filter-row input{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:7px;padding:7px 10px;font-size:12px}.range-buttons button,.metric-buttons button{cursor:pointer}.range-buttons button.active,.metric-buttons button.active{background:var(--accent);color:#fff;border-color:var(--accent)}.filter-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px}.filter-row input{min-width:230px}.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%;min-width:1040px}th{position:sticky;top:0;background:var(--header);color:var(--secondary);font-size:11px;text-align:left;padding:9px;white-space:nowrap;cursor:pointer}td{border-top:1px solid var(--border);padding:9px;font-size:12px;white-space:nowrap}tr.company-row{cursor:pointer}tr.company-row:hover{background:var(--header)}.score-pill{display:inline-block;min-width:48px;text-align:center;padding:4px 7px;border-radius:999px;background:var(--header);font-weight:750}.detail{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:14px}.detail-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;box-shadow:var(--shadow)}.detail h3{margin:0 0 5px}.summary-text{font-size:13px;line-height:1.6;color:var(--secondary)}.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px}.mini{border:1px solid var(--border);border-radius:9px;padding:10px}.mini .value{font-size:16px}.component-row{display:grid;grid-template-columns:135px 1fr 42px;align-items:center;gap:8px;margin:9px 0;font-size:12px}.bar{height:8px;border-radius:6px;background:var(--header);overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}.filings{padding-left:18px;margin:8px 0}.filings li{margin:7px 0;font-size:12px}.source-note{font-size:11px;color:var(--muted);line-height:1.5}.empty{padding:22px;text-align:center;color:var(--secondary)}.leaders-table{min-width:980px}.leaders-table td{white-space:normal;vertical-align:top}.leaders-table .company-link{cursor:pointer;color:var(--accent);font-weight:750}.tag{display:inline-block;border:1px solid var(--border);background:var(--header);border-radius:999px;padding:3px 7px;font-size:10px;font-weight:700}.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.analysis-box{border:1px solid var(--border);border-radius:10px;padding:12px}.analysis-box h4{margin:0 0 8px;font-size:13px}.analysis-box ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5}.warning-box{border:1px solid #d9a441;background:rgba(217,164,65,.08);border-radius:10px;padding:11px;margin-top:12px;font-size:12px;line-height:1.5}.peer-table{min-width:650px}.peer-table th{cursor:default}.peer-table td{white-space:nowrap}.selected-peer{font-weight:750;background:var(--header)}.quality-high{color:var(--positive)}.quality-limited{color:var(--negative)}.rank-up{color:var(--positive);font-weight:750}.rank-down{color:var(--negative);font-weight:750}.rank-flat{color:var(--secondary)}@media(max-width:800px){body{padding:14px}.detail{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}.chart-wrap{height:320px}}
 </style>
 </head>
 <body>
@@ -824,17 +1071,26 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   </div>
 
   <div class="eyebrow">Stock Digest Research</div>
-  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 2 PREMIUM PREVIEW</span></div>
+  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 3 PREMIUM PREVIEW</span></div>
   <p class="timestamp" id="updated-at">Loading the latest AI company dataset...</p>
-  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 2 adds peer comparisons, measured strengths and risks, and data-coverage warnings. It is not yet a probability forecast, price target, or buy/sell recommendation. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
+  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 3 permanently records one official ranking per week and measures subsequent performance against each company's prototype subsector peers. It is still not a probability forecast, price target, or buy/sell recommendation. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
 
   <div class="grid" id="summary-cards"></div>
 
-  <h2>Preliminary AI Weekly Leaders</h2>
-  <p class="section-note" id="leaders-note">A transparent research ranking based on the current company score. It is not a buy list, probability forecast, or recommendation.</p>
+  <h2>Official AI Weekly Leaders</h2>
+  <p class="section-note" id="leaders-note">The official list is frozen once each week; prices, live rank, and performance update daily.</p>
   <div class="table-wrap"><table class="leaders-table"><thead><tr>
-    <th>Rank</th><th>Company</th><th>Score</th><th>Subsector rank</th><th>Data coverage</th><th>Leading strength</th><th>Principal quantitative risk</th>
+    <th>Official</th><th>Live</th><th>Change</th><th>Company</th><th>Official score</th><th>Entry price</th><th>Return</th><th>Peer return</th><th>Relative</th>
   </tr></thead><tbody id="leaders-body"></tbody></table></div>
+
+  <h2>Weekly Ranking Track Record</h2>
+  <p class="section-note">Tracking begins with the first Phase 3 refresh. The system keeps every weekly snapshot, including weeks that underperform. Fixed-horizon results appear only after enough time has passed.</p>
+  <div class="grid" id="track-record-cards"></div>
+  <div class="table-wrap" style="margin-top:12px"><table class="leaders-table"><thead><tr>
+    <th>Evaluation horizon</th><th>Selections evaluated</th><th>Outperformed peers</th><th>Hit rate</th><th>Average selection return</th><th>Average peer return</th><th>Average relative return</th>
+  </tr></thead><tbody id="track-record-body"></tbody></table></div>
+  <h3 style="font-size:15px;margin:18px 0 8px">Recent official weekly snapshots</h3>
+  <div class="table-wrap"><table class="peer-table"><thead><tr><th>Week</th><th>Top-ranked company</th><th>Selections</th><th>Average return to date</th><th>Average relative return to date</th></tr></thead><tbody id="snapshot-history-body"></tbody></table></div>
 
   <h2>Past to Present: AI Market Direction</h2>
   <p class="section-note">Equal-weighted Stock Digest AI Index compared with the Nasdaq-100 and S&amp;P 500. Constituents enter when their public trading history begins, so earlier periods contain fewer companies.</p>
@@ -885,23 +1141,22 @@ function renderSummary(){const m=DATA.market_summary||{};const cards=[
 ['Positive Free Cash Flow',(m.positive_fcf_count||0)+' of '+(m.fcf_company_count||0),'Latest reported fiscal year'],
 ['Aggregate Reported CapEx',money(m.aggregate_latest_capex),'Total company CapEx; not AI-only']];
  document.getElementById('summary-cards').innerHTML=cards.map(c=>'<div class="card"><div class="label">'+esc(c[0])+'</div><div class="value '+(c[3]||'')+'">'+esc(c[1])+'</div><div class="subvalue">'+esc(c[2])+'</div></div>').join('');}
-function renderWeeklyLeaders(){const weekly=DATA.weekly_leaders||{},leaders=weekly.leaders||[];document.getElementById('leaders-note').textContent=(weekly.status||'Preliminary research ranking')+(weekly.week_start?' · Week beginning '+weekly.week_start:'')+'. It is not a buy list, probability forecast, or recommendation.';const body=document.getElementById('leaders-body');if(!leaders.length){body.innerHTML='<tr><td colspan="7" class="empty">Weekly leaders will appear after the next data refresh.</td></tr>';return;}body.innerHTML=leaders.map(item=>'<tr data-leader-ticker="'+esc(item.ticker)+'"><td><strong>'+esc(item.rank||'—')+'</strong></td><td><span class="company-link">'+esc(item.name)+' ('+esc(item.ticker)+')</span><br><span class="source-note">'+esc(item.subsector||'')+'</span></td><td><span class="score-pill">'+esc(item.score==null?'N/A':Number(item.score).toFixed(1))+'</span></td><td>'+esc(item.subsector_rank||'—')+'</td><td>'+esc(item.data_coverage_pct==null?'N/A':Number(item.data_coverage_pct).toFixed(0)+'%')+'</td><td>'+esc(item.key_strength||'Not available')+'</td><td>'+esc(item.key_risk||'Not available')+'</td></tr>').join('');body.querySelectorAll('tr[data-leader-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.leaderTicker,true)));}
+function rankChange(value){if(value==null||value===0)return '<span class="rank-flat">—</span>';return value>0?'<span class="rank-up">▲ '+value+'</span>':'<span class="rank-down">▼ '+Math.abs(value)+'</span>';}
+function renderWeeklyLeaders(){const weekly=DATA.weekly_leaders||{},leaders=weekly.leaders||[];document.getElementById('leaders-note').textContent=(weekly.status||'Official weekly research ranking')+(weekly.week_start?' · Week beginning '+weekly.week_start:'')+(weekly.captured_at?' · Captured '+weekly.captured_at:'')+'. It is not a buy list or recommendation.';const body=document.getElementById('leaders-body');if(!leaders.length){body.innerHTML='<tr><td colspan="9" class="empty">The first official weekly snapshot will be recorded during the next successful refresh.</td></tr>';return;}body.innerHTML=leaders.map(item=>'<tr data-leader-ticker="'+esc(item.ticker)+'"><td><strong>'+esc(item.official_rank||'—')+'</strong></td><td>'+esc(item.live_rank||'—')+'</td><td>'+rankChange(item.rank_change)+'</td><td><span class="company-link">'+esc(item.name)+' ('+esc(item.ticker)+')</span><br><span class="source-note">'+esc(item.subsector||'')+'</span></td><td><span class="score-pill">'+esc(item.official_score==null?'N/A':Number(item.official_score).toFixed(1))+'</span></td><td>'+money(item.entry_price)+'</td><td class="'+signedClass(item.return_since_selection_pct)+'">'+pct(item.return_since_selection_pct)+'</td><td class="'+signedClass(item.peer_return_since_selection_pct)+'">'+pct(item.peer_return_since_selection_pct)+'</td><td class="'+signedClass(item.relative_return_pct)+'"><strong>'+pct(item.relative_return_pct)+'</strong></td></tr>').join('');body.querySelectorAll('tr[data-leader-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.leaderTicker,true)));}
+function renderTrackRecord(){const track=DATA.performance_scorecard||{},horizons=track.horizons||[],weeks=track.recent_weeks||[];const h30=horizons.find(x=>x.days===30)||{},h90=horizons.find(x=>x.days===90)||{},h365=horizons.find(x=>x.days===365)||{};const cards=[['Tracking started',track.tracking_started?String(track.tracking_started).slice(0,10):'Awaiting first snapshot','Permanent history begins in Phase 3'],['Weeks recorded',track.weeks_recorded||0,'Official snapshots retained'],['30-day hit rate',h30.hit_rate_pct==null?'Awaiting history':pct(h30.hit_rate_pct),(h30.evaluated_selections||0)+' selections evaluated'],['3-month hit rate',h90.hit_rate_pct==null?'Awaiting history':pct(h90.hit_rate_pct),(h90.evaluated_selections||0)+' selections evaluated'],['12-month hit rate',h365.hit_rate_pct==null?'Awaiting history':pct(h365.hit_rate_pct),(h365.evaluated_selections||0)+' selections evaluated']];document.getElementById('track-record-cards').innerHTML=cards.map(c=>'<div class="card"><div class="label">'+esc(c[0])+'</div><div class="value">'+esc(c[1])+'</div><div class="subvalue">'+esc(c[2])+'</div></div>').join('');document.getElementById('track-record-body').innerHTML=horizons.map(h=>'<tr><td><strong>'+esc(h.label)+'</strong></td><td>'+esc(h.evaluated_selections||0)+'</td><td>'+esc(h.outperformed_count||0)+'</td><td>'+pct(h.hit_rate_pct)+'</td><td class="'+signedClass(h.average_selection_return_pct)+'">'+pct(h.average_selection_return_pct)+'</td><td class="'+signedClass(h.average_peer_return_pct)+'">'+pct(h.average_peer_return_pct)+'</td><td class="'+signedClass(h.average_excess_return_pct)+'"><strong>'+pct(h.average_excess_return_pct)+'</strong></td></tr>').join('')||'<tr><td colspan="7" class="empty">No fixed-horizon results are available yet.</td></tr>';document.getElementById('snapshot-history-body').innerHTML=[...weeks].reverse().map(w=>'<tr><td>'+esc(w.week_start||'N/A')+'</td><td>'+esc(w.top_company||'N/A')+'</td><td>'+esc(w.selection_count||0)+'</td><td class="'+signedClass(w.average_return_to_date_pct)+'">'+pct(w.average_return_to_date_pct)+'</td><td class="'+signedClass(w.average_excess_to_date_pct)+'">'+pct(w.average_excess_to_date_pct)+'</td></tr>').join('')||'<tr><td colspan="5" class="empty">The first official weekly snapshot will appear after the next refresh.</td></tr>';}
 
-function rangeRows(){const rows=DATA.market_index||[];if(!rows.length)return [];const cutoff=new Date(rows[rows.length-1].date);cutoff.setFullYear(cutoff.getFullYear()-rangeYears);const subset=rows.filter(r=>new Date(r.date)>=cutoff);if(!subset.length)return [];const base={ai_index:subset.find(r=>r.ai_index!=null)?.ai_index,nasdaq100:subset.find(r=>r.nasdaq100!=null)?.nasdaq100,sp500:subset.find(r=>r.sp500!=null)?.sp500};return subset.map(r=>({date:r.date,ai_index:r.ai_index!=null&&base.ai_index?r.ai_index/base.ai_index*100:null,nasdaq100:r.nasdaq100!=null&&base.nasdaq100?r.nasdaq100/base.nasdaq100*100:null,sp500:r.sp500!=null&&base.sp500?r.sp500/base.sp500*100:null}));}
-function chartColors(){const dark=document.body.classList.contains('dark-mode');return {text:dark?'#d8d8d8':'#333',grid:dark?'#333':'#e7e5df',ai:'#1f77b4',ndx:'#9467bd',sp:'#777'};}
-function renderMarketChart(){const rows=rangeRows(),c=chartColors();if(marketChart)marketChart.destroy();marketChart=new Chart(document.getElementById('market-chart'),{type:'line',data:{labels:rows.map(r=>r.date),datasets:[{label:'Stock Digest AI Index',data:rows.map(r=>r.ai_index),borderColor:c.ai,pointRadius:0,borderWidth:2.5},{label:'Nasdaq-100',data:rows.map(r=>r.nasdaq100),borderColor:c.ndx,pointRadius:0,borderWidth:1.8},{label:'S&P 500',data:rows.map(r=>r.sp500),borderColor:c.sp,pointRadius:0,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:c.text}}},scales:{x:{ticks:{color:c.text,maxTicksLimit:9},grid:{color:c.grid}},y:{ticks:{color:c.text},grid:{color:c.grid},title:{display:true,text:'Normalized value (start = 100)',color:c.text}}}}});}
 function populateFilters(){const subs=[...new Set(DATA.companies.map(c=>c.subsector))].sort();const caps=[...new Set(DATA.companies.map(c=>c.market_cap_tier))].sort();document.getElementById('subsector-filter').innerHTML='<option value="">All subsectors</option>'+subs.map(v=>'<option>'+esc(v)+'</option>').join('');document.getElementById('cap-filter').innerHTML='<option value="">All market-cap groups</option>'+caps.map(v=>'<option>'+esc(v)+'</option>').join('');}
 function compare(a,b){let av=a[sortKey],bv=b[sortKey];if(av==null)av=sortDirection==='asc'?Infinity:-Infinity;if(bv==null)bv=sortDirection==='asc'?Infinity:-Infinity;if(typeof av==='string')return sortDirection==='asc'?av.localeCompare(bv):bv.localeCompare(av);return sortDirection==='asc'?av-bv:bv-av;}
 function filteredCompanies(){const q=document.getElementById('company-search').value.trim().toLowerCase();const sub=document.getElementById('subsector-filter').value;const cap=document.getElementById('cap-filter').value;return DATA.companies.filter(c=>(!q||(c.name+' '+c.ticker).toLowerCase().includes(q))&&(!sub||c.subsector===sub)&&(!cap||c.market_cap_tier===cap)).sort(compare);}
 function renderTable(){const rows=filteredCompanies();const body=document.getElementById('ranking-body');if(!rows.length){body.innerHTML='<tr><td colspan="10" class="empty">No companies match the selected filters.</td></tr>';return;}body.innerHTML=rows.map(c=>'<tr class="company-row" data-ticker="'+esc(c.ticker)+'"><td>'+esc(c.overall_rank||'—')+'</td><td><strong>'+esc(c.ticker)+'</strong></td><td>'+esc(c.name)+'</td><td>'+esc(c.subsector)+'</td><td>'+esc(c.market_cap_tier)+'</td><td><span class="score-pill">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</span></td><td class="'+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</td><td class="'+signedClass(c.latest_free_cash_flow)+'">'+money(c.latest_free_cash_flow)+'</td><td>'+money(c.latest_capex)+'</td><td class="'+signedClass(c.return_1y_pct)+'">'+pct(c.return_1y_pct)+'</td></tr>').join('');body.querySelectorAll('tr[data-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.ticker,true)));}
 function metricTitle(metric){return {revenue:'Revenue',net_income:'Net income',free_cash_flow:'Free cash flow',capex:'Capital expenditures',rnd:'Research & development'}[metric]||metric;}
 function renderCompanyChart(company){const history=(company.history||[]).filter(r=>r[companyMetric]!=null);const c=chartColors();if(companyChart)companyChart.destroy();companyChart=new Chart(document.getElementById('company-history-chart'),{type:'line',data:{labels:history.map(r=>r.year),datasets:[{label:metricTitle(companyMetric),data:history.map(r=>r[companyMetric]),borderColor:c.ai,backgroundColor:'rgba(31,119,180,.12)',fill:true,tension:.18,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:c.text}},tooltip:{callbacks:{label:ctx=>metricTitle(companyMetric)+': '+money(ctx.raw)}}},scales:{x:{ticks:{color:c.text},grid:{color:c.grid}},y:{ticks:{color:c.text,callback:v=>numFmt.format(v)},grid:{color:c.grid}}}}});}
-function renderCompanyDetail(ticker,shouldScroll=true){const c=DATA.companies.find(x=>x.ticker===ticker);if(!c)return;selectedTicker=ticker;const components=c.score_components||{};const componentHtml=Object.entries(components).map(([k,v])=>'<div class="component-row"><span>'+esc(componentLabel(k))+'</span><div class="bar"><span style="width:'+(v==null?0:v)+'%"></span></div><strong>'+(v==null?'—':Number(v).toFixed(0))+'</strong></div>').join('');const filings=(c.latest_filings||[]).map(f=>'<li><a target="_blank" rel="noopener" href="'+esc(f.url)+'">'+esc(f.form)+' — '+esc(f.date)+'</a> '+esc(f.description||'')+'</li>').join('')||'<li>No recent filings were retrieved.</li>';const strengths=(c.strengths||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const risks=(c.risks||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const warnings=(c.data_warnings||[]);const warningHtml=warnings.length?'<div class="warning-box"><strong>Missing-data warnings</strong><ul>'+warnings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'<div class="notice" style="margin-top:12px"><strong>Data coverage:</strong> No major standardized field is currently missing from the Phase 2 coverage check.</div>';const peerRows=(c.peer_snapshot||[]).map(p=>'<tr class="'+(p.ticker===c.ticker?'selected-peer':'')+'"><td>'+esc(p.name)+' ('+esc(p.ticker)+')</td><td>'+esc(p.score==null?'N/A':Number(p.score).toFixed(1))+'</td><td>'+pct(p.revenue_growth_pct)+'</td><td>'+pct(p.fcf_margin_pct)+'</td><td>'+pct(p.return_1y_pct)+'</td></tr>').join('');const peerMetrics=(c.peer_metrics||[]).map(m=>'<tr><td>'+esc(m.label)+'</td><td>'+formatPeerValue(m.key,m.company_value)+'</td><td>'+formatPeerValue(m.key,m.peer_median)+'</td><td>'+esc(m.peer_percentile==null?'N/A':Number(m.peer_percentile).toFixed(0)+'th')+'</td></tr>').join('');const qualityClass=c.data_quality==='High'?'quality-high':c.data_quality==='Limited'?'quality-limited':'';document.getElementById('company-detail').innerHTML='<div class="detail-panel"><div class="eyebrow">'+esc(c.subsector)+' · '+esc(c.market_cap_tier)+'</div><h3>'+esc(c.name)+' ('+esc(c.ticker)+')</h3><p class="summary-text">'+esc(c.automated_summary||'No summary available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Company score</div><div class="value">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</div></div><div class="mini"><div class="label">Overall rank</div><div class="value">'+esc(c.overall_rank||'N/A')+'</div></div><div class="mini"><div class="label">Subsector rank</div><div class="value">'+esc(c.subsector_rank||'N/A')+' of '+esc(c.peer_count||'N/A')+'</div></div><div class="mini"><div class="label">Cap-group rank</div><div class="value">'+esc(c.cap_group_rank||'N/A')+' of '+esc(c.cap_group_count||'N/A')+'</div></div><div class="mini"><div class="label">Data coverage</div><div class="value '+qualityClass+'">'+esc(c.data_coverage_pct==null?'N/A':Number(c.data_coverage_pct).toFixed(0)+'%')+'</div><div class="subvalue">'+esc(c.data_quality||'Unknown')+'</div></div><div class="mini"><div class="label">Market cap</div><div class="value">'+money(c.market_cap)+'</div></div><div class="mini"><div class="label">Revenue growth</div><div class="value '+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</div></div><div class="mini"><div class="label">FCF margin</div><div class="value '+signedClass(c.fcf_margin_pct)+'">'+pct(c.fcf_margin_pct)+'</div></div><div class="mini"><div class="label">Reported CapEx</div><div class="value">'+money(c.latest_capex)+'</div></div><div class="mini"><div class="label">R&amp;D</div><div class="value">'+money(c.latest_rnd)+'</div></div></div><div class="analysis-grid"><div class="analysis-box"><h4>Measured strengths</h4><ul>'+strengths+'</ul></div><div class="analysis-box"><h4>Measured risks</h4><ul>'+risks+'</ul></div></div>'+warningHtml+'<h3 style="margin-top:18px">10-Year Reported History</h3><div class="metric-buttons" id="metric-buttons">'+['revenue','net_income','free_cash_flow','capex','rnd'].map(m=>'<button data-metric="'+m+'" class="'+(m===companyMetric?'active':'')+'">'+metricTitle(m)+'</button>').join('')+'</div><div class="chart-wrap" style="height:330px"><canvas id="company-history-chart"></canvas></div><h3 style="margin-top:20px">Peer comparison</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Metric</th><th>Company</th><th>Peer median</th><th>Peer percentile</th></tr></thead><tbody>'+peerMetrics+'</tbody></table></div><h3 style="margin-top:20px">Companies in this subsector</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Company</th><th>Score</th><th>Revenue growth</th><th>FCF margin</th><th>1-year return</th></tr></thead><tbody>'+peerRows+'</tbody></table></div></div><div class="detail-panel"><h3>Score components</h3>'+componentHtml+'<h3 style="margin-top:20px">Recent SEC filings</h3><ul class="filings">'+filings+'</ul><p class="source-note">Latest fiscal year: '+esc(c.latest_fiscal_year||'N/A')+' · Market price date: '+esc(c.price_date||'N/A')+' · SEC CIK: '+esc(c.cik||'N/A')+'</p><p class="source-note">Peer percentiles use only the companies currently included in the same prototype subsector. They will become more meaningful as the company universe expands.</p></div>';document.querySelectorAll('#metric-buttons button').forEach(btn=>btn.addEventListener('click',function(){companyMetric=this.dataset.metric;renderCompanyDetail(ticker,false);}));renderCompanyChart(c);if(shouldScroll)document.getElementById('company-detail').scrollIntoView({behavior:'smooth',block:'start'});}
+function renderCompanyDetail(ticker,shouldScroll=true){const c=DATA.companies.find(x=>x.ticker===ticker);if(!c)return;selectedTicker=ticker;const components=c.score_components||{};const componentHtml=Object.entries(components).map(([k,v])=>'<div class="component-row"><span>'+esc(componentLabel(k))+'</span><div class="bar"><span style="width:'+(v==null?0:v)+'%"></span></div><strong>'+(v==null?'—':Number(v).toFixed(0))+'</strong></div>').join('');const filings=(c.latest_filings||[]).map(f=>'<li><a target="_blank" rel="noopener" href="'+esc(f.url)+'">'+esc(f.form)+' — '+esc(f.date)+'</a> '+esc(f.description||'')+'</li>').join('')||'<li>No recent filings were retrieved.</li>';const strengths=(c.strengths||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const risks=(c.risks||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const warnings=(c.data_warnings||[]);const warningHtml=warnings.length?'<div class="warning-box"><strong>Missing-data warnings</strong><ul>'+warnings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'<div class="notice" style="margin-top:12px"><strong>Data coverage:</strong> No major standardized field is currently missing from the Phase 3 coverage check.</div>';const peerRows=(c.peer_snapshot||[]).map(p=>'<tr class="'+(p.ticker===c.ticker?'selected-peer':'')+'"><td>'+esc(p.name)+' ('+esc(p.ticker)+')</td><td>'+esc(p.score==null?'N/A':Number(p.score).toFixed(1))+'</td><td>'+pct(p.revenue_growth_pct)+'</td><td>'+pct(p.fcf_margin_pct)+'</td><td>'+pct(p.return_1y_pct)+'</td></tr>').join('');const peerMetrics=(c.peer_metrics||[]).map(m=>'<tr><td>'+esc(m.label)+'</td><td>'+formatPeerValue(m.key,m.company_value)+'</td><td>'+formatPeerValue(m.key,m.peer_median)+'</td><td>'+esc(m.peer_percentile==null?'N/A':Number(m.peer_percentile).toFixed(0)+'th')+'</td></tr>').join('');const qualityClass=c.data_quality==='High'?'quality-high':c.data_quality==='Limited'?'quality-limited':'';document.getElementById('company-detail').innerHTML='<div class="detail-panel"><div class="eyebrow">'+esc(c.subsector)+' · '+esc(c.market_cap_tier)+'</div><h3>'+esc(c.name)+' ('+esc(c.ticker)+')</h3><p class="summary-text">'+esc(c.automated_summary||'No summary available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Company score</div><div class="value">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</div></div><div class="mini"><div class="label">Overall rank</div><div class="value">'+esc(c.overall_rank||'N/A')+'</div></div><div class="mini"><div class="label">Subsector rank</div><div class="value">'+esc(c.subsector_rank||'N/A')+' of '+esc(c.peer_count||'N/A')+'</div></div><div class="mini"><div class="label">Cap-group rank</div><div class="value">'+esc(c.cap_group_rank||'N/A')+' of '+esc(c.cap_group_count||'N/A')+'</div></div><div class="mini"><div class="label">Data coverage</div><div class="value '+qualityClass+'">'+esc(c.data_coverage_pct==null?'N/A':Number(c.data_coverage_pct).toFixed(0)+'%')+'</div><div class="subvalue">'+esc(c.data_quality||'Unknown')+'</div></div><div class="mini"><div class="label">Market cap</div><div class="value">'+money(c.market_cap)+'</div></div><div class="mini"><div class="label">Revenue growth</div><div class="value '+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</div></div><div class="mini"><div class="label">FCF margin</div><div class="value '+signedClass(c.fcf_margin_pct)+'">'+pct(c.fcf_margin_pct)+'</div></div><div class="mini"><div class="label">Reported CapEx</div><div class="value">'+money(c.latest_capex)+'</div></div><div class="mini"><div class="label">R&amp;D</div><div class="value">'+money(c.latest_rnd)+'</div></div></div><div class="analysis-grid"><div class="analysis-box"><h4>Measured strengths</h4><ul>'+strengths+'</ul></div><div class="analysis-box"><h4>Measured risks</h4><ul>'+risks+'</ul></div></div>'+warningHtml+'<h3 style="margin-top:18px">10-Year Reported History</h3><div class="metric-buttons" id="metric-buttons">'+['revenue','net_income','free_cash_flow','capex','rnd'].map(m=>'<button data-metric="'+m+'" class="'+(m===companyMetric?'active':'')+'">'+metricTitle(m)+'</button>').join('')+'</div><div class="chart-wrap" style="height:330px"><canvas id="company-history-chart"></canvas></div><h3 style="margin-top:20px">Peer comparison</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Metric</th><th>Company</th><th>Peer median</th><th>Peer percentile</th></tr></thead><tbody>'+peerMetrics+'</tbody></table></div><h3 style="margin-top:20px">Companies in this subsector</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Company</th><th>Score</th><th>Revenue growth</th><th>FCF margin</th><th>1-year return</th></tr></thead><tbody>'+peerRows+'</tbody></table></div></div><div class="detail-panel"><h3>Score components</h3>'+componentHtml+'<h3 style="margin-top:20px">Recent SEC filings</h3><ul class="filings">'+filings+'</ul><p class="source-note">Latest fiscal year: '+esc(c.latest_fiscal_year||'N/A')+' · Market price date: '+esc(c.price_date||'N/A')+' · SEC CIK: '+esc(c.cik||'N/A')+'</p><p class="source-note">Peer percentiles use only the companies currently included in the same prototype subsector. They will become more meaningful as the company universe expands.</p></div>';document.querySelectorAll('#metric-buttons button').forEach(btn=>btn.addEventListener('click',function(){companyMetric=this.dataset.metric;renderCompanyDetail(ticker,false);}));renderCompanyChart(c);if(shouldScroll)document.getElementById('company-detail').scrollIntoView({behavior:'smooth',block:'start'});}
 
 document.querySelectorAll('#range-buttons button').forEach(btn=>btn.addEventListener('click',function(){rangeYears=Number(this.dataset.years);document.querySelectorAll('#range-buttons button').forEach(x=>x.classList.toggle('active',x===this));renderMarketChart();}));
 ['company-search','subsector-filter','cap-filter'].forEach(id=>document.getElementById(id).addEventListener(id==='company-search'?'input':'change',renderTable));
 document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',function(){const key=this.dataset.sort;if(sortKey===key)sortDirection=sortDirection==='asc'?'desc':'asc';else{sortKey=key;sortDirection=['name','ticker','subsector','market_cap_tier'].includes(key)?'asc':'desc';}renderTable();}));
-fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
+fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();renderTrackRecord();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
 })();
 </script>
 </body>
@@ -912,12 +1167,14 @@ fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('
 
 def seed_data() -> dict[str, Any]:
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "status": "awaiting first live refresh",
         "market_summary": {},
         "market_index": [],
         "weekly_leaders": {"week_start": None, "as_of": None, "status": "Awaiting first refresh", "leaders": []},
+        "weekly_snapshots": [],
+        "performance_scorecard": {"tracking_started": None, "weeks_recorded": 0, "horizons": [], "recent_weeks": []},
         "companies": [
             {
                 **company,
@@ -962,7 +1219,7 @@ def main() -> None:
         cik_map = {}
         errors.append(f"SEC ticker-to-CIK lookup failed: {exc}")
 
-    market_data, market_index, price_errors = build_price_data([c["ticker"] for c in COMPANIES])
+    market_data, market_index, price_errors, price_history = build_price_data([c["ticker"] for c in COMPANIES])
     errors.extend(price_errors)
 
     companies: list[dict[str, Any]] = []
@@ -1013,13 +1270,19 @@ def main() -> None:
 
     add_peer_intelligence(companies)
 
+    weekly_snapshots = create_or_preserve_weekly_snapshots(old_data, ranked)
+    weekly_leaders = build_live_weekly_leaders(weekly_snapshots, ranked)
+    performance_scorecard = build_performance_scorecard(weekly_snapshots, ranked, price_history)
+
     output = {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "status": "live Phase 2 prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
+        "status": "live Phase 3 track-record prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
         "market_summary": build_market_summary(companies, market_index),
         "market_index": market_index or old_data.get("market_index", []),
-        "weekly_leaders": build_weekly_leaders(ranked),
+        "weekly_leaders": weekly_leaders,
+        "weekly_snapshots": weekly_snapshots,
+        "performance_scorecard": performance_scorecard,
         "companies": ranked,
         "errors": errors,
         "methodology": {
@@ -1039,13 +1302,21 @@ def main() -> None:
                 "Historical-price licensing must be reviewed before commercial redistribution.",
                 "Peer percentiles are based only on the companies currently included in each prototype subsector.",
                 "Strengths and risks are deterministic summaries of available metrics, not qualitative due diligence.",
+                "The Phase 3 performance record starts only when the first Phase 3 snapshot is created; it does not backfill hypothetical prior rankings.",
+                "The peer benchmark is equal-weighted within the small prototype subsector universe and is not an investable published sector index.",
             ],
             "phase_2_features": [
                 "Peer medians and percentiles",
                 "Market-cap group rank",
                 "Data coverage and missing-data warnings",
                 "Deterministic strengths and risks",
-                "Preliminary weekly leaders",
+            ],
+            "phase_3_features": [
+                "Permanent immutable weekly ranking snapshots",
+                "Official rank versus daily live rank",
+                "Return since selection versus equal-weighted prototype subsector peers",
+                "Fixed 30-day, 3-month, 6-month, and 12-month scorecard",
+                "Complete retention of underperforming as well as outperforming weeks",
             ],
         },
     }
