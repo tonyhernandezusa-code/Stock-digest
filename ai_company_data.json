@@ -1,13 +1,13 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-08-04T02:58:12.434344+00:00",
+  "generated_at": "2026-08-04T19:11:50.880574+00:00",
   "status": "live Phase 2 prototype",
   "market_summary": {
-    "direction": "Moderate Uptrend",
-    "return_30d_pct": 1.33,
-    "return_1y_pct": 41.74,
-    "above_50_day": 7,
-    "above_200_day": 9,
+    "direction": "Strong Uptrend",
+    "return_30d_pct": 7.84,
+    "return_1y_pct": 50.84,
+    "above_50_day": 10,
+    "above_200_day": 10,
     "priced_company_count": 12,
     "positive_fcf_count": 9,
     "fcf_company_count": 10,
@@ -1102,7 +1102,7 @@
     },
     {
       "date": "2020-01-24",
-      "ai_index": 325.093,
+      "ai_index": 325.092,
       "nasdaq100": 192.703,
       "sp500": 152.268
     },
@@ -1468,7 +1468,7 @@
     },
     {
       "date": "2021-03-26",
-      "ai_index": 419.21,
+      "ai_index": 419.211,
       "nasdaq100": 273.601,
       "sp500": 183.645
     },
@@ -1480,7 +1480,7 @@
     },
     {
       "date": "2021-04-09",
-      "ai_index": 452.109,
+      "ai_index": 452.108,
       "nasdaq100": 291.855,
       "sp500": 190.773
     },
@@ -2056,7 +2056,7 @@
     },
     {
       "date": "2023-02-10",
-      "ai_index": 412.833,
+      "ai_index": 412.834,
       "nasdaq100": 259.389,
       "sp500": 189.001
     },
@@ -2200,7 +2200,7 @@
     },
     {
       "date": "2023-07-28",
-      "ai_index": 689.494,
+      "ai_index": 689.495,
       "nasdaq100": 332.031,
       "sp500": 211.724
     },
@@ -2374,7 +2374,7 @@
     },
     {
       "date": "2024-02-16",
-      "ai_index": 983.238,
+      "ai_index": 983.239,
       "nasdaq100": 372.822,
       "sp500": 231.284
     },
@@ -2398,7 +2398,7 @@
     },
     {
       "date": "2024-03-15",
-      "ai_index": 1095.963,
+      "ai_index": 1095.964,
       "nasdaq100": 375.4,
       "sp500": 236.437
     },
@@ -2452,7 +2452,7 @@
     },
     {
       "date": "2024-05-17",
-      "ai_index": 1111.331,
+      "ai_index": 1111.332,
       "nasdaq100": 390.956,
       "sp500": 245.04
     },
@@ -2530,7 +2530,7 @@
     },
     {
       "date": "2024-08-16",
-      "ai_index": 1302.325,
+      "ai_index": 1302.326,
       "nasdaq100": 411.242,
       "sp500": 256.636
     },
@@ -2554,7 +2554,7 @@
     },
     {
       "date": "2024-09-13",
-      "ai_index": 1285.208,
+      "ai_index": 1285.209,
       "nasdaq100": 411.37,
       "sp500": 259.952
     },
@@ -2740,7 +2740,7 @@
     },
     {
       "date": "2025-04-18",
-      "ai_index": 1118.54,
+      "ai_index": 1118.541,
       "nasdaq100": 384.882,
       "sp500": 244.089
     },
@@ -2782,7 +2782,7 @@
     },
     {
       "date": "2025-06-06",
-      "ai_index": 1532.771,
+      "ai_index": 1532.772,
       "nasdaq100": 458.741,
       "sp500": 277.249
     },
@@ -2806,7 +2806,7 @@
     },
     {
       "date": "2025-07-04",
-      "ai_index": 1705.009,
+      "ai_index": 1705.01,
       "nasdaq100": 482.038,
       "sp500": 290.14
     },
@@ -2842,7 +2842,7 @@
     },
     {
       "date": "2025-08-15",
-      "ai_index": 1952.766,
+      "ai_index": 1952.767,
       "nasdaq100": 499.853,
       "sp500": 298.015
     },
@@ -2854,7 +2854,7 @@
     },
     {
       "date": "2025-08-29",
-      "ai_index": 1859.72,
+      "ai_index": 1859.721,
       "nasdaq100": 493.599,
       "sp500": 298.499
     },
@@ -2890,7 +2890,7 @@
     },
     {
       "date": "2025-10-10",
-      "ai_index": 2034.295,
+      "ai_index": 2034.296,
       "nasdaq100": 510.597,
       "sp500": 302.761
     },
@@ -2926,7 +2926,7 @@
     },
     {
       "date": "2025-11-21",
-      "ai_index": 1979.602,
+      "ai_index": 1979.603,
       "nasdaq100": 510.973,
       "sp500": 305.094
     },
@@ -2938,7 +2938,7 @@
     },
     {
       "date": "2025-12-05",
-      "ai_index": 2105.988,
+      "ai_index": 2105.989,
       "nasdaq100": 541.591,
       "sp500": 317.449
     },
@@ -2986,13 +2986,13 @@
     },
     {
       "date": "2026-01-30",
-      "ai_index": 2095.367,
+      "ai_index": 2095.368,
       "nasdaq100": 538.647,
       "sp500": 320.621
     },
     {
       "date": "2026-02-06",
-      "ai_index": 1999.017,
+      "ai_index": 1999.018,
       "nasdaq100": 528.6,
       "sp500": 320.31
     },
@@ -3022,7 +3022,7 @@
     },
     {
       "date": "2026-03-13",
-      "ai_index": 1952.326,
+      "ai_index": 1952.327,
       "nasdaq100": 513.948,
       "sp500": 306.443
     },
@@ -3088,7 +3088,7 @@
     },
     {
       "date": "2026-05-29",
-      "ai_index": 2773.019,
+      "ai_index": 2773.02,
       "nasdaq100": 639.427,
       "sp500": 350.24
     },
@@ -3148,29 +3148,51 @@
     },
     {
       "date": "2026-08-07",
-      "ai_index": 2642.945,
-      "nasdaq100": 606.618,
-      "sp500": 351.184
+      "ai_index": 2812.743,
+      "nasdaq100": 628.357,
+      "sp500": 358.297
     }
   ],
   "weekly_leaders": {
     "week_start": "2026-08-03",
-    "as_of": "2026-08-04T02:58:12.434834+00:00",
+    "as_of": "2026-08-04T19:11:50.880921+00:00",
     "status": "Preliminary research ranking; refreshes with the daily dataset",
     "leaders": [
       {
         "rank": 1,
+        "ticker": "PLTR",
+        "name": "Palantir Technologies",
+        "subsector": "AI Software & Growth",
+        "score": 88.6,
+        "subsector_rank": 1,
+        "data_coverage_pct": 100.0,
+        "key_strength": "Revenue growth is among the stronger results in its peer group.",
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      },
+      {
+        "rank": 2,
+        "ticker": "AMD",
+        "name": "Advanced Micro Devices",
+        "subsector": "Semiconductors & Infrastructure",
+        "score": 86.6,
+        "subsector_rank": 1,
+        "data_coverage_pct": 100.0,
+        "key_strength": "One-year price momentum ranks favorably within the peer group.",
+        "key_risk": "Net profitability is weak relative to peers."
+      },
+      {
+        "rank": 3,
         "ticker": "SNOW",
         "name": "Snowflake",
         "subsector": "AI Software & Growth",
-        "score": 85.2,
-        "subsector_rank": 1,
+        "score": 85.3,
+        "subsector_rank": 2,
         "data_coverage_pct": 90.0,
         "key_strength": "One-year price momentum ranks favorably within the peer group.",
         "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       },
       {
-        "rank": 2,
+        "rank": 4,
         "ticker": "GOOGL",
         "name": "Alphabet",
         "subsector": "Cloud & AI Platforms",
@@ -3181,29 +3203,29 @@
         "key_risk": "Free-cash-flow margin is weak relative to peers."
       },
       {
-        "rank": 3,
+        "rank": 5,
         "ticker": "NVDA",
         "name": "NVIDIA",
         "subsector": "Semiconductors & Infrastructure",
         "score": 83.7,
-        "subsector_rank": 1,
+        "subsector_rank": 2,
         "data_coverage_pct": 90.0,
         "key_strength": "Revenue growth is among the stronger results in its peer group.",
         "key_risk": "One-year price momentum trails the peer group."
       },
       {
-        "rank": 4,
-        "ticker": "AMD",
-        "name": "Advanced Micro Devices",
-        "subsector": "Semiconductors & Infrastructure",
-        "score": 83.3,
-        "subsector_rank": 2,
-        "data_coverage_pct": 100.0,
-        "key_strength": "One-year price momentum ranks favorably within the peer group.",
-        "key_risk": "Net profitability is weak relative to peers."
+        "rank": 6,
+        "ticker": "PATH",
+        "name": "UiPath",
+        "subsector": "AI Software & Growth",
+        "score": 83.2,
+        "subsector_rank": 3,
+        "data_coverage_pct": 80.0,
+        "key_strength": "The latest standardized free cash flow is positive.",
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       },
       {
-        "rank": 5,
+        "rank": 7,
         "ticker": "MSFT",
         "name": "Microsoft",
         "subsector": "Cloud & AI Platforms",
@@ -3212,28 +3234,6 @@
         "data_coverage_pct": 100.0,
         "key_strength": "Net profitability is strong relative to peers.",
         "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
-      },
-      {
-        "rank": 6,
-        "ticker": "PATH",
-        "name": "UiPath",
-        "subsector": "AI Software & Growth",
-        "score": 82.9,
-        "subsector_rank": 2,
-        "data_coverage_pct": 80.0,
-        "key_strength": "The latest standardized free cash flow is positive.",
-        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
-      },
-      {
-        "rank": 7,
-        "ticker": "PLTR",
-        "name": "Palantir Technologies",
-        "subsector": "AI Software & Growth",
-        "score": 80.3,
-        "subsector_rank": 3,
-        "data_coverage_pct": 100.0,
-        "key_strength": "Revenue growth is among the stronger results in its peer group.",
-        "key_risk": "The share price is below both its 50-day and 200-day averages."
       },
       {
         "rank": 8,
@@ -3248,41 +3248,539 @@
       },
       {
         "rank": 9,
-        "ticker": "META",
-        "name": "Meta Platforms",
-        "subsector": "Cloud & AI Platforms",
-        "score": 77.6,
-        "subsector_rank": 3,
-        "data_coverage_pct": 90.0,
-        "key_strength": "Revenue growth is among the stronger results in its peer group.",
-        "key_risk": "One-year price momentum trails the peer group."
-      },
-      {
-        "rank": 10,
         "ticker": "AVGO",
         "name": "Broadcom",
         "subsector": "Semiconductors & Infrastructure",
-        "score": 75.5,
+        "score": 79.1,
         "subsector_rank": 4,
         "data_coverage_pct": 100.0,
         "key_strength": "Free-cash-flow margin compares favorably with peers.",
         "key_risk": "Revenue growth trails most companies in its peer group."
+      },
+      {
+        "rank": 10,
+        "ticker": "META",
+        "name": "Meta Platforms",
+        "subsector": "Cloud & AI Platforms",
+        "score": 77.5,
+        "subsector_rank": 3,
+        "data_coverage_pct": 90.0,
+        "key_strength": "Revenue growth is among the stronger results in its peer group.",
+        "key_risk": "One-year price momentum trails the peer group."
       }
     ]
   },
   "companies": [
     {
+      "ticker": "PLTR",
+      "name": "Palantir Technologies",
+      "subsector": "AI Software & Growth",
+      "market_cap_tier": "Mega-Cap",
+      "score": 88.6,
+      "score_components": {
+        "growth": 100.0,
+        "free_cash_flow": 100.0,
+        "financial_strength": 100.0,
+        "profitability": 100.0,
+        "momentum": 68.8,
+        "strategic_investment": 48.5
+      },
+      "history": [
+        {
+          "year": "2018",
+          "revenue": 595409000.0,
+          "net_income": -580027000.0,
+          "operating_cash_flow": -39012000.0,
+          "capex": 13004000.0,
+          "free_cash_flow": -52016000.0,
+          "rnd": 285451000.0
+        },
+        {
+          "year": "2019",
+          "revenue": 742555000.0,
+          "net_income": -579646000.0,
+          "operating_cash_flow": -165215000.0,
+          "capex": 13096000.0,
+          "free_cash_flow": -178311000.0,
+          "rnd": 305563000.0
+        },
+        {
+          "year": "2020",
+          "revenue": 1092673000.0,
+          "net_income": -1166391000.0,
+          "operating_cash_flow": -296608000.0,
+          "capex": 12236000.0,
+          "free_cash_flow": -308844000.0,
+          "rnd": 560660000.0
+        },
+        {
+          "year": "2021",
+          "revenue": 1541889000.0,
+          "net_income": -520379000.0,
+          "operating_cash_flow": 333851000.0,
+          "capex": 12627000.0,
+          "free_cash_flow": 321224000.0,
+          "rnd": 387487000.0
+        },
+        {
+          "year": "2022",
+          "revenue": 1905871000.0,
+          "net_income": -373705000.0,
+          "operating_cash_flow": 223737000.0,
+          "capex": 40027000.0,
+          "free_cash_flow": 183710000.0,
+          "rnd": 359679000.0
+        },
+        {
+          "year": "2023",
+          "revenue": 2225012000.0,
+          "net_income": 209825000.0,
+          "operating_cash_flow": 712183000.0,
+          "capex": 15114000.0,
+          "free_cash_flow": 697069000.0,
+          "rnd": 404624000.0
+        },
+        {
+          "year": "2024",
+          "revenue": 2865507000.0,
+          "net_income": 462190000.0,
+          "operating_cash_flow": 1153865000.0,
+          "capex": 12634000.0,
+          "free_cash_flow": 1141231000.0,
+          "rnd": 507878000.0
+        },
+        {
+          "year": "2025",
+          "revenue": 4475446000.0,
+          "net_income": 1625033000.0,
+          "operating_cash_flow": 2134473000.0,
+          "capex": 33882000.0,
+          "free_cash_flow": 2100591000.0,
+          "rnd": 557677000.0
+        }
+      ],
+      "latest_filings": [
+        {
+          "form": "10-Q",
+          "date": "2026-08-04",
+          "description": "10-Q",
+          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000041/pltr-20260630.htm"
+        },
+        {
+          "form": "8-K",
+          "date": "2026-08-03",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000039/pltr-20260803.htm"
+        },
+        {
+          "form": "8-K",
+          "date": "2026-06-09",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000033/pltr-20260603.htm"
+        },
+        {
+          "form": "10-Q",
+          "date": "2026-05-05",
+          "description": "10-Q",
+          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000028/pltr-20260331.htm"
+        }
+      ],
+      "automated_summary": "Reported annual revenue grew 56.2% in the latest fiscal year; standardized free cash flow was positive at a 46.9% margin; the share price was above both its 50-day and 200-day averages; cash exceeded reported debt. This is an automated factual summary, not a forecast or recommendation.",
+      "cik": 1321655,
+      "latest_fiscal_year": "2025",
+      "latest_reported_revenue": 4475446000.0,
+      "revenue_growth_pct": 56.18,
+      "latest_net_income": 1625033000.0,
+      "latest_operating_cash_flow": 2134473000.0,
+      "latest_capex": 33882000.0,
+      "latest_free_cash_flow": 2100591000.0,
+      "latest_rnd": 557677000.0,
+      "net_margin_pct": 36.31,
+      "fcf_margin_pct": 46.94,
+      "capex_intensity_pct": 0.76,
+      "rnd_intensity_pct": 12.46,
+      "cash_and_short_investments": 9409099000.0,
+      "total_debt": 0.0,
+      "shares_outstanding": 2402897000.0,
+      "balance_sheet_date": "2026-06-30",
+      "xbrl_tags": {
+        "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "net_income": "NetIncomeLoss",
+        "operating_cash_flow": "NetCashProvidedByUsedInOperatingActivities",
+        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
+        "rnd": "ResearchAndDevelopmentExpense",
+        "cash": "CashAndCashEquivalentsAtCarryingValue",
+        "short_term_investments": "MarketableSecuritiesCurrent",
+        "debt_current": null,
+        "debt_noncurrent": "LongTermDebtNoncurrent"
+      },
+      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json",
+      "latest_price": 163.59,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 26.52,
+      "return_1y_pct": 1.82,
+      "above_50_day": true,
+      "above_200_day": true,
+      "market_cap": 393089920230.0,
+      "overall_rank": 1,
+      "subsector_rank": 1,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 88.6,
+          "peer_median": 84.25,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 56.18,
+          "peer_median": 20.91,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 46.94,
+          "peer_median": 22.9,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 36.31,
+          "peer_median": -5.45,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 1.82,
+          "peer_median": 12.02,
+          "peer_percentile": 37.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 88.6,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": 1.82
+        },
+        {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "score": 85.3,
+          "revenue_growth_pct": 29.16,
+          "fcf_margin_pct": 23.92,
+          "return_1y_pct": 52.49
+        },
+        {
+          "ticker": "PATH",
+          "name": "UiPath",
+          "score": 83.2,
+          "revenue_growth_pct": 12.65,
+          "fcf_margin_pct": 21.87,
+          "return_1y_pct": 22.22
+        },
+        {
+          "ticker": "AI",
+          "name": "C3.ai",
+          "score": 32.0,
+          "revenue_growth_pct": -35.67,
+          "fcf_margin_pct": -76.77,
+          "return_1y_pct": -56.79
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "Revenue growth is among the stronger results in its peer group.",
+        "Free-cash-flow margin compares favorably with peers.",
+        "Net profitability is strong relative to peers.",
+        "The latest standardized free cash flow is positive."
+      ],
+      "risks": [
+        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+      ],
+      "cap_group_rank": 1,
+      "cap_group_count": 7
+    },
+    {
+      "ticker": "AMD",
+      "name": "Advanced Micro Devices",
+      "subsector": "Semiconductors & Infrastructure",
+      "market_cap_tier": "Mega-Cap",
+      "score": 86.6,
+      "score_components": {
+        "growth": 100.0,
+        "free_cash_flow": 92.8,
+        "financial_strength": 79.3,
+        "profitability": 75.0,
+        "momentum": 85.0,
+        "strategic_investment": 66.6
+      },
+      "history": [
+        {
+          "year": "2016",
+          "revenue": 4319000000.0,
+          "net_income": -498000000.0,
+          "operating_cash_flow": 81000000.0,
+          "capex": 77000000.0,
+          "free_cash_flow": 4000000.0,
+          "rnd": 1008000000.0
+        },
+        {
+          "year": "2017",
+          "revenue": 5253000000.0,
+          "net_income": -33000000.0,
+          "operating_cash_flow": 12000000.0,
+          "capex": 113000000.0,
+          "free_cash_flow": -101000000.0,
+          "rnd": 1196000000.0
+        },
+        {
+          "year": "2018",
+          "revenue": 6475000000.0,
+          "net_income": 337000000.0,
+          "operating_cash_flow": 34000000.0,
+          "capex": 163000000.0,
+          "free_cash_flow": -129000000.0,
+          "rnd": 1434000000.0
+        },
+        {
+          "year": "2019",
+          "revenue": 6731000000.0,
+          "net_income": 341000000.0,
+          "operating_cash_flow": 493000000.0,
+          "capex": 217000000.0,
+          "free_cash_flow": 276000000.0,
+          "rnd": 1547000000.0
+        },
+        {
+          "year": "2020",
+          "revenue": 9763000000.0,
+          "net_income": 2490000000.0,
+          "operating_cash_flow": 1071000000.0,
+          "capex": 294000000.0,
+          "free_cash_flow": 777000000.0,
+          "rnd": 1983000000.0
+        },
+        {
+          "year": "2021",
+          "revenue": 16434000000.0,
+          "net_income": 3162000000.0,
+          "operating_cash_flow": 3521000000.0,
+          "capex": 301000000.0,
+          "free_cash_flow": 3220000000.0,
+          "rnd": 2845000000.0
+        },
+        {
+          "year": "2022",
+          "revenue": 23601000000.0,
+          "net_income": 1320000000.0,
+          "operating_cash_flow": 3565000000.0,
+          "capex": 450000000.0,
+          "free_cash_flow": 3115000000.0,
+          "rnd": 5005000000.0
+        },
+        {
+          "year": "2023",
+          "revenue": 22680000000.0,
+          "net_income": 854000000.0,
+          "operating_cash_flow": 1667000000.0,
+          "capex": 546000000.0,
+          "free_cash_flow": 1121000000.0,
+          "rnd": 5872000000.0
+        },
+        {
+          "year": "2024",
+          "revenue": 25785000000.0,
+          "net_income": 1641000000.0,
+          "operating_cash_flow": 3041000000.0,
+          "capex": 636000000.0,
+          "free_cash_flow": 2405000000.0,
+          "rnd": 6456000000.0
+        },
+        {
+          "year": "2025",
+          "revenue": 34639000000.0,
+          "net_income": 4335000000.0,
+          "operating_cash_flow": 7709000000.0,
+          "capex": 974000000.0,
+          "free_cash_flow": 6735000000.0,
+          "rnd": 8091000000.0
+        }
+      ],
+      "latest_filings": [
+        {
+          "form": "8-K",
+          "date": "2026-07-01",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000115/amd-20260626.htm"
+        },
+        {
+          "form": "8-K",
+          "date": "2026-05-15",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000119312526226746/d118163d8k.htm"
+        },
+        {
+          "form": "10-Q",
+          "date": "2026-05-06",
+          "description": "10-Q",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000076/amd-20260328.htm"
+        },
+        {
+          "form": "8-K",
+          "date": "2026-05-05",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000072/amd-20260505.htm"
+        }
+      ],
+      "automated_summary": "Reported annual revenue grew 34.3% in the latest fiscal year; standardized free cash flow was positive at a 19.4% margin; the share price was above both its 50-day and 200-day averages; cash exceeded reported debt. This is an automated factual summary, not a forecast or recommendation.",
+      "cik": 2488,
+      "latest_fiscal_year": "2025",
+      "latest_reported_revenue": 34639000000.0,
+      "revenue_growth_pct": 34.34,
+      "latest_net_income": 4335000000.0,
+      "latest_operating_cash_flow": 7709000000.0,
+      "latest_capex": 974000000.0,
+      "latest_free_cash_flow": 6735000000.0,
+      "latest_rnd": 8091000000.0,
+      "net_margin_pct": 12.51,
+      "fcf_margin_pct": 19.44,
+      "capex_intensity_pct": 2.81,
+      "rnd_intensity_pct": 23.36,
+      "cash_and_short_investments": 12347000000.0,
+      "total_debt": 3224000000.0,
+      "shares_outstanding": 1630600639.0,
+      "balance_sheet_date": "2026-04-29",
+      "xbrl_tags": {
+        "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "net_income": "NetIncomeLoss",
+        "operating_cash_flow": "NetCashProvidedByUsedInOperatingActivities",
+        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
+        "rnd": "ResearchAndDevelopmentExpense",
+        "cash": "CashAndCashEquivalentsAtCarryingValue",
+        "short_term_investments": "ShortTermInvestments",
+        "debt_current": "LongTermDebtCurrent",
+        "debt_noncurrent": "LongTermDebtNoncurrent"
+      },
+      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json",
+      "latest_price": 529.4,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 2.24,
+      "return_1y_pct": 199.47,
+      "above_50_day": true,
+      "above_200_day": true,
+      "market_cap": 863239978286.6,
+      "overall_rank": 2,
+      "subsector_rank": 1,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 86.6,
+          "peer_median": 81.8,
+          "peer_percentile": 87.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 34.34,
+          "peer_median": 38.22,
+          "peer_percentile": 37.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 19.44,
+          "peer_median": 19.44,
+          "peer_percentile": 50.0
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 12.51,
+          "peer_median": 34.39,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 199.47,
+          "peer_median": 115.52,
+          "peer_percentile": 87.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 86.6,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 199.47
+        },
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "score": 83.7,
+          "revenue_growth_pct": 65.47,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 18.44
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "score": 79.9,
+          "revenue_growth_pct": 42.09,
+          "fcf_margin_pct": 17.04,
+          "return_1y_pct": 188.43
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "score": 79.1,
+          "revenue_growth_pct": 23.87,
+          "fcf_margin_pct": 42.13,
+          "return_1y_pct": 42.61
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "One-year price momentum ranks favorably within the peer group.",
+        "The latest standardized free cash flow is positive.",
+        "Cash and short-term investments exceed reported debt.",
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "Net profitability is weak relative to peers."
+      ],
+      "cap_group_rank": 2,
+      "cap_group_count": 7
+    },
+    {
       "ticker": "SNOW",
       "name": "Snowflake",
       "subsector": "AI Software & Growth",
       "market_cap_tier": "Large-Cap",
-      "score": 85.2,
+      "score": 85.3,
       "score_components": {
         "growth": 100.0,
         "free_cash_flow": 100.0,
         "financial_strength": 100.0,
         "profitability": 0.0,
-        "momentum": 80.0,
+        "momentum": 80.6,
         "strategic_investment": 91.9
       },
       "history": [
@@ -3414,22 +3912,22 @@
         "debt_noncurrent": null
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001640147.json",
-      "latest_price": 307.53,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 18.21,
-      "return_1y_pct": 50.0,
+      "latest_price": 317.915,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 22.2,
+      "return_1y_pct": 52.49,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 106589898000.0,
-      "overall_rank": 1,
-      "subsector_rank": 1,
+      "market_cap": 110189339000.0,
+      "overall_rank": 3,
+      "subsector_rank": 2,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 85.2,
-          "peer_median": 81.6,
-          "peer_percentile": 87.5
+          "company_value": 85.3,
+          "peer_median": 84.25,
+          "peer_percentile": 62.5
         },
         {
           "key": "revenue_growth_pct",
@@ -3455,36 +3953,36 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 50.0,
-          "peer_median": -0.54,
+          "company_value": 52.49,
+          "peer_median": 12.02,
           "peer_percentile": 87.5
         }
       ],
       "peer_count": 4,
       "peer_snapshot": [
         {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 88.6,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": 1.82
+        },
+        {
           "ticker": "SNOW",
           "name": "Snowflake",
-          "score": 85.2,
+          "score": 85.3,
           "revenue_growth_pct": 29.16,
           "fcf_margin_pct": 23.92,
-          "return_1y_pct": 50.0
+          "return_1y_pct": 52.49
         },
         {
           "ticker": "PATH",
           "name": "UiPath",
-          "score": 82.9,
+          "score": 83.2,
           "revenue_growth_pct": 12.65,
           "fcf_margin_pct": 21.87,
-          "return_1y_pct": 17.46
-        },
-        {
-          "ticker": "PLTR",
-          "name": "Palantir Technologies",
-          "score": 80.3,
-          "revenue_growth_pct": 56.18,
-          "fcf_margin_pct": 46.94,
-          "return_1y_pct": -18.55
+          "return_1y_pct": 22.22
         },
         {
           "ticker": "AI",
@@ -3492,7 +3990,7 @@
           "score": 32.0,
           "revenue_growth_pct": -35.67,
           "fcf_margin_pct": -76.77,
-          "return_1y_pct": -56.62
+          "return_1y_pct": -56.79
         }
       ],
       "data_coverage_pct": 90.0,
@@ -3673,21 +4171,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
-      "latest_price": 373.51,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 3.78,
-      "return_1y_pct": 98.05,
+      "latest_price": 379.8111,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 5.53,
+      "return_1y_pct": 95.29,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 4568027300000.0,
-      "overall_rank": 2,
+      "market_cap": 4645089753000.0,
+      "overall_rank": 4,
       "subsector_rank": 1,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
           "company_value": 84.0,
-          "peer_median": 80.25,
+          "peer_median": 80.2,
           "peer_percentile": 87.5
         },
         {
@@ -3714,8 +4212,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 98.05,
-          "peer_median": 13.02,
+          "company_value": 95.29,
+          "peer_median": 12.26,
           "peer_percentile": 87.5
         }
       ],
@@ -3727,7 +4225,7 @@
           "score": 84.0,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 98.05
+          "return_1y_pct": 95.29
         },
         {
           "ticker": "MSFT",
@@ -3735,23 +4233,23 @@
           "score": 82.9,
           "revenue_growth_pct": 17.79,
           "fcf_margin_pct": 20.19,
-          "return_1y_pct": -6.21
+          "return_1y_pct": -6.45
         },
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 77.6,
+          "score": 77.5,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": -21.04
+          "return_1y_pct": -23.8
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 69.0,
+          "score": 68.9,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 32.26
+          "return_1y_pct": 30.96
         }
       ],
       "data_coverage_pct": 100.0,
@@ -3766,7 +4264,7 @@
       "risks": [
         "Free-cash-flow margin is weak relative to peers."
       ],
-      "cap_group_rank": 1,
+      "cap_group_rank": 3,
       "cap_group_count": 7
     },
     {
@@ -3780,7 +4278,7 @@
         "free_cash_flow": null,
         "financial_strength": 88.0,
         "profitability": 100.0,
-        "momentum": 72.8,
+        "momentum": 72.6,
         "strategic_investment": 42.0
       },
       "history": [
@@ -3927,22 +4425,22 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
-      "latest_price": 206.64,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 6.06,
-      "return_1y_pct": 19.11,
+      "latest_price": 212.9,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 9.27,
+      "return_1y_pct": 18.44,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 5000688000000.0,
-      "overall_rank": 3,
-      "subsector_rank": 1,
+      "market_cap": 5152180000000.0,
+      "overall_rank": 5,
+      "subsector_rank": 2,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
           "company_value": 83.7,
-          "peer_median": 81.6,
-          "peer_percentile": 87.5
+          "peer_median": 81.8,
+          "peer_percentile": 62.5
         },
         {
           "key": "revenue_growth_pct",
@@ -3968,28 +4466,28 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 19.11,
-          "peer_median": 98.86,
+          "company_value": 18.44,
+          "peer_median": 115.52,
           "peer_percentile": 12.5
         }
       ],
       "peer_count": 4,
       "peer_snapshot": [
         {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 86.6,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 199.47
+        },
+        {
           "ticker": "NVDA",
           "name": "NVIDIA",
           "score": 83.7,
           "revenue_growth_pct": 65.47,
           "fcf_margin_pct": null,
-          "return_1y_pct": 19.11
-        },
-        {
-          "ticker": "AMD",
-          "name": "Advanced Micro Devices",
-          "score": 83.3,
-          "revenue_growth_pct": 34.34,
-          "fcf_margin_pct": 19.44,
-          "return_1y_pct": 182.26
+          "return_1y_pct": 18.44
         },
         {
           "ticker": "MRVL",
@@ -3997,15 +4495,15 @@
           "score": 79.9,
           "revenue_growth_pct": 42.09,
           "fcf_margin_pct": 17.04,
-          "return_1y_pct": 160.83
+          "return_1y_pct": 188.43
         },
         {
           "ticker": "AVGO",
           "name": "Broadcom",
-          "score": 75.5,
+          "score": 79.1,
           "revenue_growth_pct": 23.87,
           "fcf_margin_pct": 42.13,
-          "return_1y_pct": 36.88
+          "return_1y_pct": 42.61
         }
       ],
       "data_coverage_pct": 90.0,
@@ -4022,159 +4520,130 @@
       "risks": [
         "One-year price momentum trails the peer group."
       ],
-      "cap_group_rank": 2,
+      "cap_group_rank": 4,
       "cap_group_count": 7
     },
     {
-      "ticker": "AMD",
-      "name": "Advanced Micro Devices",
-      "subsector": "Semiconductors & Infrastructure",
-      "market_cap_tier": "Mega-Cap",
-      "score": 83.3,
+      "ticker": "PATH",
+      "name": "UiPath",
+      "subsector": "AI Software & Growth",
+      "market_cap_tier": "Unclassified",
+      "score": 83.2,
       "score_components": {
-        "growth": 100.0,
-        "free_cash_flow": 92.8,
-        "financial_strength": 79.3,
-        "profitability": 75.0,
-        "momentum": 68.3,
-        "strategic_investment": 66.6
+        "growth": 75.3,
+        "free_cash_flow": 98.1,
+        "financial_strength": 100.0,
+        "profitability": 85.1,
+        "momentum": 73.5,
+        "strategic_investment": 65.1
       },
       "history": [
         {
-          "year": "2016",
-          "revenue": 4319000000.0,
-          "net_income": -498000000.0,
-          "operating_cash_flow": 81000000.0,
-          "capex": 77000000.0,
-          "free_cash_flow": 4000000.0,
-          "rnd": 1008000000.0
-        },
-        {
-          "year": "2017",
-          "revenue": 5253000000.0,
-          "net_income": -33000000.0,
-          "operating_cash_flow": 12000000.0,
-          "capex": 113000000.0,
-          "free_cash_flow": -101000000.0,
-          "rnd": 1196000000.0
-        },
-        {
-          "year": "2018",
-          "revenue": 6475000000.0,
-          "net_income": 337000000.0,
-          "operating_cash_flow": 34000000.0,
-          "capex": 163000000.0,
-          "free_cash_flow": -129000000.0,
-          "rnd": 1434000000.0
-        },
-        {
-          "year": "2019",
-          "revenue": 6731000000.0,
-          "net_income": 341000000.0,
-          "operating_cash_flow": 493000000.0,
-          "capex": 217000000.0,
-          "free_cash_flow": 276000000.0,
-          "rnd": 1547000000.0
-        },
-        {
           "year": "2020",
-          "revenue": 9763000000.0,
-          "net_income": 2490000000.0,
-          "operating_cash_flow": 1071000000.0,
-          "capex": 294000000.0,
-          "free_cash_flow": 777000000.0,
-          "rnd": 1983000000.0
+          "revenue": 336156000.0,
+          "net_income": -519933000.0,
+          "operating_cash_flow": -359436000.0,
+          "capex": 15748000.0,
+          "free_cash_flow": -375184000.0,
+          "rnd": 131066000.0
         },
         {
           "year": "2021",
-          "revenue": 16434000000.0,
-          "net_income": 3162000000.0,
-          "operating_cash_flow": 3521000000.0,
-          "capex": 301000000.0,
-          "free_cash_flow": 3220000000.0,
-          "rnd": 2845000000.0
+          "revenue": 607643000.0,
+          "net_income": -92393000.0,
+          "operating_cash_flow": 29177000.0,
+          "capex": 1953000.0,
+          "free_cash_flow": 27224000.0,
+          "rnd": 109920000.0
         },
         {
           "year": "2022",
-          "revenue": 23601000000.0,
-          "net_income": 1320000000.0,
-          "operating_cash_flow": 3565000000.0,
-          "capex": 450000000.0,
-          "free_cash_flow": 3115000000.0,
-          "rnd": 5005000000.0
+          "revenue": 892252000.0,
+          "net_income": -525586000.0,
+          "operating_cash_flow": -54963000.0,
+          "capex": 8879000.0,
+          "free_cash_flow": -63842000.0,
+          "rnd": 276657000.0
         },
         {
           "year": "2023",
-          "revenue": 22680000000.0,
-          "net_income": 854000000.0,
-          "operating_cash_flow": 1667000000.0,
-          "capex": 546000000.0,
-          "free_cash_flow": 1121000000.0,
-          "rnd": 5872000000.0
+          "revenue": 1058581000.0,
+          "net_income": -328352000.0,
+          "operating_cash_flow": -9981000.0,
+          "capex": 23815000.0,
+          "free_cash_flow": -33796000.0,
+          "rnd": 285750000.0
         },
         {
           "year": "2024",
-          "revenue": 25785000000.0,
-          "net_income": 1641000000.0,
-          "operating_cash_flow": 3041000000.0,
-          "capex": 636000000.0,
-          "free_cash_flow": 2405000000.0,
-          "rnd": 6456000000.0
+          "revenue": 1308072000.0,
+          "net_income": -89883000.0,
+          "operating_cash_flow": 299082000.0,
+          "capex": 7342000.0,
+          "free_cash_flow": 291740000.0,
+          "rnd": 332101000.0
         },
         {
           "year": "2025",
-          "revenue": 34639000000.0,
-          "net_income": 4335000000.0,
-          "operating_cash_flow": 7709000000.0,
-          "capex": 974000000.0,
-          "free_cash_flow": 6735000000.0,
-          "rnd": 8091000000.0
+          "revenue": 1429664000.0,
+          "net_income": -73694000.0,
+          "operating_cash_flow": 320565000.0,
+          "capex": 14923000.0,
+          "free_cash_flow": 305642000.0,
+          "rnd": 380682000.0
+        },
+        {
+          "year": "2026",
+          "revenue": 1610572000.0,
+          "net_income": 282330000.0,
+          "operating_cash_flow": 371208000.0,
+          "capex": 19048000.0,
+          "free_cash_flow": 352160000.0,
+          "rnd": 385208000.0
         }
       ],
       "latest_filings": [
         {
           "form": "8-K",
-          "date": "2026-07-01",
+          "date": "2026-06-29",
           "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000115/amd-20260626.htm"
-        },
-        {
-          "form": "8-K",
-          "date": "2026-05-15",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/2488/000119312526226746/d118163d8k.htm"
+          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000043/path-20260625.htm"
         },
         {
           "form": "10-Q",
-          "date": "2026-05-06",
+          "date": "2026-06-04",
           "description": "10-Q",
-          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000076/amd-20260328.htm"
+          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000041/path-20260430.htm"
         },
         {
           "form": "8-K",
-          "date": "2026-05-05",
+          "date": "2026-05-28",
           "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000072/amd-20260505.htm"
+          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000037/path-20260528.htm"
+        },
+        {
+          "form": "8-K",
+          "date": "2026-03-25",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000015/path-20260324.htm"
         }
       ],
-      "automated_summary": "Reported annual revenue grew 34.3% in the latest fiscal year; standardized free cash flow was positive at a 19.4% margin; price momentum was mixed across the 50-day and 200-day averages; cash exceeded reported debt. This is an automated factual summary, not a forecast or recommendation.",
-      "cik": 2488,
-      "latest_fiscal_year": "2025",
-      "latest_reported_revenue": 34639000000.0,
-      "revenue_growth_pct": 34.34,
-      "latest_net_income": 4335000000.0,
-      "latest_operating_cash_flow": 7709000000.0,
-      "latest_capex": 974000000.0,
-      "latest_free_cash_flow": 6735000000.0,
-      "latest_rnd": 8091000000.0,
-      "net_margin_pct": 12.51,
-      "fcf_margin_pct": 19.44,
-      "capex_intensity_pct": 2.81,
-      "rnd_intensity_pct": 23.36,
-      "cash_and_short_investments": 12347000000.0,
-      "total_debt": 3224000000.0,
-      "shares_outstanding": 1630600639.0,
-      "balance_sheet_date": "2026-04-29",
+      "automated_summary": "Reported annual revenue grew 12.7% in the latest fiscal year; standardized free cash flow was positive at a 21.9% margin; the share price was above both its 50-day and 200-day averages. This is an automated factual summary, not a forecast or recommendation.",
+      "cik": 1734722,
+      "latest_fiscal_year": "2026",
+      "latest_reported_revenue": 1610572000.0,
+      "revenue_growth_pct": 12.65,
+      "latest_net_income": 282330000.0,
+      "latest_operating_cash_flow": 371208000.0,
+      "latest_capex": 19048000.0,
+      "latest_free_cash_flow": 352160000.0,
+      "latest_rnd": 385208000.0,
+      "net_margin_pct": 17.53,
+      "fcf_margin_pct": 21.87,
+      "capex_intensity_pct": 1.18,
+      "rnd_intensity_pct": 23.92,
+      "cash_and_short_investments": 1307244000.0,
+      "balance_sheet_date": "2026-04-30",
       "xbrl_tags": {
         "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
         "net_income": "NetIncomeLoss",
@@ -4182,105 +4651,106 @@
         "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
         "rnd": "ResearchAndDevelopmentExpense",
         "cash": "CashAndCashEquivalentsAtCarryingValue",
-        "short_term_investments": "ShortTermInvestments",
-        "debt_current": "LongTermDebtCurrent",
-        "debt_noncurrent": "LongTermDebtNoncurrent"
+        "short_term_investments": "MarketableSecuritiesCurrent",
+        "debt_current": null,
+        "debt_noncurrent": null
       },
-      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json",
-      "latest_price": 484.64,
-      "price_date": "2026-08-03",
-      "return_30d_pct": -6.41,
-      "return_1y_pct": 182.26,
-      "above_50_day": false,
+      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001734722.json",
+      "latest_price": 13.86,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 18.36,
+      "return_1y_pct": 22.22,
+      "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 790254293684.96,
-      "overall_rank": 4,
-      "subsector_rank": 2,
+      "overall_rank": 6,
+      "subsector_rank": 3,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 83.3,
-          "peer_median": 81.6,
-          "peer_percentile": 62.5
+          "company_value": 83.2,
+          "peer_median": 84.25,
+          "peer_percentile": 37.5
         },
         {
           "key": "revenue_growth_pct",
           "label": "Revenue growth",
-          "company_value": 34.34,
-          "peer_median": 38.22,
+          "company_value": 12.65,
+          "peer_median": 20.91,
           "peer_percentile": 37.5
         },
         {
           "key": "fcf_margin_pct",
           "label": "FCF margin",
-          "company_value": 19.44,
-          "peer_median": 19.44,
-          "peer_percentile": 50.0
+          "company_value": 21.87,
+          "peer_median": 22.9,
+          "peer_percentile": 37.5
         },
         {
           "key": "net_margin_pct",
           "label": "Net margin",
-          "company_value": 12.51,
-          "peer_median": 34.39,
-          "peer_percentile": 12.5
+          "company_value": 17.53,
+          "peer_median": -5.45,
+          "peer_percentile": 62.5
         },
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 182.26,
-          "peer_median": 98.86,
-          "peer_percentile": 87.5
+          "company_value": 22.22,
+          "peer_median": 12.02,
+          "peer_percentile": 62.5
         }
       ],
       "peer_count": 4,
       "peer_snapshot": [
         {
-          "ticker": "NVDA",
-          "name": "NVIDIA",
-          "score": 83.7,
-          "revenue_growth_pct": 65.47,
-          "fcf_margin_pct": null,
-          "return_1y_pct": 19.11
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 88.6,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": 1.82
         },
         {
-          "ticker": "AMD",
-          "name": "Advanced Micro Devices",
-          "score": 83.3,
-          "revenue_growth_pct": 34.34,
-          "fcf_margin_pct": 19.44,
-          "return_1y_pct": 182.26
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "score": 85.3,
+          "revenue_growth_pct": 29.16,
+          "fcf_margin_pct": 23.92,
+          "return_1y_pct": 52.49
         },
         {
-          "ticker": "MRVL",
-          "name": "Marvell Technology",
-          "score": 79.9,
-          "revenue_growth_pct": 42.09,
-          "fcf_margin_pct": 17.04,
-          "return_1y_pct": 160.83
+          "ticker": "PATH",
+          "name": "UiPath",
+          "score": 83.2,
+          "revenue_growth_pct": 12.65,
+          "fcf_margin_pct": 21.87,
+          "return_1y_pct": 22.22
         },
         {
-          "ticker": "AVGO",
-          "name": "Broadcom",
-          "score": 75.5,
-          "revenue_growth_pct": 23.87,
-          "fcf_margin_pct": 42.13,
-          "return_1y_pct": 36.88
+          "ticker": "AI",
+          "name": "C3.ai",
+          "score": 32.0,
+          "revenue_growth_pct": -35.67,
+          "fcf_margin_pct": -76.77,
+          "return_1y_pct": -56.79
         }
       ],
-      "data_coverage_pct": 100.0,
+      "data_coverage_pct": 80.0,
       "data_quality": "High",
-      "data_warnings": [],
+      "data_warnings": [
+        "Total debt was not fully retrieved.",
+        "Current market capitalization was unavailable."
+      ],
       "strengths": [
-        "One-year price momentum ranks favorably within the peer group.",
         "The latest standardized free cash flow is positive.",
-        "Cash and short-term investments exceed reported debt."
+        "The share price is above both its 50-day and 200-day averages."
       ],
       "risks": [
-        "Net profitability is weak relative to peers."
+        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       ],
-      "cap_group_rank": 3,
-      "cap_group_count": 7
+      "cap_group_rank": 1,
+      "cap_group_count": 2
     },
     {
       "ticker": "MSFT",
@@ -4293,7 +4763,7 @@
         "free_cash_flow": 94.4,
         "financial_strength": 65.6,
         "profitability": 100.0,
-        "momentum": 66.9,
+        "momentum": 66.8,
         "strategic_investment": 93.9
       },
       "history": [
@@ -4444,21 +4914,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
-      "latest_price": 487.65,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 24.88,
-      "return_1y_pct": -6.21,
+      "latest_price": 497.13,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 27.31,
+      "return_1y_pct": -6.45,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 3621067258686.15,
-      "overall_rank": 5,
+      "market_cap": 3691461429940.83,
+      "overall_rank": 7,
       "subsector_rank": 2,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
           "company_value": 82.9,
-          "peer_median": 80.25,
+          "peer_median": 80.2,
           "peer_percentile": 62.5
         },
         {
@@ -4485,8 +4955,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": -6.21,
-          "peer_median": 13.02,
+          "company_value": -6.45,
+          "peer_median": 12.26,
           "peer_percentile": 37.5
         }
       ],
@@ -4498,7 +4968,7 @@
           "score": 84.0,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 98.05
+          "return_1y_pct": 95.29
         },
         {
           "ticker": "MSFT",
@@ -4506,23 +4976,23 @@
           "score": 82.9,
           "revenue_growth_pct": 17.79,
           "fcf_margin_pct": 20.19,
-          "return_1y_pct": -6.21
+          "return_1y_pct": -6.45
         },
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 77.6,
+          "score": 77.5,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": -21.04
+          "return_1y_pct": -23.8
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 69.0,
+          "score": 68.9,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 32.26
+          "return_1y_pct": 30.96
         }
       ],
       "data_coverage_pct": 100.0,
@@ -4536,475 +5006,6 @@
       ],
       "risks": [
         "No major quantitative warning was identified, but qualitative and valuation risks still require review."
-      ],
-      "cap_group_rank": 4,
-      "cap_group_count": 7
-    },
-    {
-      "ticker": "PATH",
-      "name": "UiPath",
-      "subsector": "AI Software & Growth",
-      "market_cap_tier": "Unclassified",
-      "score": 82.9,
-      "score_components": {
-        "growth": 75.3,
-        "free_cash_flow": 98.1,
-        "financial_strength": 100.0,
-        "profitability": 85.1,
-        "momentum": 72.4,
-        "strategic_investment": 65.1
-      },
-      "history": [
-        {
-          "year": "2020",
-          "revenue": 336156000.0,
-          "net_income": -519933000.0,
-          "operating_cash_flow": -359436000.0,
-          "capex": 15748000.0,
-          "free_cash_flow": -375184000.0,
-          "rnd": 131066000.0
-        },
-        {
-          "year": "2021",
-          "revenue": 607643000.0,
-          "net_income": -92393000.0,
-          "operating_cash_flow": 29177000.0,
-          "capex": 1953000.0,
-          "free_cash_flow": 27224000.0,
-          "rnd": 109920000.0
-        },
-        {
-          "year": "2022",
-          "revenue": 892252000.0,
-          "net_income": -525586000.0,
-          "operating_cash_flow": -54963000.0,
-          "capex": 8879000.0,
-          "free_cash_flow": -63842000.0,
-          "rnd": 276657000.0
-        },
-        {
-          "year": "2023",
-          "revenue": 1058581000.0,
-          "net_income": -328352000.0,
-          "operating_cash_flow": -9981000.0,
-          "capex": 23815000.0,
-          "free_cash_flow": -33796000.0,
-          "rnd": 285750000.0
-        },
-        {
-          "year": "2024",
-          "revenue": 1308072000.0,
-          "net_income": -89883000.0,
-          "operating_cash_flow": 299082000.0,
-          "capex": 7342000.0,
-          "free_cash_flow": 291740000.0,
-          "rnd": 332101000.0
-        },
-        {
-          "year": "2025",
-          "revenue": 1429664000.0,
-          "net_income": -73694000.0,
-          "operating_cash_flow": 320565000.0,
-          "capex": 14923000.0,
-          "free_cash_flow": 305642000.0,
-          "rnd": 380682000.0
-        },
-        {
-          "year": "2026",
-          "revenue": 1610572000.0,
-          "net_income": 282330000.0,
-          "operating_cash_flow": 371208000.0,
-          "capex": 19048000.0,
-          "free_cash_flow": 352160000.0,
-          "rnd": 385208000.0
-        }
-      ],
-      "latest_filings": [
-        {
-          "form": "8-K",
-          "date": "2026-06-29",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000043/path-20260625.htm"
-        },
-        {
-          "form": "10-Q",
-          "date": "2026-06-04",
-          "description": "10-Q",
-          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000041/path-20260430.htm"
-        },
-        {
-          "form": "8-K",
-          "date": "2026-05-28",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000037/path-20260528.htm"
-        },
-        {
-          "form": "8-K",
-          "date": "2026-03-25",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1734722/000173472226000015/path-20260324.htm"
-        }
-      ],
-      "automated_summary": "Reported annual revenue grew 12.7% in the latest fiscal year; standardized free cash flow was positive at a 21.9% margin; the share price was above both its 50-day and 200-day averages. This is an automated factual summary, not a forecast or recommendation.",
-      "cik": 1734722,
-      "latest_fiscal_year": "2026",
-      "latest_reported_revenue": 1610572000.0,
-      "revenue_growth_pct": 12.65,
-      "latest_net_income": 282330000.0,
-      "latest_operating_cash_flow": 371208000.0,
-      "latest_capex": 19048000.0,
-      "latest_free_cash_flow": 352160000.0,
-      "latest_rnd": 385208000.0,
-      "net_margin_pct": 17.53,
-      "fcf_margin_pct": 21.87,
-      "capex_intensity_pct": 1.18,
-      "rnd_intensity_pct": 23.92,
-      "cash_and_short_investments": 1307244000.0,
-      "balance_sheet_date": "2026-04-30",
-      "xbrl_tags": {
-        "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
-        "net_income": "NetIncomeLoss",
-        "operating_cash_flow": "NetCashProvidedByUsedInOperatingActivities",
-        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
-        "rnd": "ResearchAndDevelopmentExpense",
-        "cash": "CashAndCashEquivalentsAtCarryingValue",
-        "short_term_investments": "MarketableSecuritiesCurrent",
-        "debt_current": null,
-        "debt_noncurrent": null
-      },
-      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001734722.json",
-      "latest_price": 13.05,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 11.44,
-      "return_1y_pct": 17.46,
-      "above_50_day": true,
-      "above_200_day": true,
-      "overall_rank": 6,
-      "subsector_rank": 2,
-      "peer_metrics": [
-        {
-          "key": "score",
-          "label": "Company score",
-          "company_value": 82.9,
-          "peer_median": 81.6,
-          "peer_percentile": 62.5
-        },
-        {
-          "key": "revenue_growth_pct",
-          "label": "Revenue growth",
-          "company_value": 12.65,
-          "peer_median": 20.91,
-          "peer_percentile": 37.5
-        },
-        {
-          "key": "fcf_margin_pct",
-          "label": "FCF margin",
-          "company_value": 21.87,
-          "peer_median": 22.9,
-          "peer_percentile": 37.5
-        },
-        {
-          "key": "net_margin_pct",
-          "label": "Net margin",
-          "company_value": 17.53,
-          "peer_median": -5.45,
-          "peer_percentile": 62.5
-        },
-        {
-          "key": "return_1y_pct",
-          "label": "1-year return",
-          "company_value": 17.46,
-          "peer_median": -0.54,
-          "peer_percentile": 62.5
-        }
-      ],
-      "peer_count": 4,
-      "peer_snapshot": [
-        {
-          "ticker": "SNOW",
-          "name": "Snowflake",
-          "score": 85.2,
-          "revenue_growth_pct": 29.16,
-          "fcf_margin_pct": 23.92,
-          "return_1y_pct": 50.0
-        },
-        {
-          "ticker": "PATH",
-          "name": "UiPath",
-          "score": 82.9,
-          "revenue_growth_pct": 12.65,
-          "fcf_margin_pct": 21.87,
-          "return_1y_pct": 17.46
-        },
-        {
-          "ticker": "PLTR",
-          "name": "Palantir Technologies",
-          "score": 80.3,
-          "revenue_growth_pct": 56.18,
-          "fcf_margin_pct": 46.94,
-          "return_1y_pct": -18.55
-        },
-        {
-          "ticker": "AI",
-          "name": "C3.ai",
-          "score": 32.0,
-          "revenue_growth_pct": -35.67,
-          "fcf_margin_pct": -76.77,
-          "return_1y_pct": -56.62
-        }
-      ],
-      "data_coverage_pct": 80.0,
-      "data_quality": "High",
-      "data_warnings": [
-        "Total debt was not fully retrieved.",
-        "Current market capitalization was unavailable."
-      ],
-      "strengths": [
-        "The latest standardized free cash flow is positive.",
-        "The share price is above both its 50-day and 200-day averages."
-      ],
-      "risks": [
-        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
-      ],
-      "cap_group_rank": 1,
-      "cap_group_count": 2
-    },
-    {
-      "ticker": "PLTR",
-      "name": "Palantir Technologies",
-      "subsector": "AI Software & Growth",
-      "market_cap_tier": "Mega-Cap",
-      "score": 80.3,
-      "score_components": {
-        "growth": 100.0,
-        "free_cash_flow": 100.0,
-        "financial_strength": 100.0,
-        "profitability": 100.0,
-        "momentum": 27.3,
-        "strategic_investment": 48.5
-      },
-      "history": [
-        {
-          "year": "2018",
-          "revenue": 595409000.0,
-          "net_income": -580027000.0,
-          "operating_cash_flow": -39012000.0,
-          "capex": 13004000.0,
-          "free_cash_flow": -52016000.0,
-          "rnd": 285451000.0
-        },
-        {
-          "year": "2019",
-          "revenue": 742555000.0,
-          "net_income": -579646000.0,
-          "operating_cash_flow": -165215000.0,
-          "capex": 13096000.0,
-          "free_cash_flow": -178311000.0,
-          "rnd": 305563000.0
-        },
-        {
-          "year": "2020",
-          "revenue": 1092673000.0,
-          "net_income": -1166391000.0,
-          "operating_cash_flow": -296608000.0,
-          "capex": 12236000.0,
-          "free_cash_flow": -308844000.0,
-          "rnd": 560660000.0
-        },
-        {
-          "year": "2021",
-          "revenue": 1541889000.0,
-          "net_income": -520379000.0,
-          "operating_cash_flow": 333851000.0,
-          "capex": 12627000.0,
-          "free_cash_flow": 321224000.0,
-          "rnd": 387487000.0
-        },
-        {
-          "year": "2022",
-          "revenue": 1905871000.0,
-          "net_income": -373705000.0,
-          "operating_cash_flow": 223737000.0,
-          "capex": 40027000.0,
-          "free_cash_flow": 183710000.0,
-          "rnd": 359679000.0
-        },
-        {
-          "year": "2023",
-          "revenue": 2225012000.0,
-          "net_income": 209825000.0,
-          "operating_cash_flow": 712183000.0,
-          "capex": 15114000.0,
-          "free_cash_flow": 697069000.0,
-          "rnd": 404624000.0
-        },
-        {
-          "year": "2024",
-          "revenue": 2865507000.0,
-          "net_income": 462190000.0,
-          "operating_cash_flow": 1153865000.0,
-          "capex": 12634000.0,
-          "free_cash_flow": 1141231000.0,
-          "rnd": 507878000.0
-        },
-        {
-          "year": "2025",
-          "revenue": 4475446000.0,
-          "net_income": 1625033000.0,
-          "operating_cash_flow": 2134473000.0,
-          "capex": 33882000.0,
-          "free_cash_flow": 2100591000.0,
-          "rnd": 557677000.0
-        }
-      ],
-      "latest_filings": [
-        {
-          "form": "8-K",
-          "date": "2026-08-03",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000039/pltr-20260803.htm"
-        },
-        {
-          "form": "8-K",
-          "date": "2026-06-09",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000033/pltr-20260603.htm"
-        },
-        {
-          "form": "10-Q",
-          "date": "2026-05-05",
-          "description": "10-Q",
-          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000028/pltr-20260331.htm"
-        },
-        {
-          "form": "8-K",
-          "date": "2026-05-04",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1321655/000132165526000026/pltr-20260504.htm"
-        }
-      ],
-      "automated_summary": "Reported annual revenue grew 56.2% in the latest fiscal year; standardized free cash flow was positive at a 46.9% margin; the share price was below both its 50-day and 200-day averages; cash exceeded reported debt. This is an automated factual summary, not a forecast or recommendation.",
-      "cik": 1321655,
-      "latest_fiscal_year": "2025",
-      "latest_reported_revenue": 4475446000.0,
-      "revenue_growth_pct": 56.18,
-      "latest_net_income": 1625033000.0,
-      "latest_operating_cash_flow": 2134473000.0,
-      "latest_capex": 33882000.0,
-      "latest_free_cash_flow": 2100591000.0,
-      "latest_rnd": 557677000.0,
-      "net_margin_pct": 36.31,
-      "fcf_margin_pct": 46.94,
-      "capex_intensity_pct": 0.76,
-      "rnd_intensity_pct": 12.46,
-      "cash_and_short_investments": 8026413000.0,
-      "total_debt": 0.0,
-      "shares_outstanding": 2397133000.0,
-      "balance_sheet_date": "2026-03-31",
-      "xbrl_tags": {
-        "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
-        "net_income": "NetIncomeLoss",
-        "operating_cash_flow": "NetCashProvidedByUsedInOperatingActivities",
-        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
-        "rnd": "ResearchAndDevelopmentExpense",
-        "cash": "CashAndCashEquivalentsAtCarryingValue",
-        "short_term_investments": "MarketableSecuritiesCurrent",
-        "debt_current": null,
-        "debt_noncurrent": "LongTermDebtNoncurrent"
-      },
-      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json",
-      "latest_price": 125.65,
-      "price_date": "2026-08-03",
-      "return_30d_pct": -2.82,
-      "return_1y_pct": -18.55,
-      "above_50_day": false,
-      "above_200_day": false,
-      "market_cap": 301199761450.0,
-      "overall_rank": 7,
-      "subsector_rank": 3,
-      "peer_metrics": [
-        {
-          "key": "score",
-          "label": "Company score",
-          "company_value": 80.3,
-          "peer_median": 81.6,
-          "peer_percentile": 37.5
-        },
-        {
-          "key": "revenue_growth_pct",
-          "label": "Revenue growth",
-          "company_value": 56.18,
-          "peer_median": 20.91,
-          "peer_percentile": 87.5
-        },
-        {
-          "key": "fcf_margin_pct",
-          "label": "FCF margin",
-          "company_value": 46.94,
-          "peer_median": 22.9,
-          "peer_percentile": 87.5
-        },
-        {
-          "key": "net_margin_pct",
-          "label": "Net margin",
-          "company_value": 36.31,
-          "peer_median": -5.45,
-          "peer_percentile": 87.5
-        },
-        {
-          "key": "return_1y_pct",
-          "label": "1-year return",
-          "company_value": -18.55,
-          "peer_median": -0.54,
-          "peer_percentile": 37.5
-        }
-      ],
-      "peer_count": 4,
-      "peer_snapshot": [
-        {
-          "ticker": "SNOW",
-          "name": "Snowflake",
-          "score": 85.2,
-          "revenue_growth_pct": 29.16,
-          "fcf_margin_pct": 23.92,
-          "return_1y_pct": 50.0
-        },
-        {
-          "ticker": "PATH",
-          "name": "UiPath",
-          "score": 82.9,
-          "revenue_growth_pct": 12.65,
-          "fcf_margin_pct": 21.87,
-          "return_1y_pct": 17.46
-        },
-        {
-          "ticker": "PLTR",
-          "name": "Palantir Technologies",
-          "score": 80.3,
-          "revenue_growth_pct": 56.18,
-          "fcf_margin_pct": 46.94,
-          "return_1y_pct": -18.55
-        },
-        {
-          "ticker": "AI",
-          "name": "C3.ai",
-          "score": 32.0,
-          "revenue_growth_pct": -35.67,
-          "fcf_margin_pct": -76.77,
-          "return_1y_pct": -56.62
-        }
-      ],
-      "data_coverage_pct": 100.0,
-      "data_quality": "High",
-      "data_warnings": [],
-      "strengths": [
-        "Revenue growth is among the stronger results in its peer group.",
-        "Free-cash-flow margin compares favorably with peers.",
-        "Net profitability is strong relative to peers.",
-        "The latest standardized free cash flow is positive."
-      ],
-      "risks": [
-        "The share price is below both its 50-day and 200-day averages."
       ],
       "cap_group_rank": 5,
       "cap_group_count": 7
@@ -5144,13 +5145,13 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json",
-      "latest_price": 193.775,
-      "price_date": "2026-08-03",
-      "return_30d_pct": -20.98,
-      "return_1y_pct": 160.83,
+      "latest_price": 220.27,
+      "price_date": "2026-08-04",
+      "return_30d_pct": -10.18,
+      "return_1y_pct": 188.43,
       "above_50_day": false,
       "above_200_day": true,
-      "market_cap": 169514370000.0,
+      "market_cap": 192692196000.0,
       "overall_rank": 8,
       "subsector_rank": 3,
       "peer_metrics": [
@@ -5158,7 +5159,7 @@
           "key": "score",
           "label": "Company score",
           "company_value": 79.9,
-          "peer_median": 81.6,
+          "peer_median": 81.8,
           "peer_percentile": 37.5
         },
         {
@@ -5185,28 +5186,28 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 160.83,
-          "peer_median": 98.86,
+          "company_value": 188.43,
+          "peer_median": 115.52,
           "peer_percentile": 62.5
         }
       ],
       "peer_count": 4,
       "peer_snapshot": [
         {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 86.6,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 199.47
+        },
+        {
           "ticker": "NVDA",
           "name": "NVIDIA",
           "score": 83.7,
           "revenue_growth_pct": 65.47,
           "fcf_margin_pct": null,
-          "return_1y_pct": 19.11
-        },
-        {
-          "ticker": "AMD",
-          "name": "Advanced Micro Devices",
-          "score": 83.3,
-          "revenue_growth_pct": 34.34,
-          "fcf_margin_pct": 19.44,
-          "return_1y_pct": 182.26
+          "return_1y_pct": 18.44
         },
         {
           "ticker": "MRVL",
@@ -5214,15 +5215,15 @@
           "score": 79.9,
           "revenue_growth_pct": 42.09,
           "fcf_margin_pct": 17.04,
-          "return_1y_pct": 160.83
+          "return_1y_pct": 188.43
         },
         {
           "ticker": "AVGO",
           "name": "Broadcom",
-          "score": 75.5,
+          "score": 79.1,
           "revenue_growth_pct": 23.87,
           "fcf_margin_pct": 42.13,
-          "return_1y_pct": 36.88
+          "return_1y_pct": 42.61
         }
       ],
       "data_coverage_pct": 100.0,
@@ -5238,17 +5239,275 @@
       "cap_group_count": 2
     },
     {
+      "ticker": "AVGO",
+      "name": "Broadcom",
+      "subsector": "Semiconductors & Infrastructure",
+      "market_cap_tier": "Mega-Cap",
+      "score": 79.1,
+      "score_components": {
+        "growth": 97.7,
+        "free_cash_flow": 100.0,
+        "financial_strength": 23.2,
+        "profitability": 100.0,
+        "momentum": 78.3,
+        "strategic_investment": 55.4
+      },
+      "history": [
+        {
+          "year": "2016",
+          "revenue": null,
+          "net_income": -1861000000.0,
+          "operating_cash_flow": 3411000000.0,
+          "capex": 723000000.0,
+          "free_cash_flow": 2688000000.0,
+          "rnd": 2674000000.0
+        },
+        {
+          "year": "2017",
+          "revenue": 17636000000.0,
+          "net_income": 1784000000.0,
+          "operating_cash_flow": 6551000000.0,
+          "capex": 1069000000.0,
+          "free_cash_flow": 5482000000.0,
+          "rnd": 3302000000.0
+        },
+        {
+          "year": "2018",
+          "revenue": 20848000000.0,
+          "net_income": 12610000000.0,
+          "operating_cash_flow": 8880000000.0,
+          "capex": 635000000.0,
+          "free_cash_flow": 8245000000.0,
+          "rnd": 3768000000.0
+        },
+        {
+          "year": "2019",
+          "revenue": 22597000000.0,
+          "net_income": 2724000000.0,
+          "operating_cash_flow": 9697000000.0,
+          "capex": 432000000.0,
+          "free_cash_flow": 9265000000.0,
+          "rnd": 4696000000.0
+        },
+        {
+          "year": "2020",
+          "revenue": 23888000000.0,
+          "net_income": 2960000000.0,
+          "operating_cash_flow": 12061000000.0,
+          "capex": 463000000.0,
+          "free_cash_flow": 11598000000.0,
+          "rnd": 4968000000.0
+        },
+        {
+          "year": "2021",
+          "revenue": 27450000000.0,
+          "net_income": 6736000000.0,
+          "operating_cash_flow": 13764000000.0,
+          "capex": 443000000.0,
+          "free_cash_flow": 13321000000.0,
+          "rnd": 4854000000.0
+        },
+        {
+          "year": "2022",
+          "revenue": 33203000000.0,
+          "net_income": 11495000000.0,
+          "operating_cash_flow": 16736000000.0,
+          "capex": 424000000.0,
+          "free_cash_flow": 16312000000.0,
+          "rnd": 4919000000.0
+        },
+        {
+          "year": "2023",
+          "revenue": 35819000000.0,
+          "net_income": 14082000000.0,
+          "operating_cash_flow": 18085000000.0,
+          "capex": 452000000.0,
+          "free_cash_flow": 17633000000.0,
+          "rnd": 5253000000.0
+        },
+        {
+          "year": "2024",
+          "revenue": 51574000000.0,
+          "net_income": 5895000000.0,
+          "operating_cash_flow": 19962000000.0,
+          "capex": 548000000.0,
+          "free_cash_flow": 19414000000.0,
+          "rnd": 9310000000.0
+        },
+        {
+          "year": "2025",
+          "revenue": 63887000000.0,
+          "net_income": 23126000000.0,
+          "operating_cash_flow": 27537000000.0,
+          "capex": 623000000.0,
+          "free_cash_flow": 26914000000.0,
+          "rnd": 10977000000.0
+        }
+      ],
+      "latest_filings": [
+        {
+          "form": "8-K",
+          "date": "2026-07-06",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000119312526295589/d84378d8k.htm"
+        },
+        {
+          "form": "8-K",
+          "date": "2026-06-18",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000119312526275077/d149683d8k.htm"
+        },
+        {
+          "form": "8-K",
+          "date": "2026-06-11",
+          "description": "8-K",
+          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000119312526266777/d152717d8k.htm"
+        },
+        {
+          "form": "10-Q",
+          "date": "2026-06-09",
+          "description": "10-Q",
+          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000173016826000054/avgo-20260503.htm"
+        }
+      ],
+      "automated_summary": "Reported annual revenue grew 23.9% in the latest fiscal year; standardized free cash flow was positive at a 42.1% margin; the share price was above both its 50-day and 200-day averages; reported debt exceeded cash and short-term investments. This is an automated factual summary, not a forecast or recommendation.",
+      "cik": 1730168,
+      "latest_fiscal_year": "2025",
+      "latest_reported_revenue": 63887000000.0,
+      "revenue_growth_pct": 23.87,
+      "latest_net_income": 23126000000.0,
+      "latest_operating_cash_flow": 27537000000.0,
+      "latest_capex": 623000000.0,
+      "latest_free_cash_flow": 26914000000.0,
+      "latest_rnd": 10977000000.0,
+      "net_margin_pct": 36.2,
+      "fcf_margin_pct": 42.13,
+      "capex_intensity_pct": 0.98,
+      "rnd_intensity_pct": 17.18,
+      "cash_and_short_investments": 19628000000.0,
+      "total_debt": 64907000000.0,
+      "shares_outstanding": 4757580198.0,
+      "balance_sheet_date": "2026-05-29",
+      "xbrl_tags": {
+        "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "net_income": "ProfitLoss",
+        "operating_cash_flow": "NetCashProvidedByUsedInOperatingActivities",
+        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
+        "rnd": "ResearchAndDevelopmentExpense",
+        "cash": "CashAndCashEquivalentsAtCarryingValue",
+        "short_term_investments": null,
+        "debt_current": "LongTermDebtCurrent",
+        "debt_noncurrent": "LongTermDebtNoncurrent"
+      },
+      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json",
+      "latest_price": 421.49,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 16.93,
+      "return_1y_pct": 42.61,
+      "above_50_day": true,
+      "above_200_day": true,
+      "market_cap": 2005272477655.02,
+      "overall_rank": 9,
+      "subsector_rank": 4,
+      "peer_metrics": [
+        {
+          "key": "score",
+          "label": "Company score",
+          "company_value": 79.1,
+          "peer_median": 81.8,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "revenue_growth_pct",
+          "label": "Revenue growth",
+          "company_value": 23.87,
+          "peer_median": 38.22,
+          "peer_percentile": 12.5
+        },
+        {
+          "key": "fcf_margin_pct",
+          "label": "FCF margin",
+          "company_value": 42.13,
+          "peer_median": 19.44,
+          "peer_percentile": 83.3
+        },
+        {
+          "key": "net_margin_pct",
+          "label": "Net margin",
+          "company_value": 36.2,
+          "peer_median": 34.39,
+          "peer_percentile": 62.5
+        },
+        {
+          "key": "return_1y_pct",
+          "label": "1-year return",
+          "company_value": 42.61,
+          "peer_median": 115.52,
+          "peer_percentile": 37.5
+        }
+      ],
+      "peer_count": 4,
+      "peer_snapshot": [
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "score": 86.6,
+          "revenue_growth_pct": 34.34,
+          "fcf_margin_pct": 19.44,
+          "return_1y_pct": 199.47
+        },
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "score": 83.7,
+          "revenue_growth_pct": 65.47,
+          "fcf_margin_pct": null,
+          "return_1y_pct": 18.44
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "score": 79.9,
+          "revenue_growth_pct": 42.09,
+          "fcf_margin_pct": 17.04,
+          "return_1y_pct": 188.43
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "score": 79.1,
+          "revenue_growth_pct": 23.87,
+          "fcf_margin_pct": 42.13,
+          "return_1y_pct": 42.61
+        }
+      ],
+      "data_coverage_pct": 100.0,
+      "data_quality": "High",
+      "data_warnings": [],
+      "strengths": [
+        "Free-cash-flow margin compares favorably with peers.",
+        "The latest standardized free cash flow is positive.",
+        "The share price is above both its 50-day and 200-day averages."
+      ],
+      "risks": [
+        "Revenue growth trails most companies in its peer group.",
+        "Reported debt materially exceeds cash and short-term investments."
+      ],
+      "cap_group_rank": 6,
+      "cap_group_count": 7
+    },
+    {
       "ticker": "META",
       "name": "Meta Platforms",
       "subsector": "Cloud & AI Platforms",
       "market_cap_tier": "Unclassified",
-      "score": 77.6,
+      "score": 77.5,
       "score_components": {
         "growth": 94.3,
         "free_cash_flow": 100.0,
         "financial_strength": 58.0,
         "profitability": 100.0,
-        "momentum": 26.8,
+        "momentum": 26.1,
         "strategic_investment": 100.0
       },
       "history": [
@@ -5398,20 +5657,20 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
-      "latest_price": 590.24,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 1.26,
-      "return_1y_pct": -21.04,
+      "latest_price": 589.69,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 1.16,
+      "return_1y_pct": -23.8,
       "above_50_day": false,
       "above_200_day": false,
-      "overall_rank": 9,
+      "overall_rank": 10,
       "subsector_rank": 3,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 77.6,
-          "peer_median": 80.25,
+          "company_value": 77.5,
+          "peer_median": 80.2,
           "peer_percentile": 37.5
         },
         {
@@ -5438,8 +5697,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": -21.04,
-          "peer_median": 13.02,
+          "company_value": -23.8,
+          "peer_median": 12.26,
           "peer_percentile": 12.5
         }
       ],
@@ -5451,7 +5710,7 @@
           "score": 84.0,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 98.05
+          "return_1y_pct": 95.29
         },
         {
           "ticker": "MSFT",
@@ -5459,23 +5718,23 @@
           "score": 82.9,
           "revenue_growth_pct": 17.79,
           "fcf_margin_pct": 20.19,
-          "return_1y_pct": -6.21
+          "return_1y_pct": -6.45
         },
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 77.6,
+          "score": 77.5,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": -21.04
+          "return_1y_pct": -23.8
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 69.0,
+          "score": 68.9,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 32.26
+          "return_1y_pct": 30.96
         }
       ],
       "data_coverage_pct": 90.0,
@@ -5497,274 +5756,17 @@
       "cap_group_count": 2
     },
     {
-      "ticker": "AVGO",
-      "name": "Broadcom",
-      "subsector": "Semiconductors & Infrastructure",
-      "market_cap_tier": "Mega-Cap",
-      "score": 75.5,
-      "score_components": {
-        "growth": 97.7,
-        "free_cash_flow": 100.0,
-        "financial_strength": 23.2,
-        "profitability": 100.0,
-        "momentum": 60.3,
-        "strategic_investment": 55.4
-      },
-      "history": [
-        {
-          "year": "2016",
-          "revenue": null,
-          "net_income": -1861000000.0,
-          "operating_cash_flow": 3411000000.0,
-          "capex": 723000000.0,
-          "free_cash_flow": 2688000000.0,
-          "rnd": 2674000000.0
-        },
-        {
-          "year": "2017",
-          "revenue": 17636000000.0,
-          "net_income": 1784000000.0,
-          "operating_cash_flow": 6551000000.0,
-          "capex": 1069000000.0,
-          "free_cash_flow": 5482000000.0,
-          "rnd": 3302000000.0
-        },
-        {
-          "year": "2018",
-          "revenue": 20848000000.0,
-          "net_income": 12610000000.0,
-          "operating_cash_flow": 8880000000.0,
-          "capex": 635000000.0,
-          "free_cash_flow": 8245000000.0,
-          "rnd": 3768000000.0
-        },
-        {
-          "year": "2019",
-          "revenue": 22597000000.0,
-          "net_income": 2724000000.0,
-          "operating_cash_flow": 9697000000.0,
-          "capex": 432000000.0,
-          "free_cash_flow": 9265000000.0,
-          "rnd": 4696000000.0
-        },
-        {
-          "year": "2020",
-          "revenue": 23888000000.0,
-          "net_income": 2960000000.0,
-          "operating_cash_flow": 12061000000.0,
-          "capex": 463000000.0,
-          "free_cash_flow": 11598000000.0,
-          "rnd": 4968000000.0
-        },
-        {
-          "year": "2021",
-          "revenue": 27450000000.0,
-          "net_income": 6736000000.0,
-          "operating_cash_flow": 13764000000.0,
-          "capex": 443000000.0,
-          "free_cash_flow": 13321000000.0,
-          "rnd": 4854000000.0
-        },
-        {
-          "year": "2022",
-          "revenue": 33203000000.0,
-          "net_income": 11495000000.0,
-          "operating_cash_flow": 16736000000.0,
-          "capex": 424000000.0,
-          "free_cash_flow": 16312000000.0,
-          "rnd": 4919000000.0
-        },
-        {
-          "year": "2023",
-          "revenue": 35819000000.0,
-          "net_income": 14082000000.0,
-          "operating_cash_flow": 18085000000.0,
-          "capex": 452000000.0,
-          "free_cash_flow": 17633000000.0,
-          "rnd": 5253000000.0
-        },
-        {
-          "year": "2024",
-          "revenue": 51574000000.0,
-          "net_income": 5895000000.0,
-          "operating_cash_flow": 19962000000.0,
-          "capex": 548000000.0,
-          "free_cash_flow": 19414000000.0,
-          "rnd": 9310000000.0
-        },
-        {
-          "year": "2025",
-          "revenue": 63887000000.0,
-          "net_income": 23126000000.0,
-          "operating_cash_flow": 27537000000.0,
-          "capex": 623000000.0,
-          "free_cash_flow": 26914000000.0,
-          "rnd": 10977000000.0
-        }
-      ],
-      "latest_filings": [
-        {
-          "form": "8-K",
-          "date": "2026-07-06",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000119312526295589/d84378d8k.htm"
-        },
-        {
-          "form": "8-K",
-          "date": "2026-06-18",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000119312526275077/d149683d8k.htm"
-        },
-        {
-          "form": "8-K",
-          "date": "2026-06-11",
-          "description": "8-K",
-          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000119312526266777/d152717d8k.htm"
-        },
-        {
-          "form": "10-Q",
-          "date": "2026-06-09",
-          "description": "10-Q",
-          "url": "https://www.sec.gov/Archives/edgar/data/1730168/000173016826000054/avgo-20260503.htm"
-        }
-      ],
-      "automated_summary": "Reported annual revenue grew 23.9% in the latest fiscal year; standardized free cash flow was positive at a 42.1% margin; price momentum was mixed across the 50-day and 200-day averages; reported debt exceeded cash and short-term investments. This is an automated factual summary, not a forecast or recommendation.",
-      "cik": 1730168,
-      "latest_fiscal_year": "2025",
-      "latest_reported_revenue": 63887000000.0,
-      "revenue_growth_pct": 23.87,
-      "latest_net_income": 23126000000.0,
-      "latest_operating_cash_flow": 27537000000.0,
-      "latest_capex": 623000000.0,
-      "latest_free_cash_flow": 26914000000.0,
-      "latest_rnd": 10977000000.0,
-      "net_margin_pct": 36.2,
-      "fcf_margin_pct": 42.13,
-      "capex_intensity_pct": 0.98,
-      "rnd_intensity_pct": 17.18,
-      "cash_and_short_investments": 19628000000.0,
-      "total_debt": 64907000000.0,
-      "shares_outstanding": 4757580198.0,
-      "balance_sheet_date": "2026-05-29",
-      "xbrl_tags": {
-        "revenue": "RevenueFromContractWithCustomerExcludingAssessedTax",
-        "net_income": "ProfitLoss",
-        "operating_cash_flow": "NetCashProvidedByUsedInOperatingActivities",
-        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
-        "rnd": "ResearchAndDevelopmentExpense",
-        "cash": "CashAndCashEquivalentsAtCarryingValue",
-        "short_term_investments": null,
-        "debt_current": "LongTermDebtCurrent",
-        "debt_noncurrent": "LongTermDebtNoncurrent"
-      },
-      "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json",
-      "latest_price": 392.23,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 8.82,
-      "return_1y_pct": 36.88,
-      "above_50_day": false,
-      "above_200_day": true,
-      "market_cap": 1866065681061.54,
-      "overall_rank": 10,
-      "subsector_rank": 4,
-      "peer_metrics": [
-        {
-          "key": "score",
-          "label": "Company score",
-          "company_value": 75.5,
-          "peer_median": 81.6,
-          "peer_percentile": 12.5
-        },
-        {
-          "key": "revenue_growth_pct",
-          "label": "Revenue growth",
-          "company_value": 23.87,
-          "peer_median": 38.22,
-          "peer_percentile": 12.5
-        },
-        {
-          "key": "fcf_margin_pct",
-          "label": "FCF margin",
-          "company_value": 42.13,
-          "peer_median": 19.44,
-          "peer_percentile": 83.3
-        },
-        {
-          "key": "net_margin_pct",
-          "label": "Net margin",
-          "company_value": 36.2,
-          "peer_median": 34.39,
-          "peer_percentile": 62.5
-        },
-        {
-          "key": "return_1y_pct",
-          "label": "1-year return",
-          "company_value": 36.88,
-          "peer_median": 98.86,
-          "peer_percentile": 37.5
-        }
-      ],
-      "peer_count": 4,
-      "peer_snapshot": [
-        {
-          "ticker": "NVDA",
-          "name": "NVIDIA",
-          "score": 83.7,
-          "revenue_growth_pct": 65.47,
-          "fcf_margin_pct": null,
-          "return_1y_pct": 19.11
-        },
-        {
-          "ticker": "AMD",
-          "name": "Advanced Micro Devices",
-          "score": 83.3,
-          "revenue_growth_pct": 34.34,
-          "fcf_margin_pct": 19.44,
-          "return_1y_pct": 182.26
-        },
-        {
-          "ticker": "MRVL",
-          "name": "Marvell Technology",
-          "score": 79.9,
-          "revenue_growth_pct": 42.09,
-          "fcf_margin_pct": 17.04,
-          "return_1y_pct": 160.83
-        },
-        {
-          "ticker": "AVGO",
-          "name": "Broadcom",
-          "score": 75.5,
-          "revenue_growth_pct": 23.87,
-          "fcf_margin_pct": 42.13,
-          "return_1y_pct": 36.88
-        }
-      ],
-      "data_coverage_pct": 100.0,
-      "data_quality": "High",
-      "data_warnings": [],
-      "strengths": [
-        "Free-cash-flow margin compares favorably with peers.",
-        "The latest standardized free cash flow is positive."
-      ],
-      "risks": [
-        "Revenue growth trails most companies in its peer group.",
-        "Reported debt materially exceeds cash and short-term investments."
-      ],
-      "cap_group_rank": 6,
-      "cap_group_count": 7
-    },
-    {
       "ticker": "AMZN",
       "name": "Amazon",
       "subsector": "Cloud & AI Platforms",
       "market_cap_tier": "Mega-Cap",
-      "score": 69.0,
+      "score": 68.9,
       "score_components": {
         "growth": 74.8,
         "free_cash_flow": null,
         "financial_strength": 48.2,
         "profitability": 71.7,
-        "momentum": 75.9,
+        "momentum": 75.6,
         "strategic_investment": null
       },
       "history": [
@@ -5909,21 +5911,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
-      "latest_price": 284.02,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 17.04,
-      "return_1y_pct": 32.26,
+      "latest_price": 277.18,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 14.22,
+      "return_1y_pct": 30.96,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 3063528780719.44,
+      "market_cap": 2989750395886.96,
       "overall_rank": 11,
       "subsector_rank": 4,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 69.0,
-          "peer_median": 80.25,
+          "company_value": 68.9,
+          "peer_median": 80.2,
           "peer_percentile": 12.5
         },
         {
@@ -5950,8 +5952,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 32.26,
-          "peer_median": 13.02,
+          "company_value": 30.96,
+          "peer_median": 12.26,
           "peer_percentile": 62.5
         }
       ],
@@ -5963,7 +5965,7 @@
           "score": 84.0,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 98.05
+          "return_1y_pct": 95.29
         },
         {
           "ticker": "MSFT",
@@ -5971,23 +5973,23 @@
           "score": 82.9,
           "revenue_growth_pct": 17.79,
           "fcf_margin_pct": 20.19,
-          "return_1y_pct": -6.21
+          "return_1y_pct": -6.45
         },
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 77.6,
+          "score": 77.5,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": -21.04
+          "return_1y_pct": -23.8
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 69.0,
+          "score": 68.9,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 32.26
+          "return_1y_pct": 30.96
         }
       ],
       "data_coverage_pct": 80.0,
@@ -6149,13 +6151,13 @@
         "debt_noncurrent": null
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001577526.json",
-      "latest_price": 9.73,
-      "price_date": "2026-08-03",
-      "return_30d_pct": 7.4,
-      "return_1y_pct": -56.62,
+      "latest_price": 10.0201,
+      "price_date": "2026-08-04",
+      "return_30d_pct": 10.6,
+      "return_1y_pct": -56.79,
       "above_50_day": true,
       "above_200_day": false,
-      "market_cap": 34054922.16,
+      "market_cap": 35070269.84,
       "overall_rank": 12,
       "subsector_rank": 4,
       "peer_metrics": [
@@ -6163,7 +6165,7 @@
           "key": "score",
           "label": "Company score",
           "company_value": 32.0,
-          "peer_median": 81.6,
+          "peer_median": 84.25,
           "peer_percentile": 12.5
         },
         {
@@ -6190,36 +6192,36 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": -56.62,
-          "peer_median": -0.54,
+          "company_value": -56.79,
+          "peer_median": 12.02,
           "peer_percentile": 12.5
         }
       ],
       "peer_count": 4,
       "peer_snapshot": [
         {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "score": 88.6,
+          "revenue_growth_pct": 56.18,
+          "fcf_margin_pct": 46.94,
+          "return_1y_pct": 1.82
+        },
+        {
           "ticker": "SNOW",
           "name": "Snowflake",
-          "score": 85.2,
+          "score": 85.3,
           "revenue_growth_pct": 29.16,
           "fcf_margin_pct": 23.92,
-          "return_1y_pct": 50.0
+          "return_1y_pct": 52.49
         },
         {
           "ticker": "PATH",
           "name": "UiPath",
-          "score": 82.9,
+          "score": 83.2,
           "revenue_growth_pct": 12.65,
           "fcf_margin_pct": 21.87,
-          "return_1y_pct": 17.46
-        },
-        {
-          "ticker": "PLTR",
-          "name": "Palantir Technologies",
-          "score": 80.3,
-          "revenue_growth_pct": 56.18,
-          "fcf_margin_pct": 46.94,
-          "return_1y_pct": -18.55
+          "return_1y_pct": 22.22
         },
         {
           "ticker": "AI",
@@ -6227,7 +6229,7 @@
           "score": 32.0,
           "revenue_growth_pct": -35.67,
           "fcf_margin_pct": -76.77,
-          "return_1y_pct": -56.62
+          "return_1y_pct": -56.79
         }
       ],
       "data_coverage_pct": 90.0,
