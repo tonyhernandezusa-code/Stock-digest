@@ -17,7 +17,8 @@ and not a probability forecast. Missing inputs are excluded and the remaining we
 are renormalized. Phase 2 adds deterministic peer comparisons, strengths, risks,
 data-coverage warnings, and a preliminary weekly-leaders view. Phase 3 adds a
 permanent weekly snapshot history, live-versus-official ranking changes, and a
-track-record scorecard that measures subsequent returns against subsector peers.
+track-record scorecard that measures subsequent returns against subsector peers. Phase 4
+adds a preliminary point-in-time historical backtest and score-band calibration lab.
 """
 
 from __future__ import annotations
@@ -261,12 +262,79 @@ def series_to_year_map(series: list[AnnualPoint]) -> dict[str, float]:
     return result
 
 
+def duration_backtest_rows(companyfacts: dict[str, Any], tag: str | None) -> list[dict[str, Any]]:
+    """Return annual facts with filing dates so historical tests use only then-public data."""
+    if not tag:
+        return []
+    units = (
+        companyfacts.get("facts", {})
+        .get("us-gaap", {})
+        .get(tag, {})
+        .get("units", {})
+    )
+    rows = []
+    seen = set()
+    for row in units.get("USD", []):
+        form = str(row.get("form", ""))
+        start = row.get("start")
+        end = row.get("end")
+        filed = str(row.get("filed", ""))
+        value = safe_float(row.get("val"))
+        if form not in {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}:
+            continue
+        if not start or not end or not filed or value is None:
+            continue
+        try:
+            days = (datetime.fromisoformat(end) - datetime.fromisoformat(start)).days
+        except ValueError:
+            continue
+        if not 300 <= days <= 430:
+            continue
+        key = (str(end), filed, round(value, 4))
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append({"end": str(end), "filed": filed, "value": money_round(value), "form": form})
+    return sorted(rows, key=lambda item: (item["filed"], item["end"]))
+
+
+def instant_backtest_rows(companyfacts: dict[str, Any], tag: str | None) -> list[dict[str, Any]]:
+    """Return balance-sheet facts with filing dates for point-in-time reconstruction."""
+    if not tag:
+        return []
+    units = (
+        companyfacts.get("facts", {})
+        .get("us-gaap", {})
+        .get(tag, {})
+        .get("units", {})
+    )
+    rows = []
+    seen = set()
+    for row in units.get("USD", []):
+        form = str(row.get("form", ""))
+        end = str(row.get("end", ""))
+        filed = str(row.get("filed", ""))
+        value = safe_float(row.get("val"))
+        if form not in {"10-K", "10-K/A", "10-Q", "10-Q/A", "20-F", "20-F/A", "40-F", "40-F/A"}:
+            continue
+        if not end or not filed or value is None:
+            continue
+        key = (end, filed, round(value, 4))
+        if key in seen:
+            continue
+        seen.add(key)
+        rows.append({"end": end, "filed": filed, "value": money_round(value), "form": form})
+    return sorted(rows, key=lambda item: (item["filed"], item["end"]))
+
+
 def build_financial_record(companyfacts: dict[str, Any]) -> dict[str, Any]:
     picked_tags: dict[str, str | None] = {}
     series_maps: dict[str, dict[str, float]] = {}
+    series_points: dict[str, list[AnnualPoint]] = {}
     for metric, tags in DURATION_TAGS.items():
         tag, series = choose_duration_series(companyfacts, tags)
         picked_tags[metric] = tag
+        series_points[metric] = series
         series_maps[metric] = series_to_year_map(series)
 
     all_years = sorted(set().union(*(mapping.keys() for mapping in series_maps.values())))[-10:]
@@ -316,6 +384,19 @@ def build_financial_record(companyfacts: dict[str, Any]) -> dict[str, Any]:
     if debt_current is not None or debt_noncurrent is not None:
         total_debt = (debt_current or 0.0) + (debt_noncurrent or 0.0)
 
+    backtest_facts = {
+        "duration": {
+            metric: duration_backtest_rows(companyfacts, picked_tags.get(metric))
+            for metric in DURATION_TAGS
+        },
+        "instant": {
+            "cash": instant_backtest_rows(companyfacts, cash_tag),
+            "short_term_investments": instant_backtest_rows(companyfacts, short_inv_tag),
+            "debt_current": instant_backtest_rows(companyfacts, debt_current_tag),
+            "debt_noncurrent": instant_backtest_rows(companyfacts, debt_noncurrent_tag),
+        },
+    }
+
     return {
         "latest_fiscal_year": latest_year,
         "latest_reported_revenue": money_round(latest_revenue),
@@ -341,6 +422,7 @@ def build_financial_record(companyfacts: dict[str, Any]) -> dict[str, Any]:
             "debt_current": debt_current_tag,
             "debt_noncurrent": debt_noncurrent_tag,
         },
+        "_backtest_facts": backtest_facts,
     }
 
 
@@ -470,6 +552,8 @@ def build_price_data(tickers: list[str]) -> tuple[dict[str, Any], list[dict[str,
         for key, symbol in BENCHMARKS.items():
             try:
                 s = close[symbol].dropna()
+                price_history[key] = s.copy()
+                price_history[symbol] = s.copy()
                 benchmark_series[key] = s / s.iloc[0] * 100
             except Exception:
                 benchmark_series[key] = None
@@ -718,6 +802,303 @@ def add_peer_intelligence(companies: list[dict[str, Any]]) -> None:
         for rank, company in enumerate(tier_group, start=1):
             company["cap_group_rank"] = rank if company.get("score") is not None else None
             company["cap_group_count"] = len(tier_group)
+
+
+
+def latest_value_as_of(rows: list[dict[str, Any]], as_of: datetime) -> float | None:
+    cutoff = as_of.date().isoformat()
+    eligible = [row for row in rows if str(row.get("filed", "")) <= cutoff]
+    if not eligible:
+        return None
+    row = max(eligible, key=lambda item: (str(item.get("filed", "")), str(item.get("end", ""))))
+    return safe_float(row.get("value"))
+
+
+def annual_rows_as_of(rows: list[dict[str, Any]], as_of: datetime) -> list[dict[str, Any]]:
+    """Return the latest then-public filing for each annual period."""
+    cutoff = as_of.date().isoformat()
+    by_end: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        filed = str(row.get("filed", ""))
+        end = str(row.get("end", ""))
+        if not filed or not end or filed > cutoff:
+            continue
+        existing = by_end.get(end)
+        if existing is None or filed > str(existing.get("filed", "")):
+            by_end[end] = row
+    return [by_end[key] for key in sorted(by_end)]
+
+
+def annual_metric_for_period(rows: list[dict[str, Any]], as_of: datetime, period_end: str | None) -> float | None:
+    if not period_end:
+        return None
+    available = annual_rows_as_of(rows, as_of)
+    exact = [row for row in available if row.get("end") == period_end]
+    if exact:
+        return safe_float(exact[-1].get("value"))
+    prior = [row for row in available if str(row.get("end", "")) <= period_end]
+    return safe_float(prior[-1].get("value")) if prior else None
+
+
+def price_slice_as_of(series: Any, as_of: datetime) -> Any:
+    try:
+        target = as_of
+        if getattr(series.index, "tz", None) is None:
+            target = target.replace(tzinfo=None)
+        return series.loc[series.index <= target].dropna()
+    except Exception:
+        return None
+
+
+def historical_record_as_of(company: dict[str, Any], series: Any, as_of: datetime) -> dict[str, Any] | None:
+    facts = company.get("_backtest_facts") or {}
+    duration = facts.get("duration") or {}
+    instant = facts.get("instant") or {}
+    revenues = annual_rows_as_of(duration.get("revenue", []), as_of)
+    if len(revenues) < 2:
+        return None
+    latest_revenue_row = revenues[-1]
+    prior_revenue_row = revenues[-2]
+    period_end = str(latest_revenue_row.get("end", ""))
+    latest_revenue = safe_float(latest_revenue_row.get("value"))
+    prior_revenue = safe_float(prior_revenue_row.get("value"))
+    if latest_revenue in (None, 0):
+        return None
+
+    net_income = annual_metric_for_period(duration.get("net_income", []), as_of, period_end)
+    ocf = annual_metric_for_period(duration.get("operating_cash_flow", []), as_of, period_end)
+    capex = annual_metric_for_period(duration.get("capex", []), as_of, period_end)
+    rnd = annual_metric_for_period(duration.get("rnd", []), as_of, period_end)
+    fcf = ocf - capex if ocf is not None and capex is not None else None
+
+    cash = latest_value_as_of(instant.get("cash", []), as_of)
+    short_inv = latest_value_as_of(instant.get("short_term_investments", []), as_of)
+    debt_current = latest_value_as_of(instant.get("debt_current", []), as_of)
+    debt_noncurrent = latest_value_as_of(instant.get("debt_noncurrent", []), as_of)
+    total_cash = (cash or 0.0) + (short_inv or 0.0) if cash is not None or short_inv is not None else None
+    total_debt = (debt_current or 0.0) + (debt_noncurrent or 0.0) if debt_current is not None or debt_noncurrent is not None else None
+
+    prices = price_slice_as_of(series, as_of)
+    if prices is None or len(prices) < 50:
+        return None
+    latest_price = safe_float(prices.iloc[-1])
+    one_year_return = nearest_return(prices, 365)
+    ma50 = safe_float(prices.tail(50).mean()) if len(prices) >= 50 else None
+    ma200 = safe_float(prices.tail(200).mean()) if len(prices) >= 200 else None
+
+    record = {
+        "ticker": company.get("ticker"),
+        "name": company.get("name"),
+        "subsector": company.get("subsector"),
+        "as_of": as_of.date().isoformat(),
+        "fundamental_period_end": period_end,
+        "latest_reported_revenue": latest_revenue,
+        "revenue_growth_pct": pct_change(latest_revenue, prior_revenue),
+        "latest_net_income": net_income,
+        "latest_operating_cash_flow": ocf,
+        "latest_capex": capex,
+        "latest_free_cash_flow": fcf,
+        "latest_rnd": rnd,
+        "net_margin_pct": round(net_income / latest_revenue * 100, 2) if net_income is not None else None,
+        "fcf_margin_pct": round(fcf / latest_revenue * 100, 2) if fcf is not None else None,
+        "capex_intensity_pct": round(capex / latest_revenue * 100, 2) if capex is not None else None,
+        "rnd_intensity_pct": round(rnd / latest_revenue * 100, 2) if rnd is not None else None,
+        "cash_and_short_investments": total_cash,
+        "total_debt": total_debt,
+        "latest_price": latest_price,
+        "return_1y_pct": one_year_return,
+        "above_50_day": bool(latest_price is not None and ma50 is not None and latest_price > ma50),
+        "above_200_day": bool(latest_price is not None and ma200 is not None and latest_price > ma200),
+    }
+    record["score_components"] = component_scores(record)
+    record["component_count"] = sum(value is not None for value in record["score_components"].values())
+    record["score"] = weighted_score(record["score_components"])
+    return record
+
+
+def price_at_or_before(series: Any, target_date: datetime) -> float | None:
+    try:
+        target = target_date
+        if getattr(series.index, "tz", None) is None:
+            target = target.replace(tzinfo=None)
+        subset = series.loc[series.index <= target].dropna()
+        return safe_float(subset.iloc[-1]) if not subset.empty else None
+    except Exception:
+        return None
+
+
+def forward_return(series: Any, start: datetime, days: int) -> float | None:
+    entry = price_at_or_before(series, start)
+    end = price_at_or_after(series, start + timedelta(days=days))
+    return pct_change(end, entry)
+
+
+def monthly_rebalance_dates(series: Any, years: int = 5) -> list[datetime]:
+    if series is None or getattr(series, "empty", True):
+        return []
+    latest_index = series.dropna().index[-1]
+    latest = latest_index.to_pydatetime() if hasattr(latest_index, "to_pydatetime") else latest_index
+    if latest.tzinfo is None:
+        latest = latest.replace(tzinfo=timezone.utc)
+    cutoff = latest - timedelta(days=365 * years)
+    by_month: dict[tuple[int, int], datetime] = {}
+    for item in series.dropna().index:
+        current = item.to_pydatetime() if hasattr(item, "to_pydatetime") else item
+        if current.tzinfo is None:
+            current = current.replace(tzinfo=timezone.utc)
+        if current < cutoff:
+            continue
+        by_month[(current.year, current.month)] = current
+    return [by_month[key] for key in sorted(by_month)]
+
+
+def score_band(score: float | None) -> str | None:
+    if score is None:
+        return None
+    if score < 60:
+        return "Below 60"
+    if score < 70:
+        return "60–69.9"
+    if score < 80:
+        return "70–79.9"
+    return "80 and above"
+
+
+def build_historical_backtest(companies: list[dict[str, Any]], price_history: dict[str, Any]) -> dict[str, Any]:
+    """Preliminary monthly point-in-time backtest for research validation, not a forecast."""
+    benchmark = price_history.get("nasdaq100")
+    if benchmark is None:
+        benchmark = price_history.get("^NDX")
+    dates = monthly_rebalance_dates(benchmark, years=5)
+    horizons = [(90, "3 months"), (180, "6 months"), (365, "12 months")]
+    company_by_ticker = {str(company.get("ticker")): company for company in companies}
+    top_observations: dict[int, list[dict[str, float]]] = {days: [] for days, _ in horizons}
+    all_observations: list[dict[str, Any]] = []
+    tested_months = 0
+
+    for as_of in dates:
+        records = []
+        for ticker, company in company_by_ticker.items():
+            series = price_history.get(ticker)
+            if series is None:
+                continue
+            record = historical_record_as_of(company, series, as_of)
+            if record and record.get("score") is not None and record.get("component_count", 0) >= 4:
+                records.append(record)
+        if len(records) < 6:
+            continue
+        tested_months += 1
+        ranked = sorted(records, key=lambda item: item.get("score") or -1, reverse=True)
+        top_tickers = {str(item.get("ticker")) for item in ranked[:5]}
+
+        for days, _label in horizons:
+            universe_returns: dict[str, float] = {}
+            subsector_returns: dict[str, list[tuple[str, float]]] = {}
+            for record in ranked:
+                ticker = str(record.get("ticker"))
+                result = forward_return(price_history.get(ticker), as_of, days)
+                if result is None:
+                    continue
+                universe_returns[ticker] = result
+                subsector_returns.setdefault(str(record.get("subsector")), []).append((ticker, result))
+
+            ndx_series = price_history.get("nasdaq100")
+            if ndx_series is None:
+                ndx_series = price_history.get("^NDX")
+            sp_series = price_history.get("sp500")
+            if sp_series is None:
+                sp_series = price_history.get("^GSPC")
+            ndx_return = forward_return(ndx_series, as_of, days)
+            sp_return = forward_return(sp_series, as_of, days)
+            for record in ranked:
+                ticker = str(record.get("ticker"))
+                company_return = universe_returns.get(ticker)
+                if company_return is None:
+                    continue
+                peers = [value for peer_ticker, value in subsector_returns.get(str(record.get("subsector")), []) if peer_ticker != ticker]
+                peer_return = statistics.fmean(peers) if peers else None
+                observation = {
+                    "score": safe_float(record.get("score")),
+                    "band": score_band(safe_float(record.get("score"))),
+                    "company_return": company_return,
+                    "peer_return": peer_return,
+                    "excess_peer": company_return - peer_return if peer_return is not None else None,
+                    "nasdaq100_return": ndx_return,
+                    "excess_nasdaq100": company_return - ndx_return if ndx_return is not None else None,
+                    "sp500_return": sp_return,
+                    "excess_sp500": company_return - sp_return if sp_return is not None else None,
+                    "days": days,
+                    "is_top5": ticker in top_tickers,
+                }
+                all_observations.append(observation)
+                if ticker in top_tickers:
+                    top_observations[days].append(observation)
+
+    horizon_rows = []
+    for days, label in horizons:
+        rows = top_observations[days]
+        peer_rows = [row for row in rows if row.get("excess_peer") is not None]
+        ndx_rows = [row for row in rows if row.get("excess_nasdaq100") is not None]
+        winners = sum((row.get("excess_peer") or 0) > 0 for row in peer_rows)
+        ndx_winners = sum((row.get("excess_nasdaq100") or 0) > 0 for row in ndx_rows)
+        horizon_rows.append({
+            "days": days,
+            "label": label,
+            "selection_observations": len(rows),
+            "peer_comparison_observations": len(peer_rows),
+            "peer_outperformance_rate_pct": round(winners / len(peer_rows) * 100, 1) if peer_rows else None,
+            "nasdaq100_outperformance_rate_pct": round(ndx_winners / len(ndx_rows) * 100, 1) if ndx_rows else None,
+            "average_selection_return_pct": round(statistics.fmean(row["company_return"] for row in rows), 2) if rows else None,
+            "average_excess_peer_pct": round(statistics.fmean(row["excess_peer"] for row in peer_rows), 2) if peer_rows else None,
+            "average_excess_nasdaq100_pct": round(statistics.fmean(row["excess_nasdaq100"] for row in ndx_rows), 2) if ndx_rows else None,
+        })
+
+    band_rows = []
+    band_order = ["Below 60", "60–69.9", "70–79.9", "80 and above"]
+    for days, label in horizons:
+        for band in band_order:
+            rows = [row for row in all_observations if row.get("days") == days and row.get("band") == band]
+            comparable = [row for row in rows if row.get("excess_peer") is not None]
+            winners = sum((row.get("excess_peer") or 0) > 0 for row in comparable)
+            band_rows.append({
+                "score_band": band,
+                "days": days,
+                "horizon": label,
+                "observations": len(rows),
+                "peer_comparison_observations": len(comparable),
+                "historical_peer_outperformance_rate_pct": round(winners / len(comparable) * 100, 1) if comparable else None,
+                "average_return_pct": round(statistics.fmean(row["company_return"] for row in rows), 2) if rows else None,
+                "average_excess_peer_pct": round(statistics.fmean(row["excess_peer"] for row in comparable), 2) if comparable else None,
+            })
+
+    comparable_count = sum(row.get("peer_comparison_observations", 0) for row in band_rows if row.get("days") == 365)
+    readiness = "Early research sample"
+    if tested_months >= 48 and comparable_count >= 250:
+        readiness = "Large enough for model-development review, but not yet a published probability"
+    elif tested_months >= 24 and comparable_count >= 100:
+        readiness = "Developing research sample"
+
+    return {
+        "status": "Preliminary point-in-time retrospective backtest; not a probability forecast",
+        "period_start": dates[0].date().isoformat() if dates else None,
+        "period_end": dates[-1].date().isoformat() if dates else None,
+        "rebalance_frequency": "Monthly, using the final available trading date of each month",
+        "tested_months": tested_months,
+        "current_universe_size": len(companies),
+        "selected_each_month": 5,
+        "fundamental_policy": "Only annual facts with SEC filing dates on or before each test date are used. Price momentum uses only prices available through that date.",
+        "calibration_readiness": readiness,
+        "top5_horizons": horizon_rows,
+        "score_band_calibration": band_rows,
+        "limitations": [
+            "The universe contains today's 12 prototype companies, creating survivorship and selection bias; delisted and omitted historical companies are not included.",
+            "Monthly observations overlap, so they are not independent trials and should not be interpreted as a simple probability sample.",
+            "The backtest uses annual standardized fundamentals, which can remain unchanged between filings.",
+            "Peer benchmarks are equal-weighted within the small prototype subsectors and are not published investable sector indexes.",
+            "Adjusted historical prices exclude transaction costs, taxes, market impact, and real-world execution delays.",
+            "Historical outperformance rates describe this retrospective sample only and are not forecasts or investment recommendations.",
+        ],
+    }
 
 
 def build_weekly_leaders(companies: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1060,7 +1441,7 @@ HTML_TEMPLATE = r'''<!DOCTYPE html>
 <style>
 :root{--bg:#f7f7f5;--text:#111;--secondary:#666;--muted:#888;--card:#fff;--border:#e4e2dc;--header:#f0efe9;--accent:#1f4e79;--positive:#1a7f37;--negative:#b42318;--shadow:0 8px 24px rgba(0,0,0,.05)}
 body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;--card:#191919;--border:#333;--header:#222;--accent:#82b9e6;--positive:#67c587;--negative:#ff8b84;--shadow:none}
-*{box-sizing:border-box}body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}a{color:var(--accent)}.container{max-width:1250px;margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px;flex-wrap:wrap}.nav a{font-size:14px;font-weight:650;text-decoration:none;margin-right:16px}.theme-btn{border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--text);padding:8px 14px;cursor:pointer}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:800}.title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:28px;margin:5px 0}.premium{background:#f4c95d;color:#342800;font-size:11px;font-weight:800;border-radius:999px;padding:5px 9px}.timestamp{font-size:13px;color:var(--secondary);margin:0 0 18px}.notice{border:1px solid var(--border);background:var(--card);border-radius:10px;padding:12px 14px;color:var(--secondary);font-size:12px;line-height:1.5;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.label{font-size:11px;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em}.value{font-size:22px;font-weight:750;margin-top:5px}.subvalue{font-size:11px;color:var(--muted);margin-top:4px}.positive{color:var(--positive)}.negative{color:var(--negative)}h2{font-size:19px;margin:28px 0 10px}.section-note{font-size:12px;color:var(--secondary);margin:0 0 12px;line-height:1.5}.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.chart-wrap{height:390px}.range-buttons,.metric-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.range-buttons button,.metric-buttons button,.filter-row select,.filter-row input{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:7px;padding:7px 10px;font-size:12px}.range-buttons button,.metric-buttons button{cursor:pointer}.range-buttons button.active,.metric-buttons button.active{background:var(--accent);color:#fff;border-color:var(--accent)}.filter-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px}.filter-row input{min-width:230px}.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%;min-width:1040px}th{position:sticky;top:0;background:var(--header);color:var(--secondary);font-size:11px;text-align:left;padding:9px;white-space:nowrap;cursor:pointer}td{border-top:1px solid var(--border);padding:9px;font-size:12px;white-space:nowrap}tr.company-row{cursor:pointer}tr.company-row:hover{background:var(--header)}.score-pill{display:inline-block;min-width:48px;text-align:center;padding:4px 7px;border-radius:999px;background:var(--header);font-weight:750}.detail{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:14px}.detail-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;box-shadow:var(--shadow)}.detail h3{margin:0 0 5px}.summary-text{font-size:13px;line-height:1.6;color:var(--secondary)}.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px}.mini{border:1px solid var(--border);border-radius:9px;padding:10px}.mini .value{font-size:16px}.component-row{display:grid;grid-template-columns:135px 1fr 42px;align-items:center;gap:8px;margin:9px 0;font-size:12px}.bar{height:8px;border-radius:6px;background:var(--header);overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}.filings{padding-left:18px;margin:8px 0}.filings li{margin:7px 0;font-size:12px}.source-note{font-size:11px;color:var(--muted);line-height:1.5}.empty{padding:22px;text-align:center;color:var(--secondary)}.leaders-table{min-width:980px}.leaders-table td{white-space:normal;vertical-align:top}.leaders-table .company-link{cursor:pointer;color:var(--accent);font-weight:750}.tag{display:inline-block;border:1px solid var(--border);background:var(--header);border-radius:999px;padding:3px 7px;font-size:10px;font-weight:700}.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.analysis-box{border:1px solid var(--border);border-radius:10px;padding:12px}.analysis-box h4{margin:0 0 8px;font-size:13px}.analysis-box ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5}.warning-box{border:1px solid #d9a441;background:rgba(217,164,65,.08);border-radius:10px;padding:11px;margin-top:12px;font-size:12px;line-height:1.5}.peer-table{min-width:650px}.peer-table th{cursor:default}.peer-table td{white-space:nowrap}.selected-peer{font-weight:750;background:var(--header)}.quality-high{color:var(--positive)}.quality-limited{color:var(--negative)}.rank-up{color:var(--positive);font-weight:750}.rank-down{color:var(--negative);font-weight:750}.rank-flat{color:var(--secondary)}@media(max-width:800px){body{padding:14px}.detail{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}.chart-wrap{height:320px}}
+*{box-sizing:border-box}body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}a{color:var(--accent)}.container{max-width:1250px;margin:0 auto}.topbar{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px;flex-wrap:wrap}.nav a{font-size:14px;font-weight:650;text-decoration:none;margin-right:16px}.theme-btn{border:1px solid var(--border);border-radius:20px;background:var(--card);color:var(--text);padding:8px 14px;cursor:pointer}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:800}.title-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}h1{font-size:28px;margin:5px 0}.premium{background:#f4c95d;color:#342800;font-size:11px;font-weight:800;border-radius:999px;padding:5px 9px}.timestamp{font-size:13px;color:var(--secondary);margin:0 0 18px}.notice{border:1px solid var(--border);background:var(--card);border-radius:10px;padding:12px 14px;color:var(--secondary);font-size:12px;line-height:1.5;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.label{font-size:11px;color:var(--secondary);text-transform:uppercase;letter-spacing:.04em}.value{font-size:22px;font-weight:750;margin-top:5px}.subvalue{font-size:11px;color:var(--muted);margin-top:4px}.positive{color:var(--positive)}.negative{color:var(--negative)}h2{font-size:19px;margin:28px 0 10px}.section-note{font-size:12px;color:var(--secondary);margin:0 0 12px;line-height:1.5}.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;box-shadow:var(--shadow)}.chart-wrap{height:390px}.range-buttons,.metric-buttons{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.range-buttons button,.metric-buttons button,.filter-row select,.filter-row input{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:7px;padding:7px 10px;font-size:12px}.range-buttons button,.metric-buttons button{cursor:pointer}.range-buttons button.active,.metric-buttons button.active{background:var(--accent);color:#fff;border-color:var(--accent)}.filter-row{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:10px}.filter-row input{min-width:230px}.table-wrap{overflow:auto;border:1px solid var(--border);border-radius:12px;background:var(--card)}table{border-collapse:collapse;width:100%;min-width:1040px}th{position:sticky;top:0;background:var(--header);color:var(--secondary);font-size:11px;text-align:left;padding:9px;white-space:nowrap;cursor:pointer}td{border-top:1px solid var(--border);padding:9px;font-size:12px;white-space:nowrap}tr.company-row{cursor:pointer}tr.company-row:hover{background:var(--header)}.score-pill{display:inline-block;min-width:48px;text-align:center;padding:4px 7px;border-radius:999px;background:var(--header);font-weight:750}.detail{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:14px}.detail-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;box-shadow:var(--shadow)}.detail h3{margin:0 0 5px}.summary-text{font-size:13px;line-height:1.6;color:var(--secondary)}.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px}.mini{border:1px solid var(--border);border-radius:9px;padding:10px}.mini .value{font-size:16px}.component-row{display:grid;grid-template-columns:135px 1fr 42px;align-items:center;gap:8px;margin:9px 0;font-size:12px}.bar{height:8px;border-radius:6px;background:var(--header);overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}.filings{padding-left:18px;margin:8px 0}.filings li{margin:7px 0;font-size:12px}.source-note{font-size:11px;color:var(--muted);line-height:1.5}.empty{padding:22px;text-align:center;color:var(--secondary)}.leaders-table{min-width:980px}.leaders-table td{white-space:normal;vertical-align:top}.leaders-table .company-link{cursor:pointer;color:var(--accent);font-weight:750}.tag{display:inline-block;border:1px solid var(--border);background:var(--header);border-radius:999px;padding:3px 7px;font-size:10px;font-weight:700}.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}.analysis-box{border:1px solid var(--border);border-radius:10px;padding:12px}.analysis-box h4{margin:0 0 8px;font-size:13px}.analysis-box ul{margin:0;padding-left:18px;font-size:12px;line-height:1.5}.warning-box{border:1px solid #d9a441;background:rgba(217,164,65,.08);border-radius:10px;padding:11px;margin-top:12px;font-size:12px;line-height:1.5}.peer-table{min-width:650px}.peer-table th{cursor:default}.peer-table td{white-space:nowrap}.selected-peer{font-weight:750;background:var(--header)}.quality-high{color:var(--positive)}.quality-limited{color:var(--negative)}.rank-up{color:var(--positive);font-weight:750}.rank-down{color:var(--negative);font-weight:750}.rank-flat{color:var(--secondary)}.backtest-note{border-left:4px solid var(--accent)}.calibration-table{min-width:900px}.calibration-table th{cursor:default}@media(max-width:800px){body{padding:14px}.detail{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}.chart-wrap{height:320px}}
 </style>
 </head>
 <body>
@@ -1071,9 +1452,9 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   </div>
 
   <div class="eyebrow">Stock Digest Research</div>
-  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 3 PREMIUM PREVIEW</span></div>
+  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 4 PREMIUM PREVIEW</span></div>
   <p class="timestamp" id="updated-at">Loading the latest AI company dataset...</p>
-  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 3 permanently records one official ranking per week and measures subsequent performance against each company's prototype subsector peers. It is still not a probability forecast, price target, or buy/sell recommendation. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
+  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 4 retains the permanent weekly record and adds a preliminary point-in-time historical backtest. Historical outperformance rates are research diagnostics—not probabilities, price targets, or buy/sell recommendations. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
 
   <div class="grid" id="summary-cards"></div>
 
@@ -1091,6 +1472,15 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   </tr></thead><tbody id="track-record-body"></tbody></table></div>
   <h3 style="font-size:15px;margin:18px 0 8px">Recent official weekly snapshots</h3>
   <div class="table-wrap"><table class="peer-table"><thead><tr><th>Week</th><th>Top-ranked company</th><th>Selections</th><th>Average return to date</th><th>Average relative return to date</th></tr></thead><tbody id="snapshot-history-body"></tbody></table></div>
+
+  <h2>Phase 4 Historical Backtest Lab</h2>
+  <p class="section-note">A preliminary monthly point-in-time test of the same transparent score. It uses only annual SEC facts filed by each historical test date and price information available through that date. The top five are tested because the prototype universe currently contains only 12 companies.</p>
+  <div class="grid" id="backtest-cards"></div>
+  <div class="table-wrap" style="margin-top:12px"><table class="calibration-table"><thead><tr><th>Holding period</th><th>Top-five observations</th><th>Outperformed subsector peers</th><th>Outperformed Nasdaq-100</th><th>Average return</th><th>Average relative to peers</th><th>Average relative to Nasdaq-100</th></tr></thead><tbody id="backtest-horizon-body"></tbody></table></div>
+  <h3 style="font-size:15px;margin:18px 0 8px">Score-band calibration research</h3>
+  <p class="section-note">This table asks whether higher score ranges historically performed differently. It reports retrospective rates only; it does not convert a score into a probability.</p>
+  <div class="table-wrap"><table class="calibration-table"><thead><tr><th>Score band</th><th>Holding period</th><th>Observations</th><th>Historical peer-outperformance rate</th><th>Average return</th><th>Average relative to peers</th></tr></thead><tbody id="backtest-band-body"></tbody></table></div>
+  <div class="notice backtest-note" id="backtest-limitations" style="margin-top:12px"></div>
 
   <h2>Past to Present: AI Market Direction</h2>
   <p class="section-note">Equal-weighted Stock Digest AI Index compared with the Nasdaq-100 and S&amp;P 500. Constituents enter when their public trading history begins, so earlier periods contain fewer companies.</p>
@@ -1145,6 +1535,8 @@ function rankChange(value){if(value==null||value===0)return '<span class="rank-f
 function renderWeeklyLeaders(){const weekly=DATA.weekly_leaders||{},leaders=weekly.leaders||[];document.getElementById('leaders-note').textContent=(weekly.status||'Official weekly research ranking')+(weekly.week_start?' · Week beginning '+weekly.week_start:'')+(weekly.captured_at?' · Captured '+weekly.captured_at:'')+'. It is not a buy list or recommendation.';const body=document.getElementById('leaders-body');if(!leaders.length){body.innerHTML='<tr><td colspan="9" class="empty">The first official weekly snapshot will be recorded during the next successful refresh.</td></tr>';return;}body.innerHTML=leaders.map(item=>'<tr data-leader-ticker="'+esc(item.ticker)+'"><td><strong>'+esc(item.official_rank||'—')+'</strong></td><td>'+esc(item.live_rank||'—')+'</td><td>'+rankChange(item.rank_change)+'</td><td><span class="company-link">'+esc(item.name)+' ('+esc(item.ticker)+')</span><br><span class="source-note">'+esc(item.subsector||'')+'</span></td><td><span class="score-pill">'+esc(item.official_score==null?'N/A':Number(item.official_score).toFixed(1))+'</span></td><td>'+money(item.entry_price)+'</td><td class="'+signedClass(item.return_since_selection_pct)+'">'+pct(item.return_since_selection_pct)+'</td><td class="'+signedClass(item.peer_return_since_selection_pct)+'">'+pct(item.peer_return_since_selection_pct)+'</td><td class="'+signedClass(item.relative_return_pct)+'"><strong>'+pct(item.relative_return_pct)+'</strong></td></tr>').join('');body.querySelectorAll('tr[data-leader-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.leaderTicker,true)));}
 function renderTrackRecord(){const track=DATA.performance_scorecard||{},horizons=track.horizons||[],weeks=track.recent_weeks||[];const h30=horizons.find(x=>x.days===30)||{},h90=horizons.find(x=>x.days===90)||{},h365=horizons.find(x=>x.days===365)||{};const cards=[['Tracking started',track.tracking_started?String(track.tracking_started).slice(0,10):'Awaiting first snapshot','Permanent history begins in Phase 3'],['Weeks recorded',track.weeks_recorded||0,'Official snapshots retained'],['30-day hit rate',h30.hit_rate_pct==null?'Awaiting history':pct(h30.hit_rate_pct),(h30.evaluated_selections||0)+' selections evaluated'],['3-month hit rate',h90.hit_rate_pct==null?'Awaiting history':pct(h90.hit_rate_pct),(h90.evaluated_selections||0)+' selections evaluated'],['12-month hit rate',h365.hit_rate_pct==null?'Awaiting history':pct(h365.hit_rate_pct),(h365.evaluated_selections||0)+' selections evaluated']];document.getElementById('track-record-cards').innerHTML=cards.map(c=>'<div class="card"><div class="label">'+esc(c[0])+'</div><div class="value">'+esc(c[1])+'</div><div class="subvalue">'+esc(c[2])+'</div></div>').join('');document.getElementById('track-record-body').innerHTML=horizons.map(h=>'<tr><td><strong>'+esc(h.label)+'</strong></td><td>'+esc(h.evaluated_selections||0)+'</td><td>'+esc(h.outperformed_count||0)+'</td><td>'+pct(h.hit_rate_pct)+'</td><td class="'+signedClass(h.average_selection_return_pct)+'">'+pct(h.average_selection_return_pct)+'</td><td class="'+signedClass(h.average_peer_return_pct)+'">'+pct(h.average_peer_return_pct)+'</td><td class="'+signedClass(h.average_excess_return_pct)+'"><strong>'+pct(h.average_excess_return_pct)+'</strong></td></tr>').join('')||'<tr><td colspan="7" class="empty">No fixed-horizon results are available yet.</td></tr>';document.getElementById('snapshot-history-body').innerHTML=[...weeks].reverse().map(w=>'<tr><td>'+esc(w.week_start||'N/A')+'</td><td>'+esc(w.top_company||'N/A')+'</td><td>'+esc(w.selection_count||0)+'</td><td class="'+signedClass(w.average_return_to_date_pct)+'">'+pct(w.average_return_to_date_pct)+'</td><td class="'+signedClass(w.average_excess_to_date_pct)+'">'+pct(w.average_excess_to_date_pct)+'</td></tr>').join('')||'<tr><td colspan="5" class="empty">The first official weekly snapshot will appear after the next refresh.</td></tr>';}
 
+function renderBacktest(){const b=DATA.historical_backtest||{},horizons=b.top5_horizons||[],bands=b.score_band_calibration||[];const cards=[['Backtest period',b.period_start&&b.period_end?b.period_start+' to '+b.period_end:'Awaiting live history','Monthly point-in-time tests'],['Months tested',b.tested_months||0,b.rebalance_frequency||'Monthly'],['Prototype universe',b.current_universe_size||0,'Current companies only'],['Selected each month',b.selected_each_month||0,'Top-ranked historical scores'],['Calibration status',b.calibration_readiness||'Awaiting sample','Not a published probability']];document.getElementById('backtest-cards').innerHTML=cards.map(c=>'<div class="card"><div class="label">'+esc(c[0])+'</div><div class="value">'+esc(c[1])+'</div><div class="subvalue">'+esc(c[2])+'</div></div>').join('');document.getElementById('backtest-horizon-body').innerHTML=horizons.map(h=>'<tr><td><strong>'+esc(h.label)+'</strong></td><td>'+esc(h.selection_observations||0)+'</td><td>'+pct(h.peer_outperformance_rate_pct)+'</td><td>'+pct(h.nasdaq100_outperformance_rate_pct)+'</td><td class="'+signedClass(h.average_selection_return_pct)+'">'+pct(h.average_selection_return_pct)+'</td><td class="'+signedClass(h.average_excess_peer_pct)+'"><strong>'+pct(h.average_excess_peer_pct)+'</strong></td><td class="'+signedClass(h.average_excess_nasdaq100_pct)+'">'+pct(h.average_excess_nasdaq100_pct)+'</td></tr>').join('')||'<tr><td colspan="7" class="empty">The historical test could not be produced from the available data.</td></tr>';document.getElementById('backtest-band-body').innerHTML=bands.map(row=>'<tr><td><strong>'+esc(row.score_band)+'</strong></td><td>'+esc(row.horizon)+'</td><td>'+esc(row.observations||0)+'</td><td>'+pct(row.historical_peer_outperformance_rate_pct)+'</td><td class="'+signedClass(row.average_return_pct)+'">'+pct(row.average_return_pct)+'</td><td class="'+signedClass(row.average_excess_peer_pct)+'">'+pct(row.average_excess_peer_pct)+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No score-band observations are available.</td></tr>';const limits=b.limitations||[];document.getElementById('backtest-limitations').innerHTML='<strong>Important backtest limits</strong><ul>'+limits.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><span class="source-note">'+esc(b.fundamental_policy||'')+'</span>';}
+
 function populateFilters(){const subs=[...new Set(DATA.companies.map(c=>c.subsector))].sort();const caps=[...new Set(DATA.companies.map(c=>c.market_cap_tier))].sort();document.getElementById('subsector-filter').innerHTML='<option value="">All subsectors</option>'+subs.map(v=>'<option>'+esc(v)+'</option>').join('');document.getElementById('cap-filter').innerHTML='<option value="">All market-cap groups</option>'+caps.map(v=>'<option>'+esc(v)+'</option>').join('');}
 function compare(a,b){let av=a[sortKey],bv=b[sortKey];if(av==null)av=sortDirection==='asc'?Infinity:-Infinity;if(bv==null)bv=sortDirection==='asc'?Infinity:-Infinity;if(typeof av==='string')return sortDirection==='asc'?av.localeCompare(bv):bv.localeCompare(av);return sortDirection==='asc'?av-bv:bv-av;}
 function filteredCompanies(){const q=document.getElementById('company-search').value.trim().toLowerCase();const sub=document.getElementById('subsector-filter').value;const cap=document.getElementById('cap-filter').value;return DATA.companies.filter(c=>(!q||(c.name+' '+c.ticker).toLowerCase().includes(q))&&(!sub||c.subsector===sub)&&(!cap||c.market_cap_tier===cap)).sort(compare);}
@@ -1156,7 +1548,7 @@ function renderCompanyDetail(ticker,shouldScroll=true){const c=DATA.companies.fi
 document.querySelectorAll('#range-buttons button').forEach(btn=>btn.addEventListener('click',function(){rangeYears=Number(this.dataset.years);document.querySelectorAll('#range-buttons button').forEach(x=>x.classList.toggle('active',x===this));renderMarketChart();}));
 ['company-search','subsector-filter','cap-filter'].forEach(id=>document.getElementById(id).addEventListener(id==='company-search'?'input':'change',renderTable));
 document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',function(){const key=this.dataset.sort;if(sortKey===key)sortDirection=sortDirection==='asc'?'desc':'asc';else{sortKey=key;sortDirection=['name','ticker','subsector','market_cap_tier'].includes(key)?'asc':'desc';}renderTable();}));
-fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();renderTrackRecord();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
+fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();renderTrackRecord();renderBacktest();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
 })();
 </script>
 </body>
@@ -1167,7 +1559,7 @@ fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('
 
 def seed_data() -> dict[str, Any]:
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "status": "awaiting first live refresh",
         "market_summary": {},
@@ -1175,6 +1567,7 @@ def seed_data() -> dict[str, Any]:
         "weekly_leaders": {"week_start": None, "as_of": None, "status": "Awaiting first refresh", "leaders": []},
         "weekly_snapshots": [],
         "performance_scorecard": {"tracking_started": None, "weeks_recorded": 0, "horizons": [], "recent_weeks": []},
+        "historical_backtest": {"status": "Awaiting first Phase 4 live refresh", "tested_months": 0, "top5_horizons": [], "score_band_calibration": [], "limitations": []},
         "companies": [
             {
                 **company,
@@ -1273,16 +1666,22 @@ def main() -> None:
     weekly_snapshots = create_or_preserve_weekly_snapshots(old_data, ranked)
     weekly_leaders = build_live_weekly_leaders(weekly_snapshots, ranked)
     performance_scorecard = build_performance_scorecard(weekly_snapshots, ranked, price_history)
+    historical_backtest = build_historical_backtest(ranked, price_history)
+
+    # Internal point-in-time fact rows are used only by the generator and are not published.
+    for company in ranked:
+        company.pop("_backtest_facts", None)
 
     output = {
-        "schema_version": 3,
+        "schema_version": 4,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "status": "live Phase 3 track-record prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
+        "status": "live Phase 4 backtest prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
         "market_summary": build_market_summary(companies, market_index),
         "market_index": market_index or old_data.get("market_index", []),
         "weekly_leaders": weekly_leaders,
         "weekly_snapshots": weekly_snapshots,
         "performance_scorecard": performance_scorecard,
+        "historical_backtest": historical_backtest,
         "companies": ranked,
         "errors": errors,
         "methodology": {
@@ -1304,6 +1703,8 @@ def main() -> None:
                 "Strengths and risks are deterministic summaries of available metrics, not qualitative due diligence.",
                 "The Phase 3 performance record starts only when the first Phase 3 snapshot is created; it does not backfill hypothetical prior rankings.",
                 "The peer benchmark is equal-weighted within the small prototype subsector universe and is not an investable published sector index.",
+                "The Phase 4 historical test uses the current prototype universe and therefore has survivorship and selection bias.",
+                "Historical score-band rates are retrospective diagnostics, not calibrated probabilities.",
             ],
             "phase_2_features": [
                 "Peer medians and percentiles",
@@ -1317,6 +1718,13 @@ def main() -> None:
                 "Return since selection versus equal-weighted prototype subsector peers",
                 "Fixed 30-day, 3-month, 6-month, and 12-month scorecard",
                 "Complete retention of underperforming as well as outperforming weeks",
+            ],
+            "phase_4_features": [
+                "Monthly point-in-time historical score reconstruction",
+                "Top-five 3-month, 6-month, and 12-month retrospective tests",
+                "Comparison with subsector peers and the Nasdaq-100",
+                "Score-band historical outperformance calibration research",
+                "Explicit survivorship-bias, overlap, and execution limitations",
             ],
         },
     }
