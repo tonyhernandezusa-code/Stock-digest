@@ -22,7 +22,9 @@ adds a preliminary point-in-time historical backtest and score-band calibration 
 adds a conservative 12-month backtest-based likelihood research model with a chronological
 calibration/validation split, sample-size gates, shrinkage toward 50%, and uncertainty ranges. Phase 6 adds transparent
 three-year conservative, base, and optimistic operating scenarios so each company can be viewed
-from past reported results through the present and into clearly labeled model-generated futures.
+from past reported results through the present and into clearly labeled model-generated futures. Phase 7
+adds a capital-efficiency and financial-durability research layer that compares reported CapEx, R&D,
+operating cash flow, free cash flow, and balance-sheet capacity within each AI subsector.
 """
 
 from __future__ import annotations
@@ -1825,6 +1827,203 @@ def build_market_summary(companies: list[dict[str, Any]], index_rows: list[dict[
     }
 
 
+
+def historical_metric_cagr(history: list[dict[str, Any]], metric: str, minimum_years: int = 3) -> float | None:
+    """Calculate CAGR from the latest positive value to a point at least minimum_years earlier."""
+    rows: list[tuple[int, float]] = []
+    for row in history:
+        value = safe_float(row.get(metric))
+        try:
+            year = int(str(row.get("year")))
+        except (TypeError, ValueError):
+            continue
+        if value is not None and value > 0:
+            rows.append((year, value))
+    rows.sort()
+    if len(rows) < 2:
+        return None
+    end_year, end_value = rows[-1]
+    candidates = [(year, value) for year, value in rows[:-1] if end_year - year >= minimum_years]
+    if not candidates:
+        return None
+    start_year, start_value = candidates[-1]
+    return annualized_growth(start_value, end_value, end_year - start_year)
+
+
+def weighted_percentile_score(parts: list[tuple[float | None, float]]) -> float | None:
+    available = [(value, weight) for value, weight in parts if value is not None]
+    if not available:
+        return None
+    weight_total = sum(weight for _, weight in available)
+    return round(sum(value * weight for value, weight in available) / weight_total, 1)
+
+
+def add_capital_efficiency_research(companies: list[dict[str, Any]]) -> dict[str, Any]:
+    """Attach a peer-relative capital-efficiency and financial-durability research profile."""
+    for company in companies:
+        revenue = safe_float(company.get("latest_reported_revenue"))
+        capex = safe_float(company.get("latest_capex"))
+        rnd = safe_float(company.get("latest_rnd"))
+        ocf = safe_float(company.get("latest_operating_cash_flow"))
+        cash = safe_float(company.get("cash_and_short_investments"))
+        debt = safe_float(company.get("total_debt"))
+
+        investment_values = [value for value in (capex, rnd) if value is not None]
+        combined_investment = sum(investment_values) if investment_values else None
+        innovation_intensity = (
+            combined_investment / revenue * 100.0
+            if combined_investment is not None and revenue not in (None, 0) else None
+        )
+        ocf_capex_coverage = ocf / capex if ocf is not None and capex not in (None, 0) else None
+        revenue_per_investment = (
+            revenue / combined_investment
+            if revenue is not None and combined_investment not in (None, 0) else None
+        )
+        net_cash = cash - debt if cash is not None and debt is not None else None
+        net_cash_to_revenue = (
+            net_cash / revenue * 100.0
+            if net_cash is not None and revenue not in (None, 0) else None
+        )
+        growth = safe_float(company.get("revenue_growth_pct"))
+        growth_per_investment = (
+            growth / innovation_intensity
+            if growth is not None and innovation_intensity not in (None, 0) else None
+        )
+        history = [row for row in company.get("history", []) if isinstance(row, dict)]
+
+        company["capital_efficiency"] = {
+            "status": "Awaiting peer-relative scoring",
+            "profile": "Insufficient data",
+            "score": None,
+            "combined_capex_and_rnd": money_round(combined_investment),
+            "innovation_intensity_pct": round(innovation_intensity, 2) if innovation_intensity is not None else None,
+            "operating_cash_flow_to_capex_x": round(ocf_capex_coverage, 2) if ocf_capex_coverage is not None else None,
+            "revenue_per_investment_dollar_x": round(revenue_per_investment, 2) if revenue_per_investment is not None else None,
+            "growth_per_investment_point_x": round(growth_per_investment, 3) if growth_per_investment is not None else None,
+            "net_cash": money_round(net_cash),
+            "net_cash_to_revenue_pct": round(net_cash_to_revenue, 2) if net_cash_to_revenue is not None else None,
+            "capex_cagr_3y_pct": historical_metric_cagr(history, "capex", 3),
+            "rnd_cagr_3y_pct": historical_metric_cagr(history, "rnd", 3),
+            "peer_percentiles": {},
+        }
+
+    subsectors = sorted({str(company.get("subsector")) for company in companies})
+    for subsector in subsectors:
+        peers = [company for company in companies if str(company.get("subsector")) == subsector]
+        metric_map = {
+            "revenue_growth": ("revenue_growth_pct", True),
+            "fcf_margin": ("fcf_margin_pct", True),
+            "ocf_capex_coverage": ("operating_cash_flow_to_capex_x", True),
+            "net_cash_to_revenue": ("net_cash_to_revenue_pct", True),
+            "revenue_per_investment": ("revenue_per_investment_dollar_x", True),
+        }
+        for company in peers:
+            capital = company.get("capital_efficiency", {})
+            percentiles: dict[str, float | None] = {}
+            for label, (field, higher_is_better) in metric_map.items():
+                if field in capital:
+                    value = capital.get(field)
+                    values = [peer.get("capital_efficiency", {}).get(field) for peer in peers]
+                else:
+                    value = company.get(field)
+                    values = [peer.get(field) for peer in peers]
+                percentiles[label] = percentile_rank(value, values, higher_is_better=higher_is_better)
+            capital["peer_percentiles"] = percentiles
+            capital["score"] = weighted_percentile_score([
+                (percentiles.get("revenue_growth"), 25),
+                (percentiles.get("fcf_margin"), 25),
+                (percentiles.get("ocf_capex_coverage"), 20),
+                (percentiles.get("net_cash_to_revenue"), 15),
+                (percentiles.get("revenue_per_investment"), 15),
+            ])
+
+            fcf = safe_float(company.get("latest_free_cash_flow"))
+            fcf_margin = safe_float(company.get("fcf_margin_pct"))
+            intensity = safe_float(capital.get("innovation_intensity_pct"))
+            coverage = safe_float(capital.get("operating_cash_flow_to_capex_x"))
+            net_cash = safe_float(capital.get("net_cash"))
+            revenue_growth = safe_float(company.get("revenue_growth_pct"))
+            peer_intensity = median_value(
+                peer.get("capital_efficiency", {}).get("innovation_intensity_pct") for peer in peers
+            )
+
+            if fcf is not None and fcf < 0:
+                profile = "Cash-consuming expansion"
+            elif coverage is not None and coverage >= 2.0 and fcf_margin is not None and fcf_margin >= 10:
+                profile = "Self-funded reinvestment"
+            elif intensity is not None and intensity < 10 and revenue_growth is not None and revenue_growth > 10:
+                profile = "Capital-light growth"
+            elif (intensity is not None and peer_intensity is not None and intensity >= peer_intensity * 1.25
+                  and fcf is not None and fcf >= 0):
+                profile = "Heavy but self-funded investment"
+            elif net_cash is not None and net_cash < 0 and coverage is not None and coverage < 1:
+                profile = "Balance-sheet-dependent investment"
+            else:
+                profile = "Balanced capital deployment"
+
+            score = safe_float(capital.get("score"))
+            if score is None:
+                status = "Insufficient comparable metrics"
+            else:
+                status = "Peer-relative capital-efficiency research score"
+            capital["profile"] = profile
+            capital["status"] = status
+            capital["summary"] = (
+                f"{profile}. Combined reported CapEx and R&D equals "
+                + (f"{intensity:.1f}% of revenue" if intensity is not None else "an unavailable share of revenue")
+                + (f", while operating cash flow covers CapEx {coverage:.2f} times" if coverage is not None else "")
+                + "."
+            )
+
+    scored = [company for company in companies if safe_float(company.get("capital_efficiency", {}).get("score")) is not None]
+    ranked = sorted(scored, key=lambda item: safe_float(item.get("capital_efficiency", {}).get("score")) or -1, reverse=True)
+    for rank, company in enumerate(ranked, start=1):
+        company["capital_efficiency"]["overall_rank"] = rank
+    for subsector in subsectors:
+        peers = sorted(
+            [company for company in scored if str(company.get("subsector")) == subsector],
+            key=lambda item: safe_float(item.get("capital_efficiency", {}).get("score")) or -1,
+            reverse=True,
+        )
+        for rank, company in enumerate(peers, start=1):
+            company["capital_efficiency"]["subsector_rank"] = rank
+            company["capital_efficiency"]["subsector_count"] = len(peers)
+
+    profiles: dict[str, int] = {}
+    for company in companies:
+        profile = str(company.get("capital_efficiency", {}).get("profile") or "Insufficient data")
+        profiles[profile] = profiles.get(profile, 0) + 1
+
+    return {
+        "status": "Phase 7 capital-efficiency and financial-durability research",
+        "companies_scored": len(scored),
+        "company_count": len(companies),
+        "median_score": median_value(company.get("capital_efficiency", {}).get("score") for company in scored),
+        "self_funded_count": profiles.get("Self-funded reinvestment", 0) + profiles.get("Heavy but self-funded investment", 0),
+        "cash_consuming_count": profiles.get("Cash-consuming expansion", 0),
+        "positive_net_cash_count": sum(
+            (safe_float(company.get("capital_efficiency", {}).get("net_cash")) or 0) > 0
+            for company in companies if company.get("capital_efficiency", {}).get("net_cash") is not None
+        ),
+        "median_innovation_intensity_pct": median_value(
+            company.get("capital_efficiency", {}).get("innovation_intensity_pct") for company in companies
+        ),
+        "profiles": profiles,
+        "method": (
+            "The peer-relative score combines revenue-growth percentile (25%), free-cash-flow-margin percentile (25%), "
+            "operating-cash-flow-to-CapEx coverage percentile (20%), net-cash-to-revenue percentile (15%), and revenue "
+            "per combined reported CapEx-plus-R&D dollar percentile (15%). Missing components are excluded and weights are renormalized."
+        ),
+        "limitations": [
+            "Combined CapEx plus R&D is a Stock Digest analytical total, not a GAAP subtotal and not a measure of AI-only investment.",
+            "A high score does not prove that past spending caused growth or that future spending will be productive.",
+            "Peer percentiles use only the small current prototype subsector universe and can change materially as companies are added.",
+            "R&D and CapEx reporting practices differ among issuers, and some companies do not separately report every field.",
+            "This research layer is not a valuation opinion, success probability, price target, or investment recommendation.",
+        ],
+    }
+
+
 HTML_TEMPLATE = r'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1846,9 +2045,9 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   </div>
 
   <div class="eyebrow">Stock Digest Research</div>
-  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 6 PREMIUM PREVIEW</span></div>
+  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 7 PREMIUM PREVIEW</span></div>
   <p class="timestamp" id="updated-at">Loading the latest AI company dataset...</p>
-  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 6 retains the permanent weekly record, historical backtest, and conservative 12-month likelihood research model, then adds transparent three-year conservative, base, and optimistic operating scenarios. The future figures are model-generated research scenarios—not company guidance, analyst consensus, price targets, or buy/sell recommendations. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
+  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 7 retains the weekly record, historical backtest, likelihood research, and operating scenarios, then adds a peer-relative capital-efficiency and financial-durability layer. Combined CapEx plus R&D is an analytical total—not AI-only investment—and every score remains research rather than advice. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
 
   <div class="grid" id="summary-cards"></div>
 
@@ -1890,6 +2089,12 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   <div class="table-wrap" style="margin-top:12px"><table class="calibration-table"><thead><tr><th>Rank</th><th>Company</th><th>Research outlook</th><th>Scenario confidence</th><th>3-year reported revenue CAGR</th><th>Base annual growth</th><th>Base year-3 revenue</th><th>Base year-3 free cash flow</th><th>12-mo research likelihood</th></tr></thead><tbody id="outlook-body"></tbody></table></div>
   <div class="notice backtest-note" id="outlook-limitations" style="margin-top:12px"></div>
 
+  <h2>Phase 7 Capital Efficiency &amp; Financial Durability</h2>
+  <p class="section-note">Compares how each company funds reported CapEx and R&amp;D, converts operating cash flow into free cash flow, and carries cash versus debt. The score is peer-relative within the current AI subsector universe and does not identify AI-only spending.</p>
+  <div class="grid" id="capital-cards"></div>
+  <div class="table-wrap" style="margin-top:12px"><table class="calibration-table"><thead><tr><th>Capital rank</th><th>Company</th><th>Capital profile</th><th>Efficiency score</th><th>CapEx + R&amp;D</th><th>Investment intensity</th><th>OCF / CapEx</th><th>FCF margin</th><th>Net cash</th><th>Revenue / investment $</th></tr></thead><tbody id="capital-body"></tbody></table></div>
+  <div class="notice backtest-note" id="capital-limitations" style="margin-top:12px"></div>
+
   <h2>Past to Present: AI Market Direction</h2>
   <p class="section-note">Equal-weighted Stock Digest AI Index compared with the Nasdaq-100 and S&amp;P 500. Constituents enter when their public trading history begins, so earlier periods contain fewer companies.</p>
   <div class="chart-card">
@@ -1905,7 +2110,7 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
     <select id="cap-filter"><option value="">All market-cap groups</option></select>
   </div>
   <div class="table-wrap"><table><thead><tr>
-    <th data-sort="overall_rank">Rank</th><th data-sort="ticker">Ticker</th><th data-sort="name">Company</th><th data-sort="subsector">Subsector</th><th data-sort="market_cap_tier">Cap group</th><th data-sort="score">Score</th><th data-sort="outperformance_likelihood_12m_pct">12-mo research likelihood</th><th data-sort="revenue_growth_pct">Revenue growth</th><th data-sort="latest_free_cash_flow">Free cash flow</th><th data-sort="latest_capex">CapEx</th><th data-sort="return_1y_pct">1-year return</th>
+    <th data-sort="overall_rank">Rank</th><th data-sort="ticker">Ticker</th><th data-sort="name">Company</th><th data-sort="subsector">Subsector</th><th data-sort="market_cap_tier">Cap group</th><th data-sort="score">Score</th><th data-sort="outperformance_likelihood_12m_pct">12-mo research likelihood</th><th data-sort="capital_efficiency_score">Capital efficiency</th><th data-sort="revenue_growth_pct">Revenue growth</th><th data-sort="latest_free_cash_flow">Free cash flow</th><th data-sort="latest_capex">CapEx</th><th data-sort="return_1y_pct">1-year return</th>
   </tr></thead><tbody id="ranking-body"></tbody></table></div>
 
   <h2>Company Intelligence Snapshot</h2>
@@ -1951,19 +2156,21 @@ function rangeRows(){const rows=DATA.market_index||[];if(!rows.length)return [];
 function chartColors(){const dark=document.body.classList.contains('dark-mode');return {text:dark?'#d8d8d8':'#333',grid:dark?'#333':'#e7e5df',ai:'#1f77b4',ndx:'#9467bd',sp:'#777',conservative:'#b42318',optimistic:'#1a7f37'};}
 function renderMarketChart(){const rows=rangeRows(),c=chartColors();if(marketChart)marketChart.destroy();marketChart=new Chart(document.getElementById('market-chart'),{type:'line',data:{labels:rows.map(r=>r.date),datasets:[{label:'Stock Digest AI Index',data:rows.map(r=>r.ai_index),borderColor:c.ai,pointRadius:0,borderWidth:2.5},{label:'Nasdaq-100',data:rows.map(r=>r.nasdaq100),borderColor:c.ndx,pointRadius:0,borderWidth:1.8},{label:'S&P 500',data:rows.map(r=>r.sp500),borderColor:c.sp,pointRadius:0,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:c.text}}},scales:{x:{ticks:{color:c.text,maxTicksLimit:9},grid:{color:c.grid}},y:{ticks:{color:c.text},grid:{color:c.grid},title:{display:true,text:'Normalized value (start = 100)',color:c.text}}}}});}
 function renderOutlook(){const model=DATA.outlook_research||{},companies=(DATA.companies||[]).filter(c=>c.outlook&&c.outlook.scenarios&&c.outlook.scenarios.length).slice().sort((a,b)=>(a.overall_rank||999)-(b.overall_rank||999));const cards=[['Companies modeled',model.companies_modeled||0,'of '+(model.company_count||0)+' tracked'],['Favorable outlook',model.favorable_count||0,'Quantitative research label'],['Balanced outlook',model.balanced_count||0,'Quantitative research label'],['Cautious outlook',model.cautious_count||0,'Quantitative research label'],['Median base growth',plainPct(model.median_base_revenue_growth_pct),'Annual revenue scenario'],['Positive base year-3 FCF',model.positive_base_year3_fcf_count||0,'Modeled companies']];document.getElementById('outlook-cards').innerHTML=cards.map(c=>'<div class="card"><div class="label">'+esc(c[0])+'</div><div class="value">'+esc(c[1])+'</div><div class="subvalue">'+esc(c[2])+'</div></div>').join('');document.getElementById('outlook-body').innerHTML=companies.map(c=>{const o=c.outlook||{},base=(o.scenarios||[]).find(s=>s.name==='Base')||{},year3=(base.projections||[]).slice(-1)[0]||{};return '<tr data-outlook-ticker="'+esc(c.ticker)+'"><td>'+esc(c.overall_rank||'—')+'</td><td><span class="company-link">'+esc(c.name)+' ('+esc(c.ticker)+')</span></td><td><strong>'+esc(o.label||'N/A')+'</strong></td><td>'+esc(o.confidence||'N/A')+'</td><td>'+plainPct(o.historical_revenue_cagr_3y_pct)+'</td><td>'+plainPct(base.annual_revenue_growth_pct)+'</td><td>'+money(year3.revenue)+'</td><td class="'+signedClass(year3.free_cash_flow)+'">'+money(year3.free_cash_flow)+'</td><td>'+plainPct(c.outperformance_likelihood_12m_pct)+'</td></tr>';}).join('')||'<tr><td colspan="9" class="empty">The operating outlook is awaiting enough standardized history.</td></tr>';document.querySelectorAll('tr[data-outlook-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.outlookTicker,true)));const limits=model.limitations||[];document.getElementById('outlook-limitations').innerHTML='<strong>How to read these scenarios</strong><ul>'+limits.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><span class="source-note">'+esc(model.method||'')+'</span>';}
+function renderCapitalEfficiency(){const model=DATA.capital_efficiency_research||{},companies=(DATA.companies||[]).filter(c=>c.capital_efficiency&&c.capital_efficiency.score!=null).slice().sort((a,b)=>(a.capital_efficiency.overall_rank||999)-(b.capital_efficiency.overall_rank||999));const cards=[['Companies scored',model.companies_scored||0,'of '+(model.company_count||0)+' tracked'],['Median efficiency score',model.median_score==null?'N/A':Number(model.median_score).toFixed(1),'Peer-relative research score'],['Self-funded profiles',model.self_funded_count||0,'Includes heavy self-funded investment'],['Cash-consuming profiles',model.cash_consuming_count||0,'Latest standardized FCF negative'],['Positive net cash',model.positive_net_cash_count||0,'Cash and short investments exceed debt'],['Median investment intensity',plainPct(model.median_innovation_intensity_pct),'Reported CapEx + R&D / revenue']];document.getElementById('capital-cards').innerHTML=cards.map(c=>'<div class="card"><div class="label">'+esc(c[0])+'</div><div class="value">'+esc(c[1])+'</div><div class="subvalue">'+esc(c[2])+'</div></div>').join('');document.getElementById('capital-body').innerHTML=companies.map(c=>{const d=c.capital_efficiency||{};return '<tr data-capital-ticker="'+esc(c.ticker)+'"><td>'+esc(d.overall_rank||'—')+'</td><td><span class="company-link">'+esc(c.name)+' ('+esc(c.ticker)+')</span></td><td><strong>'+esc(d.profile||'N/A')+'</strong></td><td><span class="score-pill">'+esc(d.score==null?'N/A':Number(d.score).toFixed(1))+'</span></td><td>'+money(d.combined_capex_and_rnd)+'</td><td>'+plainPct(d.innovation_intensity_pct)+'</td><td>'+(d.operating_cash_flow_to_capex_x==null?'N/A':Number(d.operating_cash_flow_to_capex_x).toFixed(2)+'x')+'</td><td class="'+signedClass(c.fcf_margin_pct)+'">'+plainPct(c.fcf_margin_pct)+'</td><td class="'+signedClass(d.net_cash)+'">'+money(d.net_cash)+'</td><td>'+(d.revenue_per_investment_dollar_x==null?'N/A':Number(d.revenue_per_investment_dollar_x).toFixed(2)+'x')+'</td></tr>';}).join('')||'<tr><td colspan="10" class="empty">Capital-efficiency research is awaiting comparable financial data.</td></tr>';document.querySelectorAll('tr[data-capital-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.capitalTicker,true)));const limits=model.limitations||[];document.getElementById('capital-limitations').innerHTML='<strong>How to read this research layer</strong><ul>'+limits.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><span class="source-note">'+esc(model.method||'')+'</span>';}
+function capitalDetailHtml(c){const d=c.capital_efficiency||{},p=d.peer_percentiles||{};const pctRow=(label,value)=>'<tr><td>'+esc(label)+'</td><td>'+(value==null?'N/A':Number(value).toFixed(0)+'th')+'</td></tr>';return '<h3 style="margin-top:20px">Capital Efficiency &amp; Financial Durability</h3><p class="section-note">'+esc(d.summary||d.status||'No capital-efficiency profile is available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Capital efficiency score</div><div class="value">'+esc(d.score==null?'N/A':Number(d.score).toFixed(1))+'</div><div class="subvalue">Rank '+esc(d.overall_rank||'N/A')+'</div></div><div class="mini"><div class="label">Capital profile</div><div class="value">'+esc(d.profile||'N/A')+'</div></div><div class="mini"><div class="label">CapEx + R&amp;D</div><div class="value">'+money(d.combined_capex_and_rnd)+'</div><div class="subvalue">Analytical total; not AI-only</div></div><div class="mini"><div class="label">Investment intensity</div><div class="value">'+plainPct(d.innovation_intensity_pct)+'</div><div class="subvalue">CapEx + R&amp;D / revenue</div></div><div class="mini"><div class="label">OCF covers CapEx</div><div class="value">'+(d.operating_cash_flow_to_capex_x==null?'N/A':Number(d.operating_cash_flow_to_capex_x).toFixed(2)+'x')+'</div></div><div class="mini"><div class="label">Net cash</div><div class="value '+signedClass(d.net_cash)+'">'+money(d.net_cash)+'</div></div><div class="mini"><div class="label">Revenue / investment $</div><div class="value">'+(d.revenue_per_investment_dollar_x==null?'N/A':Number(d.revenue_per_investment_dollar_x).toFixed(2)+'x')+'</div></div><div class="mini"><div class="label">3-year CapEx CAGR</div><div class="value">'+plainPct(d.capex_cagr_3y_pct)+'</div></div></div><div class="table-wrap" style="margin-top:12px"><table class="peer-table"><thead><tr><th>Peer-relative component</th><th>Subsector percentile</th></tr></thead><tbody>'+pctRow('Revenue growth',p.revenue_growth)+pctRow('FCF margin',p.fcf_margin)+pctRow('OCF / CapEx coverage',p.ocf_capex_coverage)+pctRow('Net cash / revenue',p.net_cash_to_revenue)+pctRow('Revenue / investment dollar',p.revenue_per_investment)+'</tbody></table></div><p class="source-note">This is a comparative research framework. It does not establish causation, identify AI-only investment, or constitute a valuation or investment recommendation.</p>';}
 function populateFilters(){const subs=[...new Set(DATA.companies.map(c=>c.subsector))].sort();const caps=[...new Set(DATA.companies.map(c=>c.market_cap_tier))].sort();document.getElementById('subsector-filter').innerHTML='<option value="">All subsectors</option>'+subs.map(v=>'<option>'+esc(v)+'</option>').join('');document.getElementById('cap-filter').innerHTML='<option value="">All market-cap groups</option>'+caps.map(v=>'<option>'+esc(v)+'</option>').join('');}
-function compare(a,b){let av=a[sortKey],bv=b[sortKey];if(av==null)av=sortDirection==='asc'?Infinity:-Infinity;if(bv==null)bv=sortDirection==='asc'?Infinity:-Infinity;if(typeof av==='string')return sortDirection==='asc'?av.localeCompare(bv):bv.localeCompare(av);return sortDirection==='asc'?av-bv:bv-av;}
+function compare(a,b){let av=sortKey==='capital_efficiency_score'?(a.capital_efficiency||{}).score:a[sortKey],bv=sortKey==='capital_efficiency_score'?(b.capital_efficiency||{}).score:b[sortKey];if(av==null)av=sortDirection==='asc'?Infinity:-Infinity;if(bv==null)bv=sortDirection==='asc'?Infinity:-Infinity;if(typeof av==='string')return sortDirection==='asc'?av.localeCompare(bv):bv.localeCompare(av);return sortDirection==='asc'?av-bv:bv-av;}
 function filteredCompanies(){const q=document.getElementById('company-search').value.trim().toLowerCase();const sub=document.getElementById('subsector-filter').value;const cap=document.getElementById('cap-filter').value;return DATA.companies.filter(c=>(!q||(c.name+' '+c.ticker).toLowerCase().includes(q))&&(!sub||c.subsector===sub)&&(!cap||c.market_cap_tier===cap)).sort(compare);}
-function renderTable(){const rows=filteredCompanies();const body=document.getElementById('ranking-body');if(!rows.length){body.innerHTML='<tr><td colspan="11" class="empty">No companies match the selected filters.</td></tr>';return;}body.innerHTML=rows.map(c=>'<tr class="company-row" data-ticker="'+esc(c.ticker)+'"><td>'+esc(c.overall_rank||'—')+'</td><td><strong>'+esc(c.ticker)+'</strong></td><td>'+esc(c.name)+'</td><td>'+esc(c.subsector)+'</td><td>'+esc(c.market_cap_tier)+'</td><td><span class="score-pill">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</span></td><td>'+plainPct(c.outperformance_likelihood_12m_pct)+'</td><td class="'+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</td><td class="'+signedClass(c.latest_free_cash_flow)+'">'+money(c.latest_free_cash_flow)+'</td><td>'+money(c.latest_capex)+'</td><td class="'+signedClass(c.return_1y_pct)+'">'+pct(c.return_1y_pct)+'</td></tr>').join('');body.querySelectorAll('tr[data-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.ticker,true)));}
+function renderTable(){const rows=filteredCompanies();const body=document.getElementById('ranking-body');if(!rows.length){body.innerHTML='<tr><td colspan="12" class="empty">No companies match the selected filters.</td></tr>';return;}body.innerHTML=rows.map(c=>{const capital=(c.capital_efficiency||{}).score;return '<tr class="company-row" data-ticker="'+esc(c.ticker)+'"><td>'+esc(c.overall_rank||'—')+'</td><td><strong>'+esc(c.ticker)+'</strong></td><td>'+esc(c.name)+'</td><td>'+esc(c.subsector)+'</td><td>'+esc(c.market_cap_tier)+'</td><td><span class="score-pill">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</span></td><td>'+plainPct(c.outperformance_likelihood_12m_pct)+'</td><td>'+esc(capital==null?'N/A':Number(capital).toFixed(1))+'</td><td class="'+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</td><td class="'+signedClass(c.latest_free_cash_flow)+'">'+money(c.latest_free_cash_flow)+'</td><td>'+money(c.latest_capex)+'</td><td class="'+signedClass(c.return_1y_pct)+'">'+pct(c.return_1y_pct)+'</td></tr>';}).join('');body.querySelectorAll('tr[data-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.ticker,true)));}
 function metricTitle(metric){return {revenue:'Revenue',net_income:'Net income',free_cash_flow:'Free cash flow',capex:'Capital expenditures',rnd:'Research & development'}[metric]||metric;}
 function renderCompanyChart(company){const history=(company.history||[]).filter(r=>r[companyMetric]!=null);const c=chartColors();if(companyChart)companyChart.destroy();companyChart=new Chart(document.getElementById('company-history-chart'),{type:'line',data:{labels:history.map(r=>r.year),datasets:[{label:metricTitle(companyMetric),data:history.map(r=>r[companyMetric]),borderColor:c.ai,backgroundColor:'rgba(31,119,180,.12)',fill:true,tension:.18,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:c.text}},tooltip:{callbacks:{label:ctx=>metricTitle(companyMetric)+': '+money(ctx.raw)}}},scales:{x:{ticks:{color:c.text},grid:{color:c.grid}},y:{ticks:{color:c.text,callback:v=>numFmt.format(v)},grid:{color:c.grid}}}}});}
 function renderCompanyOutlookChart(company){const canvas=document.getElementById('company-outlook-chart');if(!canvas)return;if(outlookChart)outlookChart.destroy();const o=company.outlook||{},scenarios=o.scenarios||[];const hist=(company.history||[]).filter(r=>r.revenue!=null).slice(-5);if(!hist.length||!scenarios.length)return;const futureYears=(scenarios[0].projections||[]).map(r=>r.year);const labels=hist.map(r=>r.year).concat(futureYears);const actual=hist.map(r=>r.revenue).concat(futureYears.map(()=>null));const lastActual=hist[hist.length-1].revenue;const c=chartColors();const scenarioColors={Conservative:c.conservative,Base:c.ai,Optimistic:c.optimistic};const datasets=[{label:'Reported revenue',data:actual,borderColor:c.sp,backgroundColor:'rgba(119,119,119,.10)',pointRadius:3,borderWidth:2}];scenarios.forEach(s=>{const values=hist.slice(0,-1).map(()=>null).concat([lastActual]).concat((s.projections||[]).map(r=>r.revenue));datasets.push({label:s.name+' scenario',data:values,borderColor:scenarioColors[s.name]||c.ai,borderDash:s.name==='Base'?[]:[6,4],pointRadius:3,borderWidth:s.name==='Base'?2.5:1.8,tension:.15});});outlookChart=new Chart(canvas,{type:'line',data:{labels:labels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:c.text}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+money(ctx.raw)}}},scales:{x:{ticks:{color:c.text},grid:{color:c.grid}},y:{ticks:{color:c.text,callback:v=>numFmt.format(v)},grid:{color:c.grid},title:{display:true,text:'Revenue',color:c.text}}}}});}
-function renderCompanyDetail(ticker,shouldScroll=true){const c=DATA.companies.find(x=>x.ticker===ticker);if(!c)return;selectedTicker=ticker;const components=c.score_components||{};const componentHtml=Object.entries(components).map(([k,v])=>'<div class="component-row"><span>'+esc(componentLabel(k))+'</span><div class="bar"><span style="width:'+(v==null?0:v)+'%"></span></div><strong>'+(v==null?'—':Number(v).toFixed(0))+'</strong></div>').join('');const filings=(c.latest_filings||[]).map(f=>'<li><a target="_blank" rel="noopener" href="'+esc(f.url)+'">'+esc(f.form)+' — '+esc(f.date)+'</a> '+esc(f.description||'')+'</li>').join('')||'<li>No recent filings were retrieved.</li>';const strengths=(c.strengths||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const risks=(c.risks||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const warnings=(c.data_warnings||[]);const warningHtml=warnings.length?'<div class="warning-box"><strong>Missing-data warnings</strong><ul>'+warnings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'<div class="notice" style="margin-top:12px"><strong>Data coverage:</strong> No major standardized field is currently missing from the Phase 3 coverage check.</div>';const peerRows=(c.peer_snapshot||[]).map(p=>'<tr class="'+(p.ticker===c.ticker?'selected-peer':'')+'"><td>'+esc(p.name)+' ('+esc(p.ticker)+')</td><td>'+esc(p.score==null?'N/A':Number(p.score).toFixed(1))+'</td><td>'+pct(p.revenue_growth_pct)+'</td><td>'+pct(p.fcf_margin_pct)+'</td><td>'+pct(p.return_1y_pct)+'</td></tr>').join('');const peerMetrics=(c.peer_metrics||[]).map(m=>'<tr><td>'+esc(m.label)+'</td><td>'+formatPeerValue(m.key,m.company_value)+'</td><td>'+formatPeerValue(m.key,m.peer_median)+'</td><td>'+esc(m.peer_percentile==null?'N/A':Number(m.peer_percentile).toFixed(0)+'th')+'</td></tr>').join('');const qualityClass=c.data_quality==='High'?'quality-high':c.data_quality==='Limited'?'quality-limited':'';const outlook=c.outlook||{};const scenarios=outlook.scenarios||[];const scenarioRows=scenarios.map(s=>{const p=s.projections||[];const y1=p[0]||{},y2=p[1]||{},y3=p[2]||{};return '<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+plainPct(s.annual_revenue_growth_pct)+'</td><td>'+money(y1.revenue)+'</td><td>'+money(y2.revenue)+'</td><td>'+money(y3.revenue)+'</td><td>'+plainPct(s.fcf_margin_pct)+'</td><td class="'+signedClass(y3.free_cash_flow)+'">'+money(y3.free_cash_flow)+'</td></tr>';}).join('');document.getElementById('company-detail').innerHTML='<div class="detail-panel"><div class="eyebrow">'+esc(c.subsector)+' · '+esc(c.market_cap_tier)+'</div><h3>'+esc(c.name)+' ('+esc(c.ticker)+')</h3><p class="summary-text">'+esc(c.automated_summary||'No summary available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Company score</div><div class="value">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</div></div><div class="mini"><div class="label">12-mo research likelihood</div><div class="value">'+plainPct(c.outperformance_likelihood_12m_pct)+'</div><div class="subvalue">'+esc(c.likelihood_status||'Not available')+'</div></div><div class="mini"><div class="label">Research outlook</div><div class="value">'+esc(outlook.label||'N/A')+'</div><div class="subvalue">'+esc(outlook.confidence||'N/A')+' scenario confidence</div></div><div class="mini"><div class="label">3-year revenue CAGR</div><div class="value">'+plainPct(outlook.historical_revenue_cagr_3y_pct)+'</div><div class="subvalue">Reported history</div></div><div class="mini"><div class="label">Overall rank</div><div class="value">'+esc(c.overall_rank||'N/A')+'</div></div><div class="mini"><div class="label">Subsector rank</div><div class="value">'+esc(c.subsector_rank||'N/A')+' of '+esc(c.peer_count||'N/A')+'</div></div><div class="mini"><div class="label">Cap-group rank</div><div class="value">'+esc(c.cap_group_rank||'N/A')+' of '+esc(c.cap_group_count||'N/A')+'</div></div><div class="mini"><div class="label">Data coverage</div><div class="value '+qualityClass+'">'+esc(c.data_coverage_pct==null?'N/A':Number(c.data_coverage_pct).toFixed(0)+'%')+'</div><div class="subvalue">'+esc(c.data_quality||'Unknown')+'</div></div><div class="mini"><div class="label">Market cap</div><div class="value">'+money(c.market_cap)+'</div></div><div class="mini"><div class="label">Revenue growth</div><div class="value '+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</div></div><div class="mini"><div class="label">FCF margin</div><div class="value '+signedClass(c.fcf_margin_pct)+'">'+pct(c.fcf_margin_pct)+'</div></div><div class="mini"><div class="label">Reported CapEx</div><div class="value">'+money(c.latest_capex)+'</div></div><div class="mini"><div class="label">R&amp;D</div><div class="value">'+money(c.latest_rnd)+'</div></div></div><div class="analysis-grid"><div class="analysis-box"><h4>Measured strengths</h4><ul>'+strengths+'</ul></div><div class="analysis-box"><h4>Measured risks</h4><ul>'+risks+'</ul></div></div>'+warningHtml+'<h3 style="margin-top:18px">10-Year Reported History</h3><div class="metric-buttons" id="metric-buttons">'+['revenue','net_income','free_cash_flow','capex','rnd'].map(m=>'<button data-metric="'+m+'" class="'+(m===companyMetric?'active':'')+'">'+metricTitle(m)+'</button>').join('')+'</div><div class="chart-wrap" style="height:330px"><canvas id="company-history-chart"></canvas></div><h3 style="margin-top:20px">Past–Present–Future Operating Scenarios</h3><p class="section-note">'+esc(outlook.summary||outlook.status||'No operating scenario is available.')+'</p><div class="chart-wrap" style="height:330px"><canvas id="company-outlook-chart"></canvas></div><div class="table-wrap"><table class="peer-table"><thead><tr><th>Scenario</th><th>Annual growth</th><th>Year 1 revenue</th><th>Year 2 revenue</th><th>Year 3 revenue</th><th>FCF margin</th><th>Year 3 FCF</th></tr></thead><tbody>'+scenarioRows+'</tbody></table></div><p class="source-note">Model-generated operating scenarios only. They are not company guidance, analyst consensus estimates, price targets, or recommendations.</p><h3 style="margin-top:20px">Peer comparison</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Metric</th><th>Company</th><th>Peer median</th><th>Peer percentile</th></tr></thead><tbody>'+peerMetrics+'</tbody></table></div><h3 style="margin-top:20px">Companies in this subsector</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Company</th><th>Score</th><th>Revenue growth</th><th>FCF margin</th><th>1-year return</th></tr></thead><tbody>'+peerRows+'</tbody></table></div></div><div class="detail-panel"><h3>Score components</h3>'+componentHtml+'<h3 style="margin-top:20px">Recent SEC filings</h3><ul class="filings">'+filings+'</ul><p class="source-note">Latest fiscal year: '+esc(c.latest_fiscal_year||'N/A')+' · Market price date: '+esc(c.price_date||'N/A')+' · SEC CIK: '+esc(c.cik||'N/A')+'</p><p class="source-note">Peer percentiles use only the companies currently included in the same prototype subsector. They will become more meaningful as the company universe expands.</p></div>';document.querySelectorAll('#metric-buttons button').forEach(btn=>btn.addEventListener('click',function(){companyMetric=this.dataset.metric;renderCompanyDetail(ticker,false);}));renderCompanyChart(c);renderCompanyOutlookChart(c);if(shouldScroll)document.getElementById('company-detail').scrollIntoView({behavior:'smooth',block:'start'});}
+function renderCompanyDetail(ticker,shouldScroll=true){const c=DATA.companies.find(x=>x.ticker===ticker);if(!c)return;selectedTicker=ticker;const components=c.score_components||{};const componentHtml=Object.entries(components).map(([k,v])=>'<div class="component-row"><span>'+esc(componentLabel(k))+'</span><div class="bar"><span style="width:'+(v==null?0:v)+'%"></span></div><strong>'+(v==null?'—':Number(v).toFixed(0))+'</strong></div>').join('');const filings=(c.latest_filings||[]).map(f=>'<li><a target="_blank" rel="noopener" href="'+esc(f.url)+'">'+esc(f.form)+' — '+esc(f.date)+'</a> '+esc(f.description||'')+'</li>').join('')||'<li>No recent filings were retrieved.</li>';const strengths=(c.strengths||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const risks=(c.risks||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const warnings=(c.data_warnings||[]);const warningHtml=warnings.length?'<div class="warning-box"><strong>Missing-data warnings</strong><ul>'+warnings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'<div class="notice" style="margin-top:12px"><strong>Data coverage:</strong> No major standardized field is currently missing from the Phase 3 coverage check.</div>';const peerRows=(c.peer_snapshot||[]).map(p=>'<tr class="'+(p.ticker===c.ticker?'selected-peer':'')+'"><td>'+esc(p.name)+' ('+esc(p.ticker)+')</td><td>'+esc(p.score==null?'N/A':Number(p.score).toFixed(1))+'</td><td>'+pct(p.revenue_growth_pct)+'</td><td>'+pct(p.fcf_margin_pct)+'</td><td>'+pct(p.return_1y_pct)+'</td></tr>').join('');const peerMetrics=(c.peer_metrics||[]).map(m=>'<tr><td>'+esc(m.label)+'</td><td>'+formatPeerValue(m.key,m.company_value)+'</td><td>'+formatPeerValue(m.key,m.peer_median)+'</td><td>'+esc(m.peer_percentile==null?'N/A':Number(m.peer_percentile).toFixed(0)+'th')+'</td></tr>').join('');const qualityClass=c.data_quality==='High'?'quality-high':c.data_quality==='Limited'?'quality-limited':'';const outlook=c.outlook||{};const scenarios=outlook.scenarios||[];const scenarioRows=scenarios.map(s=>{const p=s.projections||[];const y1=p[0]||{},y2=p[1]||{},y3=p[2]||{};return '<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+plainPct(s.annual_revenue_growth_pct)+'</td><td>'+money(y1.revenue)+'</td><td>'+money(y2.revenue)+'</td><td>'+money(y3.revenue)+'</td><td>'+plainPct(s.fcf_margin_pct)+'</td><td class="'+signedClass(y3.free_cash_flow)+'">'+money(y3.free_cash_flow)+'</td></tr>';}).join('');document.getElementById('company-detail').innerHTML='<div class="detail-panel"><div class="eyebrow">'+esc(c.subsector)+' · '+esc(c.market_cap_tier)+'</div><h3>'+esc(c.name)+' ('+esc(c.ticker)+')</h3><p class="summary-text">'+esc(c.automated_summary||'No summary available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Company score</div><div class="value">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</div></div><div class="mini"><div class="label">12-mo research likelihood</div><div class="value">'+plainPct(c.outperformance_likelihood_12m_pct)+'</div><div class="subvalue">'+esc(c.likelihood_status||'Not available')+'</div></div><div class="mini"><div class="label">Research outlook</div><div class="value">'+esc(outlook.label||'N/A')+'</div><div class="subvalue">'+esc(outlook.confidence||'N/A')+' scenario confidence</div></div><div class="mini"><div class="label">3-year revenue CAGR</div><div class="value">'+plainPct(outlook.historical_revenue_cagr_3y_pct)+'</div><div class="subvalue">Reported history</div></div><div class="mini"><div class="label">Overall rank</div><div class="value">'+esc(c.overall_rank||'N/A')+'</div></div><div class="mini"><div class="label">Subsector rank</div><div class="value">'+esc(c.subsector_rank||'N/A')+' of '+esc(c.peer_count||'N/A')+'</div></div><div class="mini"><div class="label">Cap-group rank</div><div class="value">'+esc(c.cap_group_rank||'N/A')+' of '+esc(c.cap_group_count||'N/A')+'</div></div><div class="mini"><div class="label">Data coverage</div><div class="value '+qualityClass+'">'+esc(c.data_coverage_pct==null?'N/A':Number(c.data_coverage_pct).toFixed(0)+'%')+'</div><div class="subvalue">'+esc(c.data_quality||'Unknown')+'</div></div><div class="mini"><div class="label">Market cap</div><div class="value">'+money(c.market_cap)+'</div></div><div class="mini"><div class="label">Revenue growth</div><div class="value '+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</div></div><div class="mini"><div class="label">FCF margin</div><div class="value '+signedClass(c.fcf_margin_pct)+'">'+pct(c.fcf_margin_pct)+'</div></div><div class="mini"><div class="label">Reported CapEx</div><div class="value">'+money(c.latest_capex)+'</div></div><div class="mini"><div class="label">R&amp;D</div><div class="value">'+money(c.latest_rnd)+'</div></div></div><div class="analysis-grid"><div class="analysis-box"><h4>Measured strengths</h4><ul>'+strengths+'</ul></div><div class="analysis-box"><h4>Measured risks</h4><ul>'+risks+'</ul></div></div>'+warningHtml+'<h3 style="margin-top:18px">10-Year Reported History</h3><div class="metric-buttons" id="metric-buttons">'+['revenue','net_income','free_cash_flow','capex','rnd'].map(m=>'<button data-metric="'+m+'" class="'+(m===companyMetric?'active':'')+'">'+metricTitle(m)+'</button>').join('')+'</div><div class="chart-wrap" style="height:330px"><canvas id="company-history-chart"></canvas></div><h3 style="margin-top:20px">Past–Present–Future Operating Scenarios</h3><p class="section-note">'+esc(outlook.summary||outlook.status||'No operating scenario is available.')+'</p><div class="chart-wrap" style="height:330px"><canvas id="company-outlook-chart"></canvas></div><div class="table-wrap"><table class="peer-table"><thead><tr><th>Scenario</th><th>Annual growth</th><th>Year 1 revenue</th><th>Year 2 revenue</th><th>Year 3 revenue</th><th>FCF margin</th><th>Year 3 FCF</th></tr></thead><tbody>'+scenarioRows+'</tbody></table></div><p class="source-note">Model-generated operating scenarios only. They are not company guidance, analyst consensus estimates, price targets, or recommendations.</p>'+capitalDetailHtml(c)+'<h3 style="margin-top:20px">Peer comparison</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Metric</th><th>Company</th><th>Peer median</th><th>Peer percentile</th></tr></thead><tbody>'+peerMetrics+'</tbody></table></div><h3 style="margin-top:20px">Companies in this subsector</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Company</th><th>Score</th><th>Revenue growth</th><th>FCF margin</th><th>1-year return</th></tr></thead><tbody>'+peerRows+'</tbody></table></div></div><div class="detail-panel"><h3>Score components</h3>'+componentHtml+'<h3 style="margin-top:20px">Recent SEC filings</h3><ul class="filings">'+filings+'</ul><p class="source-note">Latest fiscal year: '+esc(c.latest_fiscal_year||'N/A')+' · Market price date: '+esc(c.price_date||'N/A')+' · SEC CIK: '+esc(c.cik||'N/A')+'</p><p class="source-note">Peer percentiles use only the companies currently included in the same prototype subsector. They will become more meaningful as the company universe expands.</p></div>';document.querySelectorAll('#metric-buttons button').forEach(btn=>btn.addEventListener('click',function(){companyMetric=this.dataset.metric;renderCompanyDetail(ticker,false);}));renderCompanyChart(c);renderCompanyOutlookChart(c);if(shouldScroll)document.getElementById('company-detail').scrollIntoView({behavior:'smooth',block:'start'});}
 
 document.querySelectorAll('#range-buttons button').forEach(btn=>btn.addEventListener('click',function(){rangeYears=Number(this.dataset.years);document.querySelectorAll('#range-buttons button').forEach(x=>x.classList.toggle('active',x===this));renderMarketChart();}));
 ['company-search','subsector-filter','cap-filter'].forEach(id=>document.getElementById(id).addEventListener(id==='company-search'?'input':'change',renderTable));
 document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',function(){const key=this.dataset.sort;if(sortKey===key)sortDirection=sortDirection==='asc'?'desc':'asc';else{sortKey=key;sortDirection=['name','ticker','subsector','market_cap_tier'].includes(key)?'asc':'desc';}renderTable();}));
-fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();renderTrackRecord();renderBacktest();renderLikelihood();renderOutlook();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
+fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();renderTrackRecord();renderBacktest();renderLikelihood();renderOutlook();renderCapitalEfficiency();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
 })();
 </script>
 </body>
@@ -1974,7 +2181,7 @@ fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('
 
 def seed_data() -> dict[str, Any]:
     return {
-        "schema_version": 6,
+        "schema_version": 7,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "status": "awaiting first live refresh",
         "market_summary": {},
@@ -1982,9 +2189,10 @@ def seed_data() -> dict[str, Any]:
         "weekly_leaders": {"week_start": None, "as_of": None, "status": "Awaiting first refresh", "leaders": []},
         "weekly_snapshots": [],
         "performance_scorecard": {"tracking_started": None, "weeks_recorded": 0, "horizons": [], "recent_weeks": []},
-        "historical_backtest": {"status": "Awaiting first Phase 6 live refresh", "tested_months": 0, "top5_horizons": [], "score_band_calibration": [], "limitations": []},
-        "likelihood_research": {"status": "Awaiting first Phase 6 live refresh", "bands": [], "limitations": []},
-        "outlook_research": {"status": "Awaiting first Phase 6 live refresh", "companies_modeled": 0, "limitations": []},
+        "historical_backtest": {"status": "Awaiting first Phase 7 live refresh", "tested_months": 0, "top5_horizons": [], "score_band_calibration": [], "limitations": []},
+        "likelihood_research": {"status": "Awaiting first Phase 7 live refresh", "bands": [], "limitations": []},
+        "outlook_research": {"status": "Awaiting first Phase 7 live refresh", "companies_modeled": 0, "limitations": []},
+        "capital_efficiency_research": {"status": "Awaiting first Phase 7 live refresh", "companies_scored": 0, "limitations": []},
         "companies": [
             {
                 **company,
@@ -2084,6 +2292,7 @@ def main() -> None:
     likelihood_observations = historical_backtest.pop("_all_observations", [])
     likelihood_research = build_likelihood_research(likelihood_observations, ranked)
     outlook_research = add_outlook_scenarios(ranked)
+    capital_efficiency_research = add_capital_efficiency_research(ranked)
     weekly_snapshots = create_or_preserve_weekly_snapshots(old_data, ranked)
     weekly_leaders = build_live_weekly_leaders(weekly_snapshots, ranked)
     performance_scorecard = build_performance_scorecard(weekly_snapshots, ranked, price_history)
@@ -2093,9 +2302,9 @@ def main() -> None:
         company.pop("_backtest_facts", None)
 
     output = {
-        "schema_version": 6,
+        "schema_version": 7,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "status": "live Phase 6 past-present-future outlook prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
+        "status": "live Phase 7 capital-efficiency and durability prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
         "market_summary": build_market_summary(companies, market_index),
         "market_index": market_index or old_data.get("market_index", []),
         "weekly_leaders": weekly_leaders,
@@ -2104,6 +2313,7 @@ def main() -> None:
         "historical_backtest": historical_backtest,
         "likelihood_research": likelihood_research,
         "outlook_research": outlook_research,
+        "capital_efficiency_research": capital_efficiency_research,
         "companies": ranked,
         "errors": errors,
         "methodology": {
@@ -2127,6 +2337,7 @@ def main() -> None:
                 "The peer benchmark is equal-weighted within the small prototype subsector universe and is not an investable published sector index.",
                 "The Phase 4 historical test uses the current prototype universe and therefore has survivorship and selection bias.",
                 "Historical score-band rates and Phase 5 likelihood estimates are retrospective research diagnostics, not guarantees or investment recommendations.",
+                "Phase 7 combined CapEx-plus-R&D figures are analytical totals, not GAAP subtotals or AI-only investment measures.",
             ],
             "phase_2_features": [
                 "Peer medians and percentiles",
@@ -2155,6 +2366,18 @@ def main() -> None:
                 "Research uncertainty ranges and validation diagnostics",
                 "Company and weekly-leader likelihood display with explicit limitations",
                 "Three-year conservative, base, and optimistic operating scenarios with published assumptions",
+            ],
+            "phase_6_features": [
+                "Three-year conservative, base, and optimistic operating scenarios",
+                "Reported-history and peer-growth scenario inputs",
+                "Past-present-future company charts with explicit model labels",
+            ],
+            "phase_7_features": [
+                "Peer-relative capital-efficiency score",
+                "Combined reported CapEx and R&D intensity",
+                "Operating-cash-flow coverage of CapEx",
+                "Net-cash financial-durability comparison",
+                "Capital profile labels and peer percentiles",
             ],
         },
     }
