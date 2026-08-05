@@ -1,7 +1,7 @@
 {
-  "schema_version": 9,
-  "generated_at": "2026-08-05T01:30:14.874330+00:00",
-  "status": "live Phase 9 SEC filing catalyst and reaction prototype",
+  "schema_version": 10,
+  "generated_at": "2026-08-05T01:45:34.501687+00:00",
+  "status": "live Phase 10 integrated evidence research prototype",
   "market_summary": {
     "direction": "Strong Uptrend",
     "return_30d_pct": 6.87,
@@ -196,7 +196,7 @@
     },
     {
       "date": "2017-03-03",
-      "ai_index": 134.69,
+      "ai_index": 134.691,
       "nasdaq100": 112.153,
       "sp500": 109.174
     },
@@ -514,7 +514,7 @@
     },
     {
       "date": "2018-03-09",
-      "ai_index": 205.592,
+      "ai_index": 205.593,
       "nasdaq100": 148.213,
       "sp500": 127.656
     },
@@ -1486,7 +1486,7 @@
     },
     {
       "date": "2021-04-16",
-      "ai_index": 453.415,
+      "ai_index": 453.416,
       "nasdaq100": 293.076,
       "sp500": 191.742
     },
@@ -1636,7 +1636,7 @@
     },
     {
       "date": "2021-10-08",
-      "ai_index": 506.319,
+      "ai_index": 506.32,
       "nasdaq100": 309.332,
       "sp500": 201.173
     },
@@ -2218,7 +2218,7 @@
     },
     {
       "date": "2023-08-18",
-      "ai_index": 627.661,
+      "ai_index": 627.662,
       "nasdaq100": 306.704,
       "sp500": 200.182
     },
@@ -2242,13 +2242,13 @@
     },
     {
       "date": "2023-09-15",
-      "ai_index": 633.653,
+      "ai_index": 633.654,
       "nasdaq100": 317.298,
       "sp500": 203.875
     },
     {
       "date": "2023-09-22",
-      "ai_index": 602.82,
+      "ai_index": 602.821,
       "nasdaq100": 306.835,
       "sp500": 197.907
     },
@@ -2332,7 +2332,7 @@
     },
     {
       "date": "2023-12-29",
-      "ai_index": 763.72,
+      "ai_index": 763.721,
       "nasdaq100": 351.183,
       "sp500": 218.512
     },
@@ -2434,13 +2434,13 @@
     },
     {
       "date": "2024-04-26",
-      "ai_index": 1046.819,
+      "ai_index": 1046.82,
       "nasdaq100": 369.808,
       "sp500": 233.636
     },
     {
       "date": "2024-05-03",
-      "ai_index": 1041.355,
+      "ai_index": 1041.356,
       "nasdaq100": 373.409,
       "sp500": 234.91
     },
@@ -2488,7 +2488,7 @@
     },
     {
       "date": "2024-06-28",
-      "ai_index": 1295.865,
+      "ai_index": 1295.866,
       "nasdaq100": 410.812,
       "sp500": 250.151
     },
@@ -2578,7 +2578,7 @@
     },
     {
       "date": "2024-10-11",
-      "ai_index": 1397.133,
+      "ai_index": 1397.134,
       "nasdaq100": 423.108,
       "sp500": 266.394
     },
@@ -2626,7 +2626,7 @@
     },
     {
       "date": "2024-12-06",
-      "ai_index": 1484.142,
+      "ai_index": 1484.143,
       "nasdaq100": 451.29,
       "sp500": 279.003
     },
@@ -2638,7 +2638,7 @@
     },
     {
       "date": "2024-12-20",
-      "ai_index": 1441.216,
+      "ai_index": 1441.217,
       "nasdaq100": 444.338,
       "sp500": 271.7
     },
@@ -2656,13 +2656,13 @@
     },
     {
       "date": "2025-01-10",
-      "ai_index": 1434.676,
+      "ai_index": 1434.677,
       "nasdaq100": 435.121,
       "sp500": 266.944
     },
     {
       "date": "2025-01-17",
-      "ai_index": 1476.418,
+      "ai_index": 1476.419,
       "nasdaq100": 447.51,
       "sp500": 274.714
     },
@@ -2680,19 +2680,19 @@
     },
     {
       "date": "2025-02-07",
-      "ai_index": 1431.151,
+      "ai_index": 1431.152,
       "nasdaq100": 448.557,
       "sp500": 276.058
     },
     {
       "date": "2025-02-14",
-      "ai_index": 1501.114,
+      "ai_index": 1501.115,
       "nasdaq100": 461.568,
       "sp500": 280.119
     },
     {
       "date": "2025-02-21",
-      "ai_index": 1437.661,
+      "ai_index": 1437.662,
       "nasdaq100": 451.119,
       "sp500": 275.469
     },
@@ -2704,7 +2704,7 @@
     },
     {
       "date": "2025-03-07",
-      "ai_index": 1229.883,
+      "ai_index": 1229.884,
       "nasdaq100": 421.634,
       "sp500": 264.34
     },
@@ -2716,7 +2716,7 @@
     },
     {
       "date": "2025-03-21",
-      "ai_index": 1265.012,
+      "ai_index": 1265.013,
       "nasdaq100": 412.296,
       "sp500": 259.638
     },
@@ -2758,7 +2758,7 @@
     },
     {
       "date": "2025-05-09",
-      "ai_index": 1284.733,
+      "ai_index": 1284.734,
       "nasdaq100": 418.714,
       "sp500": 259.288
     },
@@ -2770,7 +2770,7 @@
     },
     {
       "date": "2025-05-23",
-      "ai_index": 1408.665,
+      "ai_index": 1408.666,
       "nasdaq100": 436.542,
       "sp500": 265.834
     },
@@ -2782,7 +2782,7 @@
     },
     {
       "date": "2025-06-06",
-      "ai_index": 1510.856,
+      "ai_index": 1510.857,
       "nasdaq100": 454.202,
       "sp500": 274.884
     },
@@ -2794,31 +2794,31 @@
     },
     {
       "date": "2025-06-20",
-      "ai_index": 1550.863,
+      "ai_index": 1550.864,
       "nasdaq100": 451.376,
       "sp500": 273.394
     },
     {
       "date": "2025-06-27",
-      "ai_index": 1673.285,
+      "ai_index": 1673.286,
       "nasdaq100": 470.324,
       "sp500": 282.796
     },
     {
       "date": "2025-07-04",
-      "ai_index": 1680.331,
+      "ai_index": 1680.332,
       "nasdaq100": 477.269,
       "sp500": 287.665
     },
     {
       "date": "2025-07-11",
-      "ai_index": 1728.696,
+      "ai_index": 1728.697,
       "nasdaq100": 475.467,
       "sp500": 286.767
     },
     {
       "date": "2025-07-18",
-      "ai_index": 1804.832,
+      "ai_index": 1804.833,
       "nasdaq100": 481.412,
       "sp500": 288.464
     },
@@ -2842,7 +2842,7 @@
     },
     {
       "date": "2025-08-15",
-      "ai_index": 1924.415,
+      "ai_index": 1924.416,
       "nasdaq100": 494.908,
       "sp500": 295.473
     },
@@ -2860,7 +2860,7 @@
     },
     {
       "date": "2025-09-05",
-      "ai_index": 1801.109,
+      "ai_index": 1801.11,
       "nasdaq100": 493.663,
       "sp500": 296.926
     },
@@ -2872,7 +2872,7 @@
     },
     {
       "date": "2025-09-19",
-      "ai_index": 1915.778,
+      "ai_index": 1915.779,
       "nasdaq100": 513.988,
       "sp500": 305.303
     },
@@ -2890,13 +2890,13 @@
     },
     {
       "date": "2025-10-10",
-      "ai_index": 2004.417,
+      "ai_index": 2004.418,
       "nasdaq100": 505.545,
       "sp500": 300.179
     },
     {
       "date": "2025-10-17",
-      "ai_index": 2051.293,
+      "ai_index": 2051.294,
       "nasdaq100": 517.989,
       "sp500": 305.287
     },
@@ -2950,7 +2950,7 @@
     },
     {
       "date": "2025-12-19",
-      "ai_index": 2023.563,
+      "ai_index": 2023.564,
       "nasdaq100": 529.014,
       "sp500": 313.097
     },
@@ -2962,13 +2962,13 @@
     },
     {
       "date": "2026-01-02",
-      "ai_index": 2067.417,
+      "ai_index": 2067.418,
       "nasdaq100": 526.092,
       "sp500": 314.195
     },
     {
       "date": "2026-01-09",
-      "ai_index": 2029.21,
+      "ai_index": 2029.211,
       "nasdaq100": 537.782,
       "sp500": 319.134
     },
@@ -2980,13 +2980,13 @@
     },
     {
       "date": "2026-01-23",
-      "ai_index": 2087.401,
+      "ai_index": 2087.402,
       "nasdaq100": 534.426,
       "sp500": 316.813
     },
     {
       "date": "2026-01-30",
-      "ai_index": 2063.85,
+      "ai_index": 2063.851,
       "nasdaq100": 533.318,
       "sp500": 317.886
     },
@@ -3010,7 +3010,7 @@
     },
     {
       "date": "2026-02-27",
-      "ai_index": 1899.289,
+      "ai_index": 1899.29,
       "nasdaq100": 520.955,
       "sp500": 315.13
     },
@@ -3022,7 +3022,7 @@
     },
     {
       "date": "2026-03-13",
-      "ai_index": 1923.41,
+      "ai_index": 1923.411,
       "nasdaq100": 508.864,
       "sp500": 303.829
     },
@@ -3052,7 +3052,7 @@
     },
     {
       "date": "2026-04-17",
-      "ai_index": 2272.375,
+      "ai_index": 2272.376,
       "nasdaq100": 556.695,
       "sp500": 326.454
     },
@@ -3070,25 +3070,25 @@
     },
     {
       "date": "2026-05-08",
-      "ai_index": 2616.455,
+      "ai_index": 2616.456,
       "nasdaq100": 610.18,
       "sp500": 338.954
     },
     {
       "date": "2026-05-15",
-      "ai_index": 2633.907,
+      "ai_index": 2633.908,
       "nasdaq100": 607.888,
       "sp500": 339.393
     },
     {
       "date": "2026-05-22",
-      "ai_index": 2638.669,
+      "ai_index": 2638.67,
       "nasdaq100": 615.328,
       "sp500": 342.369
     },
     {
       "date": "2026-05-29",
-      "ai_index": 2730.358,
+      "ai_index": 2730.359,
       "nasdaq100": 633.101,
       "sp500": 347.252
     },
@@ -3118,7 +3118,7 @@
     },
     {
       "date": "2026-07-03",
-      "ai_index": 2568.442,
+      "ai_index": 2568.443,
       "nasdaq100": 612.146,
       "sp500": 342.817
     },
@@ -3156,7 +3156,7 @@
   "weekly_leaders": {
     "week_start": "2026-08-03",
     "captured_at": "2026-08-04T23:55:46.072565+00:00",
-    "as_of": "2026-08-05T01:30:14.873194+00:00",
+    "as_of": "2026-08-05T01:45:34.500453+00:00",
     "status": "Official weekly snapshot with daily live performance updates",
     "leaders": [
       {
@@ -4079,6 +4079,26 @@
       "Phase 9 remains separate from the original company score and does not rewrite official weekly snapshots or historical backtests."
     ]
   },
+  "integrated_research": {
+    "status": "Phase 10 integrated evidence and company research briefs",
+    "companies_scored": 12,
+    "company_count": 12,
+    "median_score": 56.45,
+    "favorable_count": 0,
+    "constructive_count": 3,
+    "balanced_count": 7,
+    "cautious_count": 2,
+    "high_confidence_count": 12,
+    "method": "The separate Phase 10 evidence-balance score combines the original company score (30%), the Phase 5 backtest-based likelihood estimate (20%), the Phase 6 operating-outlook signal (15%), Phase 7 capital efficiency (15%), Phase 8 relative valuation (15%), and the Phase 9 observed filing-reaction score (5%). Missing components are excluded and remaining weights are renormalized.",
+    "limitations": [
+      "Phase 10 summarizes existing quantitative research layers; it does not independently verify management quality, competitive moat, product quality, or undisclosed risks.",
+      "The integrated evidence score is separate from the original company score and does not change official weekly rankings, prior snapshots, or historical backtests.",
+      "The filing-reaction component is lightly weighted because observed price reactions do not prove causation and can be noisy.",
+      "The likelihood estimate and operating scenarios retain the survivorship, sample-size, overlap, and model limitations displayed in their own sections.",
+      "The evidence stance is not a buy, sell, hold, fair-value, price-target, or probability-of-success conclusion.",
+      "Automated summaries can omit qualitative information that is not represented in standardized SEC facts and prototype market data."
+    ]
+  },
   "companies": [
     {
       "ticker": "PLTR",
@@ -4750,7 +4770,49 @@
         "summary": "Mixed recent reaction pattern. 3 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +0.49%.",
         "reaction_rank": 9
       },
-      "filing_reaction_score": 45.4
+      "filing_reaction_score": 45.4,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 61.0,
+        "stance": "Constructive evidence balance",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 100.0,
+        "component_scores": {
+          "original_company_score": 88.6,
+          "backtest_likelihood": 39.1,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 81.9,
+          "relative_valuation": 50.4,
+          "filing_reaction": 45.4
+        },
+        "past_summary": "Reported revenue changed at a +32.9% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +46.9%. The observed one-year stock-price return was +1.2% through the latest market-data date.",
+        "present_summary": "The current original company score is 88.6, ranked 1 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Growth-supported premium. Latest tracked SEC disclosure category: Quarterly financial report on 2026-08-04.",
+        "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 39.2% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 39.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "Revenue growth is among the stronger results in its peer group.",
+          "Free-cash-flow margin compares favorably with peers.",
+          "Net profitability is strong relative to peers.",
+          "The latest standardized free cash flow is positive.",
+          "Capital-efficiency score is above the current prototype peer midpoint at 81.9."
+        ],
+        "counter_evidence": [
+          "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 39.1%.",
+          "The operating-scenario framework currently produces a cautious research outlook."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Quarterly financial report filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Growth-supported premium' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 39.2% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 3,
+        "subsector_rank": 1,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 61.0
     },
     {
       "ticker": "AMD",
@@ -5450,7 +5512,50 @@
         "summary": "Mixed recent reaction pattern. 3 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +2.36%.",
         "reaction_rank": 6
       },
-      "filing_reaction_score": 55.3
+      "filing_reaction_score": 55.3,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 54.5,
+        "stance": "Balanced / mixed evidence",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 100.0,
+        "component_scores": {
+          "original_company_score": 86.6,
+          "backtest_likelihood": 39.1,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 50.6,
+          "relative_valuation": 38.8,
+          "filing_reaction": 55.3
+        },
+        "past_summary": "Reported revenue changed at a +13.6% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +19.4%. The observed one-year stock-price return was +193.3% through the latest market-data date.",
+        "present_summary": "The current original company score is 86.6, ranked 2 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively demanding valuation mix. Latest tracked SEC disclosure category: Earnings / financial results / Regulation FD disclosure on 2026-08-04.",
+        "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 28.1% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 39.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "One-year price momentum ranks favorably within the peer group.",
+          "The latest standardized free cash flow is positive.",
+          "Cash and short-term investments exceed reported debt.",
+          "The share price is above both its 50-day and 200-day averages.",
+          "Recent tracked SEC filings have had a positive average five-trading-day observed reaction."
+        ],
+        "counter_evidence": [
+          "Net profitability is weak relative to peers.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 39.1%.",
+          "Relative-valuation score is demanding at 38.8.",
+          "The operating-scenario framework currently produces a cautious research outlook."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Earnings / financial results / Regulation FD disclosure filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Relatively demanding valuation mix' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 28.1% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 8,
+        "subsector_rank": 4,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 54.5
     },
     {
       "ticker": "SNOW",
@@ -6118,7 +6223,49 @@
         "summary": "Mixed recent reaction pattern. 4 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +1.62%.",
         "reaction_rank": 7
       },
-      "filing_reaction_score": 54.5
+      "filing_reaction_score": 54.5,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 58.2,
+        "stance": "Balanced / mixed evidence",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 90.0,
+        "component_scores": {
+          "original_company_score": 85.3,
+          "backtest_likelihood": 39.1,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 52.2,
+          "relative_valuation": 65.2,
+          "filing_reaction": 54.5
+        },
+        "past_summary": "Reported revenue changed at a +31.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +23.9%. The observed one-year stock-price return was +51.9% through the latest market-data date.",
+        "present_summary": "The current original company score is 85.3, ranked 3 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Leadership or board change on 2026-07-16.",
+        "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 27.9% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 39.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "One-year price momentum ranks favorably within the peer group.",
+          "The latest standardized free cash flow is positive.",
+          "The share price is above both its 50-day and 200-day averages.",
+          "Relative-valuation and growth-quality score is comparatively favorable at 65.2.",
+          "Recent tracked SEC filings have had a positive average five-trading-day observed reaction."
+        ],
+        "counter_evidence": [
+          "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 39.1%.",
+          "The operating-scenario framework currently produces a cautious research outlook."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Leadership or board change filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Relatively favorable valuation mix' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 27.9% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 5,
+        "subsector_rank": 2,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 58.2
     },
     {
       "ticker": "GOOGL",
@@ -6816,7 +6963,50 @@
         "summary": "Mixed recent reaction pattern. 8 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +2.09%.",
         "reaction_rank": 5
       },
-      "filing_reaction_score": 55.9
+      "filing_reaction_score": 55.9,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 52.3,
+        "stance": "Balanced / mixed evidence",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 100.0,
+        "component_scores": {
+          "original_company_score": 84.0,
+          "backtest_likelihood": 39.1,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 55.8,
+          "relative_valuation": 23.8,
+          "filing_reaction": 55.9
+        },
+        "past_summary": "Reported revenue changed at a +16.1% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +18.2%. The observed one-year stock-price return was +94.2% through the latest market-data date.",
+        "present_summary": "The current original company score is 84.0, ranked 4 overall. Capital profile: Balanced capital deployment. Relative valuation profile: Relatively demanding valuation mix. Latest tracked SEC disclosure category: Quarterly financial report on 2026-07-23.",
+        "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 15.8% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 39.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "One-year price momentum ranks favorably within the peer group.",
+          "The latest standardized free cash flow is positive.",
+          "Cash and short-term investments exceed reported debt.",
+          "The share price is above both its 50-day and 200-day averages.",
+          "Recent tracked SEC filings have had a positive average five-trading-day observed reaction."
+        ],
+        "counter_evidence": [
+          "Free-cash-flow margin is weak relative to peers.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 39.1%.",
+          "Relative-valuation score is demanding at 23.8.",
+          "The operating-scenario framework currently produces a cautious research outlook."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Quarterly financial report filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Relatively demanding valuation mix' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 15.8% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 10,
+        "subsector_rank": 3,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 52.3
     },
     {
       "ticker": "NVDA",
@@ -7502,7 +7692,50 @@
         "summary": "Mixed recent reaction pattern. 6 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of -1.03%.",
         "reaction_rank": 11
       },
-      "filing_reaction_score": 42.1
+      "filing_reaction_score": 42.1,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 62.9,
+        "stance": "Constructive evidence balance",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 90.0,
+        "component_scores": {
+          "original_company_score": 83.6,
+          "backtest_likelihood": 39.1,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 80.7,
+          "relative_valuation": 75.0,
+          "filing_reaction": 42.1
+        },
+        "past_summary": "Reported revenue changed at a +100.0% annualized rate over the latest three-year span available. The observed one-year stock-price return was +17.9% through the latest market-data date.",
+        "present_summary": "The current original company score is 83.6, ranked 5 overall. Capital profile: Capital-light growth. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Leadership or board change on 2026-07-02.",
+        "future_summary": "The operating-scenario label is cautious research outlook with moderate scenario confidence. The transparent base scenario assumes 40.0% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 39.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "Revenue growth is among the stronger results in its peer group.",
+          "Net profitability is strong relative to peers.",
+          "Cash and short-term investments exceed reported debt.",
+          "The share price is above both its 50-day and 200-day averages.",
+          "Capital-efficiency score is above the current prototype peer midpoint at 80.7."
+        ],
+        "counter_evidence": [
+          "One-year price momentum trails the peer group.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 39.1%.",
+          "The operating-scenario framework currently produces a cautious research outlook.",
+          "Recent tracked SEC filings have had a negative average five-trading-day observed reaction."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Leadership or board change filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Relatively favorable valuation mix' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 40.0% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 2,
+        "subsector_rank": 1,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 62.9
     },
     {
       "ticker": "PATH",
@@ -8161,7 +8394,48 @@
         "summary": "Positive recent reaction pattern. 3 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +4.44%.",
         "reaction_rank": 2
       },
-      "filing_reaction_score": 69.9
+      "filing_reaction_score": 69.9,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 53.6,
+        "stance": "Balanced / mixed evidence",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 80.0,
+        "component_scores": {
+          "original_company_score": 83.3,
+          "backtest_likelihood": 39.1,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 47.8,
+          "relative_valuation": 37.5,
+          "filing_reaction": 69.9
+        },
+        "past_summary": "Reported revenue changed at a +15.0% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +21.9%. The observed one-year stock-price return was +24.3% through the latest market-data date.",
+        "present_summary": "The current original company score is 83.3, ranked 6 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively demanding valuation mix. Latest tracked SEC disclosure category: Shareholder vote results on 2026-06-29.",
+        "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 15.5% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 39.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "The latest standardized free cash flow is positive.",
+          "The share price is above both its 50-day and 200-day averages.",
+          "Recent tracked SEC filings have had a positive average five-trading-day observed reaction."
+        ],
+        "counter_evidence": [
+          "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 39.1%.",
+          "Relative-valuation score is demanding at 37.5.",
+          "The operating-scenario framework currently produces a cautious research outlook."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Shareholder vote results filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Relatively demanding valuation mix' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 15.5% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 9,
+        "subsector_rank": 3,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 53.6
     },
     {
       "ticker": "MSFT",
@@ -8850,7 +9124,48 @@
         "summary": "Mixed recent reaction pattern. 4 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +0.00%.",
         "reaction_rank": 10
       },
-      "filing_reaction_score": 45.0
+      "filing_reaction_score": 45.0,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 55.0,
+        "stance": "Balanced / mixed evidence",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 100.0,
+        "component_scores": {
+          "original_company_score": 82.8,
+          "backtest_likelihood": 39.1,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 44.6,
+          "relative_valuation": 59.6,
+          "filing_reaction": 45.0
+        },
+        "past_summary": "Reported revenue changed at a +16.1% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +20.2%. The observed one-year stock-price return was -7.3% through the latest market-data date.",
+        "present_summary": "The current original company score is 82.8, ranked 7 overall. Capital profile: Balanced capital deployment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Annual financial report on 2026-07-29.",
+        "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 16.9% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 39.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "Net profitability is strong relative to peers.",
+          "The latest standardized free cash flow is positive.",
+          "Cash and short-term investments exceed reported debt.",
+          "The share price is above both its 50-day and 200-day averages."
+        ],
+        "counter_evidence": [
+          "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 39.1%.",
+          "The operating-scenario framework currently produces a cautious research outlook."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Annual financial report filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Balanced relative valuation' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 16.9% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 7,
+        "subsector_rank": 2,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 55.0
     },
     {
       "ticker": "MRVL",
@@ -9521,7 +9836,45 @@
         "summary": "Positive recent reaction pattern. 5 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +14.01%.",
         "reaction_rank": 1
       },
-      "filing_reaction_score": 90.0
+      "filing_reaction_score": 90.0,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 59.7,
+        "stance": "Balanced / mixed evidence",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 100.0,
+        "component_scores": {
+          "original_company_score": 79.9,
+          "backtest_likelihood": 51.1,
+          "operating_outlook_signal": 52.0,
+          "capital_efficiency": 30.6,
+          "relative_valuation": 57.5,
+          "filing_reaction": 90.0
+        },
+        "past_summary": "Reported revenue changed at a +11.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +17.0%. The observed one-year stock-price return was +186.2% through the latest market-data date.",
+        "present_summary": "The current original company score is 79.9, ranked 8 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Other material event / Financial statements or exhibits on 2026-07-09.",
+        "future_summary": "The operating-scenario label is balanced research outlook with high scenario confidence. The transparent base scenario assumes 30.4% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 51.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "The latest standardized free cash flow is positive.",
+          "Recent tracked SEC filings have had a positive average five-trading-day observed reaction."
+        ],
+        "counter_evidence": [
+          "Free-cash-flow margin is weak relative to peers.",
+          "Capital-efficiency score is relatively weak at 30.6."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Other material event / Financial statements or exhibits filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Balanced relative valuation' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 30.4% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 4,
+        "subsector_rank": 2,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 59.7
     },
     {
       "ticker": "AVGO",
@@ -10214,7 +10567,48 @@
         "summary": "Mixed recent reaction pattern. 5 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +2.56%.",
         "reaction_rank": 4
       },
-      "filing_reaction_score": 59.7
+      "filing_reaction_score": 59.7,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 57.9,
+        "stance": "Balanced / mixed evidence",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 100.0,
+        "component_scores": {
+          "original_company_score": 79.0,
+          "backtest_likelihood": 51.1,
+          "operating_outlook_signal": 52.0,
+          "capital_efficiency": 51.9,
+          "relative_valuation": 36.2,
+          "filing_reaction": 59.7
+        },
+        "past_summary": "Reported revenue changed at a +24.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +42.1%. The observed one-year stock-price return was +41.5% through the latest market-data date.",
+        "present_summary": "The current original company score is 79.0, ranked 9 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively demanding valuation mix. Latest tracked SEC disclosure category: Other material event on 2026-07-06.",
+        "future_summary": "The operating-scenario label is balanced research outlook with high scenario confidence. The transparent base scenario assumes 27.6% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 51.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "Free-cash-flow margin compares favorably with peers.",
+          "The latest standardized free cash flow is positive.",
+          "The share price is above both its 50-day and 200-day averages.",
+          "Recent tracked SEC filings have had a positive average five-trading-day observed reaction."
+        ],
+        "counter_evidence": [
+          "Revenue growth trails most companies in its peer group.",
+          "Reported debt materially exceeds cash and short-term investments.",
+          "Relative-valuation score is demanding at 36.2."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Other material event filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Relatively demanding valuation mix' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 27.6% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 6,
+        "subsector_rank": 3,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 57.9
     },
     {
       "ticker": "META",
@@ -10904,7 +11298,49 @@
         "summary": "Mixed recent reaction pattern. 3 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of -0.36%.",
         "reaction_rank": 8
       },
-      "filing_reaction_score": 50.3
+      "filing_reaction_score": 50.3,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 66.3,
+        "stance": "Constructive evidence balance",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 90.0,
+        "component_scores": {
+          "original_company_score": 77.5,
+          "backtest_likelihood": 51.1,
+          "operating_outlook_signal": 52.0,
+          "capital_efficiency": 64.6,
+          "relative_valuation": 85.4,
+          "filing_reaction": 50.3
+        },
+        "past_summary": "Reported revenue changed at a +19.9% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +22.9%. The observed one-year stock-price return was -24.0% through the latest market-data date.",
+        "present_summary": "The current original company score is 77.5, ranked 10 overall. Capital profile: Heavy but self-funded investment. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Quarterly financial report on 2026-07-30.",
+        "future_summary": "The operating-scenario label is balanced research outlook with high scenario confidence. The transparent base scenario assumes 19.9% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 51.1%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "Revenue growth is among the stronger results in its peer group.",
+          "Free-cash-flow margin compares favorably with peers.",
+          "The latest standardized free cash flow is positive.",
+          "Cash and short-term investments exceed reported debt.",
+          "Relative-valuation and growth-quality score is comparatively favorable at 85.4."
+        ],
+        "counter_evidence": [
+          "One-year price momentum trails the peer group.",
+          "The share price is below both its 50-day and 200-day averages.",
+          "Recent tracked SEC filings have had a negative average five-trading-day observed reaction."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Quarterly financial report filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Relatively favorable valuation mix' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 19.9% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 1,
+        "subsector_rank": 1,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 66.3
     },
     {
       "ticker": "AMZN",
@@ -11595,7 +12031,48 @@
         "summary": "Positive recent reaction pattern. 6 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of +3.16%.",
         "reaction_rank": 3
       },
-      "filing_reaction_score": 67.8
+      "filing_reaction_score": 67.8,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 46.9,
+        "stance": "Cautious evidence balance",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 80.0,
+        "component_scores": {
+          "original_company_score": 68.9,
+          "backtest_likelihood": 34.7,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 12.5,
+          "relative_valuation": 63.7,
+          "filing_reaction": 67.8
+        },
+        "past_summary": "Reported revenue changed at a +11.7% annualized rate over the latest three-year span available. The observed one-year stock-price return was +31.1% through the latest market-data date.",
+        "present_summary": "The current original company score is 68.9, ranked 11 overall. Capital profile: Balanced capital deployment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Quarterly financial report on 2026-07-31.",
+        "future_summary": "The operating-scenario label is cautious research outlook with moderate scenario confidence. The transparent base scenario assumes 13.2% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 34.7%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "The share price is above both its 50-day and 200-day averages.",
+          "Recent tracked SEC filings have had a positive average five-trading-day observed reaction."
+        ],
+        "counter_evidence": [
+          "Revenue growth trails most companies in its peer group.",
+          "Net profitability is weak relative to peers.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 34.7%.",
+          "Capital-efficiency score is relatively weak at 12.5.",
+          "The operating-scenario framework currently produces a cautious research outlook."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Quarterly financial report filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Balanced relative valuation' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of 13.2% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 11,
+        "subsector_rank": 4,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 46.9
     },
     {
       "ticker": "AI",
@@ -12270,7 +12747,47 @@
         "summary": "Negative recent reaction pattern. 5 tracked filing(s) were submitted in the last 90 days, with an average five-trading-day reaction of -4.16%.",
         "reaction_rank": 12
       },
-      "filing_reaction_score": 30.9
+      "filing_reaction_score": 30.9,
+      "integrated_research": {
+        "status": "Phase 10 automated evidence synthesis; not investment advice",
+        "score": 28.0,
+        "stance": "Cautious evidence balance",
+        "confidence": "High",
+        "available_component_count": 6,
+        "data_coverage_pct": 90.0,
+        "component_scores": {
+          "original_company_score": 32.0,
+          "backtest_likelihood": 26.7,
+          "operating_outlook_signal": 30.0,
+          "capital_efficiency": 12.5,
+          "relative_valuation": 34.5,
+          "filing_reaction": 30.9
+        },
+        "past_summary": "Reported revenue changed at a -2.1% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was -76.8%. The observed one-year stock-price return was -56.7% through the latest market-data date.",
+        "present_summary": "The current original company score is 32.0, ranked 12 overall. Capital profile: Cash-consuming expansion. Relative valuation profile: Speculative / negative cash flow. Latest tracked SEC disclosure category: Other material event on 2026-07-17.",
+        "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes -9.8% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 26.7%, subject to its displayed sample and validation limits.",
+        "supporting_evidence": [
+          "No standout strength was identified from the currently available standardized metrics."
+        ],
+        "counter_evidence": [
+          "Revenue growth trails most companies in its peer group.",
+          "Free-cash-flow margin is weak relative to peers.",
+          "Net profitability is weak relative to peers.",
+          "One-year price momentum trails the peer group.",
+          "Backtest-based peer-outperformance research estimate is below 45% at 26.7%."
+        ],
+        "watch_items": [
+          "Review the next SEC disclosure after the latest Other material event filing and compare the subsequent reported facts with the current profile.",
+          "Compare the next reported revenue-growth and free-cash-flow margins with the current subsector medians.",
+          "Monitor whether the current 'Speculative / negative cash flow' valuation profile changes as price and reported fundamentals update.",
+          "Test future reported revenue against the Phase 6 base scenario assumption of -9.8% annual growth.",
+          "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
+        ],
+        "overall_rank": 12,
+        "subsector_rank": 4,
+        "subsector_count": 4
+      },
+      "integrated_research_score": 28.0
     }
   ],
   "errors": [],
@@ -12298,7 +12815,8 @@
       "Phase 7 combined CapEx-plus-R&D figures are analytical totals, not GAAP subtotals or AI-only investment measures.",
       "Phase 8 valuation ratios use latest annual reported financial facts and current prototype market capitalization; they are relative research, not fair-value estimates.",
       "Phase 8 remains separate from the original score so the existing weekly track record and historical backtest are not silently rewritten.",
-      "Phase 9 filing reactions are observational and can reflect market-wide or unrelated news; they are not causation findings or forecasts."
+      "Phase 9 filing reactions are observational and can reflect market-wide or unrelated news; they are not causation findings or forecasts.",
+      "Phase 10 is an automated synthesis of existing research layers and does not replace qualitative due diligence or create an investment recommendation."
     ],
     "phase_2_features": [
       "Peer medians and percentiles",
@@ -12353,6 +12871,13 @@
       "Ninety-day disclosure activity and attention levels",
       "Company filing-reaction profiles and separate reaction ranking",
       "No change to the original company score or weekly track record"
+    ],
+    "phase_10_features": [
+      "Integrated evidence-balance score kept separate from the original ranking",
+      "Past, present, and future company research narratives",
+      "Supporting evidence, counter-evidence, and monitoring checklist",
+      "Confidence gate based on data coverage and available research components",
+      "No change to official weekly snapshots or historical backtests"
     ]
   }
 }
