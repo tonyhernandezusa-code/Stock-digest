@@ -1,7 +1,7 @@
 {
-  "schema_version": 4,
-  "generated_at": "2026-08-05T00:12:08.814568+00:00",
-  "status": "live Phase 4 backtest prototype",
+  "schema_version": 5,
+  "generated_at": "2026-08-05T00:31:26.770611+00:00",
+  "status": "live Phase 5 likelihood research prototype",
   "market_summary": {
     "direction": "Strong Uptrend",
     "return_30d_pct": 6.87,
@@ -76,7 +76,7 @@
     },
     {
       "date": "2016-10-14",
-      "ai_index": 104.935,
+      "ai_index": 104.934,
       "nasdaq100": 100.36,
       "sp500": 97.714
     },
@@ -196,7 +196,7 @@
     },
     {
       "date": "2017-03-03",
-      "ai_index": 134.691,
+      "ai_index": 134.69,
       "nasdaq100": 112.153,
       "sp500": 109.174
     },
@@ -328,7 +328,7 @@
     },
     {
       "date": "2017-08-04",
-      "ai_index": 160.65,
+      "ai_index": 160.651,
       "nasdaq100": 123.14,
       "sp500": 113.467
     },
@@ -1636,7 +1636,7 @@
     },
     {
       "date": "2021-10-08",
-      "ai_index": 506.32,
+      "ai_index": 506.319,
       "nasdaq100": 309.332,
       "sp500": 201.173
     },
@@ -1912,7 +1912,7 @@
     },
     {
       "date": "2022-08-26",
-      "ai_index": 401.171,
+      "ai_index": 401.172,
       "nasdaq100": 263.089,
       "sp500": 185.886
     },
@@ -1990,7 +1990,7 @@
     },
     {
       "date": "2022-11-25",
-      "ai_index": 355.615,
+      "ai_index": 355.616,
       "nasdaq100": 245.367,
       "sp500": 184.442
     },
@@ -2242,7 +2242,7 @@
     },
     {
       "date": "2023-09-15",
-      "ai_index": 633.653,
+      "ai_index": 633.654,
       "nasdaq100": 317.298,
       "sp500": 203.875
     },
@@ -2578,7 +2578,7 @@
     },
     {
       "date": "2024-10-11",
-      "ai_index": 1397.133,
+      "ai_index": 1397.134,
       "nasdaq100": 423.108,
       "sp500": 266.394
     },
@@ -2632,7 +2632,7 @@
     },
     {
       "date": "2024-12-13",
-      "ai_index": 1458.5,
+      "ai_index": 1458.501,
       "nasdaq100": 454.588,
       "sp500": 277.208
     },
@@ -2656,7 +2656,7 @@
     },
     {
       "date": "2025-01-10",
-      "ai_index": 1434.676,
+      "ai_index": 1434.677,
       "nasdaq100": 435.121,
       "sp500": 266.944
     },
@@ -2686,13 +2686,13 @@
     },
     {
       "date": "2025-02-14",
-      "ai_index": 1501.114,
+      "ai_index": 1501.115,
       "nasdaq100": 461.568,
       "sp500": 280.119
     },
     {
       "date": "2025-02-21",
-      "ai_index": 1437.661,
+      "ai_index": 1437.662,
       "nasdaq100": 451.119,
       "sp500": 275.469
     },
@@ -2716,7 +2716,7 @@
     },
     {
       "date": "2025-03-21",
-      "ai_index": 1265.012,
+      "ai_index": 1265.013,
       "nasdaq100": 412.296,
       "sp500": 259.638
     },
@@ -2794,13 +2794,13 @@
     },
     {
       "date": "2025-06-20",
-      "ai_index": 1550.863,
+      "ai_index": 1550.864,
       "nasdaq100": 451.376,
       "sp500": 273.394
     },
     {
       "date": "2025-06-27",
-      "ai_index": 1673.285,
+      "ai_index": 1673.286,
       "nasdaq100": 470.324,
       "sp500": 282.796
     },
@@ -2812,7 +2812,7 @@
     },
     {
       "date": "2025-07-11",
-      "ai_index": 1728.696,
+      "ai_index": 1728.697,
       "nasdaq100": 475.467,
       "sp500": 286.767
     },
@@ -2842,7 +2842,7 @@
     },
     {
       "date": "2025-08-15",
-      "ai_index": 1924.415,
+      "ai_index": 1924.416,
       "nasdaq100": 494.908,
       "sp500": 295.473
     },
@@ -2896,7 +2896,7 @@
     },
     {
       "date": "2025-10-17",
-      "ai_index": 2051.293,
+      "ai_index": 2051.294,
       "nasdaq100": 517.989,
       "sp500": 305.287
     },
@@ -2950,7 +2950,7 @@
     },
     {
       "date": "2025-12-19",
-      "ai_index": 2023.563,
+      "ai_index": 2023.564,
       "nasdaq100": 529.014,
       "sp500": 313.097
     },
@@ -2962,13 +2962,13 @@
     },
     {
       "date": "2026-01-02",
-      "ai_index": 2067.417,
+      "ai_index": 2067.418,
       "nasdaq100": 526.092,
       "sp500": 314.195
     },
     {
       "date": "2026-01-09",
-      "ai_index": 2029.21,
+      "ai_index": 2029.211,
       "nasdaq100": 537.782,
       "sp500": 319.134
     },
@@ -3156,7 +3156,7 @@
   "weekly_leaders": {
     "week_start": "2026-08-03",
     "captured_at": "2026-08-04T23:55:46.072565+00:00",
-    "as_of": "2026-08-05T00:12:07.331485+00:00",
+    "as_of": "2026-08-05T00:31:26.769479+00:00",
     "status": "Official weekly snapshot with daily live performance updates",
     "leaders": [
       {
@@ -3178,7 +3178,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 100.0,
         "key_strength": "Revenue growth is among the stronger results in its peer group.",
-        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+        "research_likelihood_12m_pct": 39.1,
+        "likelihood_score_band": "80 and above",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 2,
@@ -3199,7 +3202,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 100.0,
         "key_strength": "One-year price momentum ranks favorably within the peer group.",
-        "key_risk": "Net profitability is weak relative to peers."
+        "key_risk": "Net profitability is weak relative to peers.",
+        "research_likelihood_12m_pct": 39.1,
+        "likelihood_score_band": "80 and above",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 3,
@@ -3220,7 +3226,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 90.0,
         "key_strength": "One-year price momentum ranks favorably within the peer group.",
-        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+        "research_likelihood_12m_pct": 39.1,
+        "likelihood_score_band": "80 and above",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 4,
@@ -3241,7 +3250,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 100.0,
         "key_strength": "One-year price momentum ranks favorably within the peer group.",
-        "key_risk": "Free-cash-flow margin is weak relative to peers."
+        "key_risk": "Free-cash-flow margin is weak relative to peers.",
+        "research_likelihood_12m_pct": 39.1,
+        "likelihood_score_band": "80 and above",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 5,
@@ -3262,7 +3274,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 90.0,
         "key_strength": "Revenue growth is among the stronger results in its peer group.",
-        "key_risk": "One-year price momentum trails the peer group."
+        "key_risk": "One-year price momentum trails the peer group.",
+        "research_likelihood_12m_pct": 39.1,
+        "likelihood_score_band": "80 and above",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 6,
@@ -3283,7 +3298,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 80.0,
         "key_strength": "The latest standardized free cash flow is positive.",
-        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+        "research_likelihood_12m_pct": 39.1,
+        "likelihood_score_band": "80 and above",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 7,
@@ -3304,7 +3322,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 100.0,
         "key_strength": "Net profitability is strong relative to peers.",
-        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+        "research_likelihood_12m_pct": 39.1,
+        "likelihood_score_band": "80 and above",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 8,
@@ -3325,7 +3346,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 100.0,
         "key_strength": "The latest standardized free cash flow is positive.",
-        "key_risk": "Free-cash-flow margin is weak relative to peers."
+        "key_risk": "Free-cash-flow margin is weak relative to peers.",
+        "research_likelihood_12m_pct": 51.1,
+        "likelihood_score_band": "70–79.9",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 9,
@@ -3346,7 +3370,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 100.0,
         "key_strength": "Free-cash-flow margin compares favorably with peers.",
-        "key_risk": "Revenue growth trails most companies in its peer group."
+        "key_risk": "Revenue growth trails most companies in its peer group.",
+        "research_likelihood_12m_pct": 51.1,
+        "likelihood_score_band": "70–79.9",
+        "likelihood_status": "Research only"
       },
       {
         "official_rank": 10,
@@ -3367,7 +3394,10 @@
         "relative_return_pct": 0.0,
         "data_coverage_pct": 90.0,
         "key_strength": "Revenue growth is among the stronger results in its peer group.",
-        "key_risk": "One-year price momentum trails the peer group."
+        "key_risk": "One-year price momentum trails the peer group.",
+        "research_likelihood_12m_pct": 51.1,
+        "likelihood_score_band": "70–79.9",
+        "likelihood_status": "Research only"
       }
     ]
   },
@@ -3711,6 +3741,7 @@
         "horizon": "3 months",
         "observations": 110,
         "peer_comparison_observations": 110,
+        "outperformed_peer_count": 35,
         "historical_peer_outperformance_rate_pct": 31.8,
         "average_return_pct": -0.88,
         "average_excess_peer_pct": -7.2
@@ -3721,6 +3752,7 @@
         "horizon": "3 months",
         "observations": 135,
         "peer_comparison_observations": 135,
+        "outperformed_peer_count": 55,
         "historical_peer_outperformance_rate_pct": 40.7,
         "average_return_pct": 8.04,
         "average_excess_peer_pct": 0.74
@@ -3731,6 +3763,7 @@
         "horizon": "3 months",
         "observations": 209,
         "peer_comparison_observations": 209,
+        "outperformed_peer_count": 100,
         "historical_peer_outperformance_rate_pct": 47.8,
         "average_return_pct": 11.59,
         "average_excess_peer_pct": 0.22
@@ -3741,6 +3774,7 @@
         "horizon": "3 months",
         "observations": 215,
         "peer_comparison_observations": 215,
+        "outperformed_peer_count": 109,
         "historical_peer_outperformance_rate_pct": 50.7,
         "average_return_pct": 7.71,
         "average_excess_peer_pct": 3.01
@@ -3751,6 +3785,7 @@
         "horizon": "6 months",
         "observations": 107,
         "peer_comparison_observations": 107,
+        "outperformed_peer_count": 29,
         "historical_peer_outperformance_rate_pct": 27.1,
         "average_return_pct": 2.35,
         "average_excess_peer_pct": -13.95
@@ -3761,6 +3796,7 @@
         "horizon": "6 months",
         "observations": 131,
         "peer_comparison_observations": 131,
+        "outperformed_peer_count": 67,
         "historical_peer_outperformance_rate_pct": 51.1,
         "average_return_pct": 12.42,
         "average_excess_peer_pct": -1.62
@@ -3771,6 +3807,7 @@
         "horizon": "6 months",
         "observations": 194,
         "peer_comparison_observations": 194,
+        "outperformed_peer_count": 95,
         "historical_peer_outperformance_rate_pct": 49.0,
         "average_return_pct": 26.65,
         "average_excess_peer_pct": 1.35
@@ -3781,6 +3818,7 @@
         "horizon": "6 months",
         "observations": 201,
         "peer_comparison_observations": 201,
+        "outperformed_peer_count": 97,
         "historical_peer_outperformance_rate_pct": 48.3,
         "average_return_pct": 12.64,
         "average_excess_peer_pct": 7.17
@@ -3791,6 +3829,7 @@
         "horizon": "12 months",
         "observations": 98,
         "peer_comparison_observations": 98,
+        "outperformed_peer_count": 23,
         "historical_peer_outperformance_rate_pct": 23.5,
         "average_return_pct": 18.15,
         "average_excess_peer_pct": -33.39
@@ -3801,6 +3840,7 @@
         "horizon": "12 months",
         "observations": 121,
         "peer_comparison_observations": 121,
+        "outperformed_peer_count": 40,
         "historical_peer_outperformance_rate_pct": 33.1,
         "average_return_pct": 28.92,
         "average_excess_peer_pct": -12.22
@@ -3811,6 +3851,7 @@
         "horizon": "12 months",
         "observations": 170,
         "peer_comparison_observations": 170,
+        "outperformed_peer_count": 77,
         "historical_peer_outperformance_rate_pct": 45.3,
         "average_return_pct": 70.12,
         "average_excess_peer_pct": 8.72
@@ -3821,6 +3862,7 @@
         "horizon": "12 months",
         "observations": 172,
         "peer_comparison_observations": 172,
+        "outperformed_peer_count": 82,
         "historical_peer_outperformance_rate_pct": 47.7,
         "average_return_pct": 38.46,
         "average_excess_peer_pct": 19.0
@@ -3833,6 +3875,86 @@
       "Peer benchmarks are equal-weighted within the small prototype subsectors and are not published investable sector indexes.",
       "Adjusted historical prices exclude transaction costs, taxes, market impact, and real-world execution delays.",
       "Historical outperformance rates describe this retrospective sample only and are not forecasts or investment recommendations."
+    ]
+  },
+  "likelihood_research": {
+    "status": "Phase 5 backtest-based likelihood research; not a published investment probability",
+    "horizon": "12 months versus equal-weighted prototype subsector peers",
+    "method": "Chronological 70% calibration / 30% validation split. Score-band rates are beta-smoothed toward 50% using ten neutral prior observations.",
+    "calibration_period": {
+      "start": "2021-08-31",
+      "end": "2024-04-30"
+    },
+    "validation_period": {
+      "start": "2024-05-31",
+      "end": "2025-07-31"
+    },
+    "calibration_observations": 381,
+    "validation_observations": 180,
+    "eligible_company_count": 12,
+    "brier_score": 0.249,
+    "weighted_validation_error_pct": 15.0,
+    "bands": [
+      {
+        "score_band": "Below 60",
+        "calibration_observations": 65,
+        "calibration_outperformed_count": 15,
+        "smoothed_likelihood_pct": 26.7,
+        "research_range_low_pct": 20.2,
+        "research_range_high_pct": 33.2,
+        "validation_observations": 33,
+        "validation_outperformed_count": 8,
+        "validation_actual_rate_pct": 24.2,
+        "validation_absolute_error_pct": 2.5,
+        "status": "Developing validation"
+      },
+      {
+        "score_band": "60–69.9",
+        "calibration_observations": 91,
+        "calibration_outperformed_count": 30,
+        "smoothed_likelihood_pct": 34.7,
+        "research_range_low_pct": 28.6,
+        "research_range_high_pct": 40.7,
+        "validation_observations": 30,
+        "validation_outperformed_count": 10,
+        "validation_actual_rate_pct": 33.3,
+        "validation_absolute_error_pct": 1.4,
+        "status": "Developing validation"
+      },
+      {
+        "score_band": "70–79.9",
+        "calibration_observations": 125,
+        "calibration_outperformed_count": 64,
+        "smoothed_likelihood_pct": 51.1,
+        "research_range_low_pct": 45.6,
+        "research_range_high_pct": 56.6,
+        "validation_observations": 45,
+        "validation_outperformed_count": 13,
+        "validation_actual_rate_pct": 28.9,
+        "validation_absolute_error_pct": 22.2,
+        "status": "Research only"
+      },
+      {
+        "score_band": "80 and above",
+        "calibration_observations": 100,
+        "calibration_outperformed_count": 38,
+        "smoothed_likelihood_pct": 39.1,
+        "research_range_low_pct": 33.2,
+        "research_range_high_pct": 45.0,
+        "validation_observations": 72,
+        "validation_outperformed_count": 44,
+        "validation_actual_rate_pct": 61.1,
+        "validation_absolute_error_pct": 22.0,
+        "status": "Research only"
+      }
+    ],
+    "limitations": [
+      "The historical universe contains today's prototype companies, so survivorship and selection bias remain.",
+      "Monthly 12-month observations overlap and are not independent; the displayed research range may understate real uncertainty.",
+      "The likelihood is assigned by broad score band, not by a company-specific causal model.",
+      "The peer benchmark is equal-weighted within the small prototype subsector groups and is not an investable published index.",
+      "No score-band estimate is displayed with fewer than 12 calibration observations.",
+      "This is research calibration, not a forecast, guarantee, price target, buy/sell signal, or personalized investment advice."
     ]
   },
   "companies": [
@@ -4074,7 +4196,15 @@
         "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       ],
       "cap_group_rank": 1,
-      "cap_group_count": 7
+      "cap_group_count": 7,
+      "likelihood_score_band": "80 and above",
+      "outperformance_likelihood_12m_pct": 39.1,
+      "likelihood_range_low_pct": 33.2,
+      "likelihood_range_high_pct": 45.0,
+      "likelihood_calibration_observations": 100,
+      "likelihood_validation_observations": 72,
+      "likelihood_validation_actual_pct": 61.1,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "AMD",
@@ -4332,7 +4462,15 @@
         "Net profitability is weak relative to peers."
       ],
       "cap_group_rank": 2,
-      "cap_group_count": 7
+      "cap_group_count": 7,
+      "likelihood_score_band": "80 and above",
+      "outperformance_likelihood_12m_pct": 39.1,
+      "likelihood_range_low_pct": 33.2,
+      "likelihood_range_high_pct": 45.0,
+      "likelihood_calibration_observations": 100,
+      "likelihood_validation_observations": 72,
+      "likelihood_validation_actual_pct": 61.1,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "SNOW",
@@ -4572,7 +4710,15 @@
         "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       ],
       "cap_group_rank": 1,
-      "cap_group_count": 2
+      "cap_group_count": 2,
+      "likelihood_score_band": "80 and above",
+      "outperformance_likelihood_12m_pct": 39.1,
+      "likelihood_range_low_pct": 33.2,
+      "likelihood_range_high_pct": 45.0,
+      "likelihood_calibration_observations": 100,
+      "likelihood_validation_observations": 72,
+      "likelihood_validation_actual_pct": 61.1,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "GOOGL",
@@ -4830,7 +4976,15 @@
         "Free-cash-flow margin is weak relative to peers."
       ],
       "cap_group_rank": 3,
-      "cap_group_count": 7
+      "cap_group_count": 7,
+      "likelihood_score_band": "80 and above",
+      "outperformance_likelihood_12m_pct": 39.1,
+      "likelihood_range_low_pct": 33.2,
+      "likelihood_range_high_pct": 45.0,
+      "likelihood_calibration_observations": 100,
+      "likelihood_validation_observations": 72,
+      "likelihood_validation_actual_pct": 61.1,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "NVDA",
@@ -5086,7 +5240,15 @@
         "One-year price momentum trails the peer group."
       ],
       "cap_group_rank": 4,
-      "cap_group_count": 7
+      "cap_group_count": 7,
+      "likelihood_score_band": "80 and above",
+      "outperformance_likelihood_12m_pct": 39.1,
+      "likelihood_range_low_pct": 33.2,
+      "likelihood_range_high_pct": 45.0,
+      "likelihood_calibration_observations": 100,
+      "likelihood_validation_observations": 72,
+      "likelihood_validation_actual_pct": 61.1,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "PATH",
@@ -5315,7 +5477,15 @@
         "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       ],
       "cap_group_rank": 1,
-      "cap_group_count": 2
+      "cap_group_count": 2,
+      "likelihood_score_band": "80 and above",
+      "outperformance_likelihood_12m_pct": 39.1,
+      "likelihood_range_low_pct": 33.2,
+      "likelihood_range_high_pct": 45.0,
+      "likelihood_calibration_observations": 100,
+      "likelihood_validation_observations": 72,
+      "likelihood_validation_actual_pct": 61.1,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "MSFT",
@@ -5573,7 +5743,15 @@
         "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       ],
       "cap_group_rank": 5,
-      "cap_group_count": 7
+      "cap_group_count": 7,
+      "likelihood_score_band": "80 and above",
+      "outperformance_likelihood_12m_pct": 39.1,
+      "likelihood_range_low_pct": 33.2,
+      "likelihood_range_high_pct": 45.0,
+      "likelihood_calibration_observations": 100,
+      "likelihood_validation_observations": 72,
+      "likelihood_validation_actual_pct": 61.1,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "MRVL",
@@ -5801,7 +5979,15 @@
         "Free-cash-flow margin is weak relative to peers."
       ],
       "cap_group_rank": 2,
-      "cap_group_count": 2
+      "cap_group_count": 2,
+      "likelihood_score_band": "70–79.9",
+      "outperformance_likelihood_12m_pct": 51.1,
+      "likelihood_range_low_pct": 45.6,
+      "likelihood_range_high_pct": 56.6,
+      "likelihood_calibration_observations": 125,
+      "likelihood_validation_observations": 45,
+      "likelihood_validation_actual_pct": 28.9,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "AVGO",
@@ -6059,7 +6245,15 @@
         "Reported debt materially exceeds cash and short-term investments."
       ],
       "cap_group_rank": 6,
-      "cap_group_count": 7
+      "cap_group_count": 7,
+      "likelihood_score_band": "70–79.9",
+      "outperformance_likelihood_12m_pct": 51.1,
+      "likelihood_range_low_pct": 45.6,
+      "likelihood_range_high_pct": 56.6,
+      "likelihood_calibration_observations": 125,
+      "likelihood_validation_observations": 45,
+      "likelihood_validation_actual_pct": 28.9,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "META",
@@ -6318,7 +6512,15 @@
         "The share price is below both its 50-day and 200-day averages."
       ],
       "cap_group_rank": 2,
-      "cap_group_count": 2
+      "cap_group_count": 2,
+      "likelihood_score_band": "70–79.9",
+      "outperformance_likelihood_12m_pct": 51.1,
+      "likelihood_range_low_pct": 45.6,
+      "likelihood_range_high_pct": 56.6,
+      "likelihood_calibration_observations": 125,
+      "likelihood_validation_observations": 45,
+      "likelihood_validation_actual_pct": 28.9,
+      "likelihood_status": "Research only"
     },
     {
       "ticker": "AMZN",
@@ -6571,7 +6773,15 @@
         "Net profitability is weak relative to peers."
       ],
       "cap_group_rank": 7,
-      "cap_group_count": 7
+      "cap_group_count": 7,
+      "likelihood_score_band": "60–69.9",
+      "outperformance_likelihood_12m_pct": 34.7,
+      "likelihood_range_low_pct": 28.6,
+      "likelihood_range_high_pct": 40.7,
+      "likelihood_calibration_observations": 91,
+      "likelihood_validation_observations": 30,
+      "likelihood_validation_actual_pct": 33.3,
+      "likelihood_status": "Developing validation"
     },
     {
       "ticker": "AI",
@@ -6812,7 +7022,15 @@
         "One-year price momentum trails the peer group."
       ],
       "cap_group_rank": 1,
-      "cap_group_count": 1
+      "cap_group_count": 1,
+      "likelihood_score_band": "Below 60",
+      "outperformance_likelihood_12m_pct": 26.7,
+      "likelihood_range_low_pct": 20.2,
+      "likelihood_range_high_pct": 33.2,
+      "likelihood_calibration_observations": 65,
+      "likelihood_validation_observations": 33,
+      "likelihood_validation_actual_pct": 24.2,
+      "likelihood_status": "Developing validation"
     }
   ],
   "errors": [],
@@ -6836,7 +7054,7 @@
       "The Phase 3 performance record starts only when the first Phase 3 snapshot is created; it does not backfill hypothetical prior rankings.",
       "The peer benchmark is equal-weighted within the small prototype subsector universe and is not an investable published sector index.",
       "The Phase 4 historical test uses the current prototype universe and therefore has survivorship and selection bias.",
-      "Historical score-band rates are retrospective diagnostics, not calibrated probabilities."
+      "Historical score-band rates and Phase 5 likelihood estimates are retrospective research diagnostics, not guarantees or investment recommendations."
     ],
     "phase_2_features": [
       "Peer medians and percentiles",
@@ -6857,6 +7075,13 @@
       "Comparison with subsector peers and the Nasdaq-100",
       "Score-band historical outperformance calibration research",
       "Explicit survivorship-bias, overlap, and execution limitations"
+    ],
+    "phase_5_features": [
+      "Chronological 70% calibration and 30% validation split",
+      "Beta-smoothed 12-month peer-outperformance research estimates",
+      "Minimum sample-size gate before displaying an estimate",
+      "Research uncertainty ranges and validation diagnostics",
+      "Company and weekly-leader likelihood display with explicit limitations"
     ]
   }
 }
