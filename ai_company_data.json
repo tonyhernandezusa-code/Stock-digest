@@ -1,7 +1,7 @@
 {
-  "schema_version": 10,
-  "generated_at": "2026-08-05T01:45:34.501687+00:00",
-  "status": "live Phase 10 integrated evidence research prototype",
+  "schema_version": 11,
+  "generated_at": "2026-08-05T02:05:57.849162+00:00",
+  "status": "live Phase 11 daily change and integrated evidence research prototype",
   "market_summary": {
     "direction": "Strong Uptrend",
     "return_30d_pct": 6.87,
@@ -514,7 +514,7 @@
     },
     {
       "date": "2018-03-09",
-      "ai_index": 205.593,
+      "ai_index": 205.592,
       "nasdaq100": 148.213,
       "sp500": 127.656
     },
@@ -1582,7 +1582,7 @@
     },
     {
       "date": "2021-08-06",
-      "ai_index": 506.365,
+      "ai_index": 506.366,
       "nasdaq100": 315.356,
       "sp500": 203.243
     },
@@ -1636,7 +1636,7 @@
     },
     {
       "date": "2021-10-08",
-      "ai_index": 506.32,
+      "ai_index": 506.319,
       "nasdaq100": 309.332,
       "sp500": 201.173
     },
@@ -2332,7 +2332,7 @@
     },
     {
       "date": "2023-12-29",
-      "ai_index": 763.721,
+      "ai_index": 763.72,
       "nasdaq100": 351.183,
       "sp500": 218.512
     },
@@ -2500,7 +2500,7 @@
     },
     {
       "date": "2024-07-12",
-      "ai_index": 1366.515,
+      "ai_index": 1366.514,
       "nasdaq100": 424.35,
       "sp500": 257.246
     },
@@ -2578,7 +2578,7 @@
     },
     {
       "date": "2024-10-11",
-      "ai_index": 1397.134,
+      "ai_index": 1397.133,
       "nasdaq100": 423.108,
       "sp500": 266.394
     },
@@ -2632,13 +2632,13 @@
     },
     {
       "date": "2024-12-13",
-      "ai_index": 1458.5,
+      "ai_index": 1458.501,
       "nasdaq100": 454.588,
       "sp500": 277.208
     },
     {
       "date": "2024-12-20",
-      "ai_index": 1441.217,
+      "ai_index": 1441.216,
       "nasdaq100": 444.338,
       "sp500": 271.7
     },
@@ -2662,7 +2662,7 @@
     },
     {
       "date": "2025-01-17",
-      "ai_index": 1476.419,
+      "ai_index": 1476.418,
       "nasdaq100": 447.51,
       "sp500": 274.714
     },
@@ -2686,13 +2686,13 @@
     },
     {
       "date": "2025-02-14",
-      "ai_index": 1501.115,
+      "ai_index": 1501.114,
       "nasdaq100": 461.568,
       "sp500": 280.119
     },
     {
       "date": "2025-02-21",
-      "ai_index": 1437.662,
+      "ai_index": 1437.661,
       "nasdaq100": 451.119,
       "sp500": 275.469
     },
@@ -2704,7 +2704,7 @@
     },
     {
       "date": "2025-03-07",
-      "ai_index": 1229.884,
+      "ai_index": 1229.883,
       "nasdaq100": 421.634,
       "sp500": 264.34
     },
@@ -2716,7 +2716,7 @@
     },
     {
       "date": "2025-03-21",
-      "ai_index": 1265.013,
+      "ai_index": 1265.012,
       "nasdaq100": 412.296,
       "sp500": 259.638
     },
@@ -2770,7 +2770,7 @@
     },
     {
       "date": "2025-05-23",
-      "ai_index": 1408.666,
+      "ai_index": 1408.665,
       "nasdaq100": 436.542,
       "sp500": 265.834
     },
@@ -2794,7 +2794,7 @@
     },
     {
       "date": "2025-06-20",
-      "ai_index": 1550.864,
+      "ai_index": 1550.863,
       "nasdaq100": 451.376,
       "sp500": 273.394
     },
@@ -2818,7 +2818,7 @@
     },
     {
       "date": "2025-07-18",
-      "ai_index": 1804.833,
+      "ai_index": 1804.832,
       "nasdaq100": 481.412,
       "sp500": 288.464
     },
@@ -2842,7 +2842,7 @@
     },
     {
       "date": "2025-08-15",
-      "ai_index": 1924.416,
+      "ai_index": 1924.415,
       "nasdaq100": 494.908,
       "sp500": 295.473
     },
@@ -2872,7 +2872,7 @@
     },
     {
       "date": "2025-09-19",
-      "ai_index": 1915.779,
+      "ai_index": 1915.778,
       "nasdaq100": 513.988,
       "sp500": 305.303
     },
@@ -2896,7 +2896,7 @@
     },
     {
       "date": "2025-10-17",
-      "ai_index": 2051.294,
+      "ai_index": 2051.293,
       "nasdaq100": 517.989,
       "sp500": 305.287
     },
@@ -2962,13 +2962,13 @@
     },
     {
       "date": "2026-01-02",
-      "ai_index": 2067.418,
+      "ai_index": 2067.417,
       "nasdaq100": 526.092,
       "sp500": 314.195
     },
     {
       "date": "2026-01-09",
-      "ai_index": 2029.211,
+      "ai_index": 2029.21,
       "nasdaq100": 537.782,
       "sp500": 319.134
     },
@@ -2986,7 +2986,7 @@
     },
     {
       "date": "2026-01-30",
-      "ai_index": 2063.851,
+      "ai_index": 2063.85,
       "nasdaq100": 533.318,
       "sp500": 317.886
     },
@@ -3052,7 +3052,7 @@
     },
     {
       "date": "2026-04-17",
-      "ai_index": 2272.376,
+      "ai_index": 2272.375,
       "nasdaq100": 556.695,
       "sp500": 326.454
     },
@@ -3082,13 +3082,13 @@
     },
     {
       "date": "2026-05-22",
-      "ai_index": 2638.67,
+      "ai_index": 2638.669,
       "nasdaq100": 615.328,
       "sp500": 342.369
     },
     {
       "date": "2026-05-29",
-      "ai_index": 2730.359,
+      "ai_index": 2730.358,
       "nasdaq100": 633.101,
       "sp500": 347.252
     },
@@ -3156,7 +3156,7 @@
   "weekly_leaders": {
     "week_start": "2026-08-03",
     "captured_at": "2026-08-04T23:55:46.072565+00:00",
-    "as_of": "2026-08-05T01:45:34.500453+00:00",
+    "as_of": "2026-08-05T02:05:57.847949+00:00",
     "status": "Official weekly snapshot with daily live performance updates",
     "leaders": [
       {
@@ -4099,6 +4099,250 @@
       "Automated summaries can omit qualitative information that is not represented in standardized SEC facts and prototype market data."
     ]
   },
+  "daily_snapshots": [
+    {
+      "snapshot_date": "2026-08-04",
+      "captured_at": "2026-08-05T02:05:57.847876+00:00",
+      "capture_policy": "First successful AI Intelligence refresh of the New York calendar date",
+      "companies": [
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 1,
+          "score": 88.6,
+          "integrated_research_score": 61.0,
+          "integrated_stance": "Constructive evidence balance",
+          "outperformance_likelihood_12m_pct": 39.1,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Growth-supported premium",
+          "latest_price": 162.66,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-08-04",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 2,
+          "score": 86.6,
+          "integrated_research_score": 54.5,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 39.1,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 518.58,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-08-04",
+          "latest_event_category": "Earnings / financial results / Regulation FD disclosure"
+        },
+        {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 3,
+          "score": 85.3,
+          "integrated_research_score": 58.2,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 39.1,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively favorable valuation mix",
+          "latest_price": 316.77,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-07-16",
+          "latest_event_category": "Leadership or board change"
+        },
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 4,
+          "score": 84.0,
+          "integrated_research_score": 52.3,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 39.1,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Balanced capital deployment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 377.65,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-07-23",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 5,
+          "score": 83.6,
+          "integrated_research_score": 62.9,
+          "integrated_stance": "Constructive evidence balance",
+          "outperformance_likelihood_12m_pct": 39.1,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Capital-light growth",
+          "relative_valuation_profile": "Relatively favorable valuation mix",
+          "latest_price": 211.94,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-07-02",
+          "latest_event_category": "Leadership or board change"
+        },
+        {
+          "ticker": "PATH",
+          "name": "UiPath",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 6,
+          "score": 83.3,
+          "integrated_research_score": 53.6,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 39.1,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 14.1,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 80.0,
+          "latest_filing_date": "2026-06-29",
+          "latest_event_category": "Shareholder vote results"
+        },
+        {
+          "ticker": "MSFT",
+          "name": "Microsoft",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 7,
+          "score": 82.8,
+          "integrated_research_score": 55.0,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 39.1,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Balanced capital deployment",
+          "relative_valuation_profile": "Balanced relative valuation",
+          "latest_price": 492.81,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-07-29",
+          "latest_event_category": "Annual financial report"
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 8,
+          "score": 79.9,
+          "integrated_research_score": 59.7,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 51.1,
+          "outlook_label": "Balanced research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Balanced relative valuation",
+          "latest_price": 218.59,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-07-09",
+          "latest_event_category": "Other material event / Financial statements or exhibits"
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 9,
+          "score": 79.0,
+          "integrated_research_score": 57.9,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 51.1,
+          "outlook_label": "Balanced research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 418.16,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-07-06",
+          "latest_event_category": "Other material event"
+        },
+        {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 10,
+          "score": 77.5,
+          "integrated_research_score": 66.3,
+          "integrated_stance": "Constructive evidence balance",
+          "outperformance_likelihood_12m_pct": 51.1,
+          "outlook_label": "Balanced research outlook",
+          "capital_profile": "Heavy but self-funded investment",
+          "relative_valuation_profile": "Relatively favorable valuation mix",
+          "latest_price": 587.94,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-07-30",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 11,
+          "score": 68.9,
+          "integrated_research_score": 46.9,
+          "integrated_stance": "Cautious evidence balance",
+          "outperformance_likelihood_12m_pct": 34.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Balanced capital deployment",
+          "relative_valuation_profile": "Balanced relative valuation",
+          "latest_price": 277.42,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 80.0,
+          "latest_filing_date": "2026-07-31",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "AI",
+          "name": "C3.ai",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 12,
+          "score": 32.0,
+          "integrated_research_score": 28.0,
+          "integrated_stance": "Cautious evidence balance",
+          "outperformance_likelihood_12m_pct": 26.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Cash-consuming expansion",
+          "relative_valuation_profile": "Speculative / negative cash flow",
+          "latest_price": 10.05,
+          "price_date": "2026-08-04",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-07-17",
+          "latest_event_category": "Other material event"
+        }
+      ]
+    }
+  ],
+  "daily_change_monitor": {
+    "status": "Phase 11 baseline recorded; awaiting the next successful daily refresh",
+    "as_of": "2026-08-05T02:05:57.847917+00:00",
+    "comparison_date": null,
+    "snapshot_date": "2026-08-04",
+    "snapshots_recorded": 1,
+    "companies_with_material_change": 0,
+    "high_priority_count": 0,
+    "moderate_priority_count": 0,
+    "new_filing_count": 0,
+    "largest_absolute_score_change": null,
+    "alerts": [],
+    "method": "The first Phase 11 refresh establishes a baseline. Later refreshes compare with the most recent prior preserved New York-date snapshot.",
+    "limitations": [
+      "A baseline and at least one later daily snapshot are required before change alerts can be calculated.",
+      "The scheduled workflow normally runs on weekdays, so the comparison may span weekends or holidays.",
+      "Alerts identify changes in the research system; they are not buy, sell, or risk-management instructions."
+    ]
+  },
   "companies": [
     {
       "ticker": "PLTR",
@@ -4812,7 +5056,14 @@
         "subsector_rank": 1,
         "subsector_count": 4
       },
-      "integrated_research_score": 61.0
+      "integrated_research_score": 61.0,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "AMD",
@@ -5555,7 +5806,14 @@
         "subsector_rank": 4,
         "subsector_count": 4
       },
-      "integrated_research_score": 54.5
+      "integrated_research_score": 54.5,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "SNOW",
@@ -6265,7 +6523,14 @@
         "subsector_rank": 2,
         "subsector_count": 4
       },
-      "integrated_research_score": 58.2
+      "integrated_research_score": 58.2,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "GOOGL",
@@ -7006,7 +7271,14 @@
         "subsector_rank": 3,
         "subsector_count": 4
       },
-      "integrated_research_score": 52.3
+      "integrated_research_score": 52.3,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "NVDA",
@@ -7735,7 +8007,14 @@
         "subsector_rank": 1,
         "subsector_count": 4
       },
-      "integrated_research_score": 62.9
+      "integrated_research_score": 62.9,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "PATH",
@@ -8435,7 +8714,14 @@
         "subsector_rank": 3,
         "subsector_count": 4
       },
-      "integrated_research_score": 53.6
+      "integrated_research_score": 53.6,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "MSFT",
@@ -9165,7 +9451,14 @@
         "subsector_rank": 2,
         "subsector_count": 4
       },
-      "integrated_research_score": 55.0
+      "integrated_research_score": 55.0,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "MRVL",
@@ -9874,7 +10167,14 @@
         "subsector_rank": 2,
         "subsector_count": 4
       },
-      "integrated_research_score": 59.7
+      "integrated_research_score": 59.7,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "AVGO",
@@ -10608,7 +10908,14 @@
         "subsector_rank": 3,
         "subsector_count": 4
       },
-      "integrated_research_score": 57.9
+      "integrated_research_score": 57.9,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "META",
@@ -11340,7 +11647,14 @@
         "subsector_rank": 1,
         "subsector_count": 4
       },
-      "integrated_research_score": 66.3
+      "integrated_research_score": 66.3,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "AMZN",
@@ -12072,7 +12386,14 @@
         "subsector_rank": 4,
         "subsector_count": 4
       },
-      "integrated_research_score": 46.9
+      "integrated_research_score": 46.9,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     },
     {
       "ticker": "AI",
@@ -12787,7 +13108,14 @@
         "subsector_rank": 4,
         "subsector_count": 4
       },
-      "integrated_research_score": 28.0
+      "integrated_research_score": 28.0,
+      "daily_change": {
+        "status": "Baseline recorded; awaiting a later daily snapshot for comparison",
+        "comparison_date": null,
+        "priority": "Baseline",
+        "summary": "No prior Phase 11 daily snapshot is available yet.",
+        "material_change": false
+      }
     }
   ],
   "errors": [],
@@ -12816,7 +13144,8 @@
       "Phase 8 valuation ratios use latest annual reported financial facts and current prototype market capitalization; they are relative research, not fair-value estimates.",
       "Phase 8 remains separate from the original score so the existing weekly track record and historical backtest are not silently rewritten.",
       "Phase 9 filing reactions are observational and can reflect market-wide or unrelated news; they are not causation findings or forecasts.",
-      "Phase 10 is an automated synthesis of existing research layers and does not replace qualitative due diligence or create an investment recommendation."
+      "Phase 10 is an automated synthesis of existing research layers and does not replace qualitative due diligence or create an investment recommendation.",
+      "Phase 11 alerts describe changes between preserved daily research snapshots and are not trade instructions or proof that a change will persist."
     ],
     "phase_2_features": [
       "Peer medians and percentiles",
@@ -12878,6 +13207,13 @@
       "Supporting evidence, counter-evidence, and monitoring checklist",
       "Confidence gate based on data coverage and available research components",
       "No change to official weekly snapshots or historical backtests"
+    ],
+    "phase_11_features": [
+      "One preserved research-state snapshot per New York calendar date",
+      "Daily comparison with the most recent prior successful snapshot",
+      "Published thresholds for score, rank, likelihood, price, profile, coverage, and filing changes",
+      "High and moderate research-review priorities",
+      "No change to the original company score, weekly rankings, backtest, or calibration"
     ]
   }
 }
