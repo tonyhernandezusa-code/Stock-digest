@@ -1,7 +1,7 @@
 {
-  "schema_version": 11,
-  "generated_at": "2026-08-05T02:05:57.849162+00:00",
-  "status": "live Phase 11 daily change and integrated evidence research prototype",
+  "schema_version": 12,
+  "generated_at": "2026-08-05T02:19:50.917075+00:00",
+  "status": "live Phase 12 subsector leadership and daily change research prototype",
   "market_summary": {
     "direction": "Strong Uptrend",
     "return_30d_pct": 6.87,
@@ -76,7 +76,7 @@
     },
     {
       "date": "2016-10-14",
-      "ai_index": 104.934,
+      "ai_index": 104.935,
       "nasdaq100": 100.36,
       "sp500": 97.714
     },
@@ -514,7 +514,7 @@
     },
     {
       "date": "2018-03-09",
-      "ai_index": 205.592,
+      "ai_index": 205.593,
       "nasdaq100": 148.213,
       "sp500": 127.656
     },
@@ -1522,7 +1522,7 @@
     },
     {
       "date": "2021-05-28",
-      "ai_index": 423.373,
+      "ai_index": 423.374,
       "nasdaq100": 285.659,
       "sp500": 192.596
     },
@@ -1636,7 +1636,7 @@
     },
     {
       "date": "2021-10-08",
-      "ai_index": 506.319,
+      "ai_index": 506.32,
       "nasdaq100": 309.332,
       "sp500": 201.173
     },
@@ -1726,7 +1726,7 @@
     },
     {
       "date": "2022-01-21",
-      "ai_index": 525.036,
+      "ai_index": 525.037,
       "nasdaq100": 301.352,
       "sp500": 201.475
     },
@@ -1912,7 +1912,7 @@
     },
     {
       "date": "2022-08-26",
-      "ai_index": 401.171,
+      "ai_index": 401.172,
       "nasdaq100": 263.089,
       "sp500": 185.886
     },
@@ -2062,7 +2062,7 @@
     },
     {
       "date": "2023-02-17",
-      "ai_index": 404.351,
+      "ai_index": 404.352,
       "nasdaq100": 257.934,
       "sp500": 186.868
     },
@@ -2332,7 +2332,7 @@
     },
     {
       "date": "2023-12-29",
-      "ai_index": 763.72,
+      "ai_index": 763.721,
       "nasdaq100": 351.183,
       "sp500": 218.512
     },
@@ -2500,7 +2500,7 @@
     },
     {
       "date": "2024-07-12",
-      "ai_index": 1366.514,
+      "ai_index": 1366.515,
       "nasdaq100": 424.35,
       "sp500": 257.246
     },
@@ -2578,7 +2578,7 @@
     },
     {
       "date": "2024-10-11",
-      "ai_index": 1397.133,
+      "ai_index": 1397.134,
       "nasdaq100": 423.108,
       "sp500": 266.394
     },
@@ -2638,7 +2638,7 @@
     },
     {
       "date": "2024-12-20",
-      "ai_index": 1441.216,
+      "ai_index": 1441.217,
       "nasdaq100": 444.338,
       "sp500": 271.7
     },
@@ -2662,7 +2662,7 @@
     },
     {
       "date": "2025-01-17",
-      "ai_index": 1476.418,
+      "ai_index": 1476.419,
       "nasdaq100": 447.51,
       "sp500": 274.714
     },
@@ -2686,13 +2686,13 @@
     },
     {
       "date": "2025-02-14",
-      "ai_index": 1501.114,
+      "ai_index": 1501.115,
       "nasdaq100": 461.568,
       "sp500": 280.119
     },
     {
       "date": "2025-02-21",
-      "ai_index": 1437.661,
+      "ai_index": 1437.662,
       "nasdaq100": 451.119,
       "sp500": 275.469
     },
@@ -2704,7 +2704,7 @@
     },
     {
       "date": "2025-03-07",
-      "ai_index": 1229.883,
+      "ai_index": 1229.884,
       "nasdaq100": 421.634,
       "sp500": 264.34
     },
@@ -2716,7 +2716,7 @@
     },
     {
       "date": "2025-03-21",
-      "ai_index": 1265.012,
+      "ai_index": 1265.013,
       "nasdaq100": 412.296,
       "sp500": 259.638
     },
@@ -2770,7 +2770,7 @@
     },
     {
       "date": "2025-05-23",
-      "ai_index": 1408.665,
+      "ai_index": 1408.666,
       "nasdaq100": 436.542,
       "sp500": 265.834
     },
@@ -2794,7 +2794,7 @@
     },
     {
       "date": "2025-06-20",
-      "ai_index": 1550.863,
+      "ai_index": 1550.864,
       "nasdaq100": 451.376,
       "sp500": 273.394
     },
@@ -2818,7 +2818,7 @@
     },
     {
       "date": "2025-07-18",
-      "ai_index": 1804.832,
+      "ai_index": 1804.833,
       "nasdaq100": 481.412,
       "sp500": 288.464
     },
@@ -2842,7 +2842,7 @@
     },
     {
       "date": "2025-08-15",
-      "ai_index": 1924.415,
+      "ai_index": 1924.416,
       "nasdaq100": 494.908,
       "sp500": 295.473
     },
@@ -2872,7 +2872,7 @@
     },
     {
       "date": "2025-09-19",
-      "ai_index": 1915.778,
+      "ai_index": 1915.779,
       "nasdaq100": 513.988,
       "sp500": 305.303
     },
@@ -2896,7 +2896,7 @@
     },
     {
       "date": "2025-10-17",
-      "ai_index": 2051.293,
+      "ai_index": 2051.294,
       "nasdaq100": 517.989,
       "sp500": 305.287
     },
@@ -2962,13 +2962,13 @@
     },
     {
       "date": "2026-01-02",
-      "ai_index": 2067.417,
+      "ai_index": 2067.418,
       "nasdaq100": 526.092,
       "sp500": 314.195
     },
     {
       "date": "2026-01-09",
-      "ai_index": 2029.21,
+      "ai_index": 2029.211,
       "nasdaq100": 537.782,
       "sp500": 319.134
     },
@@ -2986,7 +2986,7 @@
     },
     {
       "date": "2026-01-30",
-      "ai_index": 2063.85,
+      "ai_index": 2063.851,
       "nasdaq100": 533.318,
       "sp500": 317.886
     },
@@ -3052,7 +3052,7 @@
     },
     {
       "date": "2026-04-17",
-      "ai_index": 2272.375,
+      "ai_index": 2272.376,
       "nasdaq100": 556.695,
       "sp500": 326.454
     },
@@ -3082,13 +3082,13 @@
     },
     {
       "date": "2026-05-22",
-      "ai_index": 2638.669,
+      "ai_index": 2638.67,
       "nasdaq100": 615.328,
       "sp500": 342.369
     },
     {
       "date": "2026-05-29",
-      "ai_index": 2730.358,
+      "ai_index": 2730.359,
       "nasdaq100": 633.101,
       "sp500": 347.252
     },
@@ -3156,7 +3156,7 @@
   "weekly_leaders": {
     "week_start": "2026-08-03",
     "captured_at": "2026-08-04T23:55:46.072565+00:00",
-    "as_of": "2026-08-05T02:05:57.847949+00:00",
+    "as_of": "2026-08-05T02:19:50.915903+00:00",
     "status": "Official weekly snapshot with daily live performance updates",
     "leaders": [
       {
@@ -4326,7 +4326,7 @@
   ],
   "daily_change_monitor": {
     "status": "Phase 11 baseline recorded; awaiting the next successful daily refresh",
-    "as_of": "2026-08-05T02:05:57.847917+00:00",
+    "as_of": "2026-08-05T02:19:50.915852+00:00",
     "comparison_date": null,
     "snapshot_date": "2026-08-04",
     "snapshots_recorded": 1,
@@ -4341,6 +4341,165 @@
       "A baseline and at least one later daily snapshot are required before change alerts can be calculated.",
       "The scheduled workflow normally runs on weekdays, so the comparison may span weekends or holidays.",
       "Alerts identify changes in the research system; they are not buy, sell, or risk-management instructions."
+    ]
+  },
+  "subsector_landscape": {
+    "status": "Phase 12 AI subsector leadership and competitive-landscape research",
+    "subsector_count": 3,
+    "company_count": 12,
+    "median_competitive_position_score": 46.25,
+    "average_subsector_breadth_pct": 83.3,
+    "strongest_subsector": "Semiconductors & Infrastructure",
+    "strongest_subsector_score": 80.5,
+    "highest_growth_subsector": "Semiconductors & Infrastructure",
+    "highest_growth_median_pct": 38.22,
+    "highest_fcf_subsector": "AI Software & Growth",
+    "highest_fcf_median_pct": 22.9,
+    "subsectors": [
+      {
+        "subsector": "Semiconductors & Infrastructure",
+        "profile": "Leading subsector evidence",
+        "research_strength_score": 80.5,
+        "company_count": 4,
+        "priced_company_count": 4,
+        "median_company_score": 81.75,
+        "median_integrated_evidence_score": 58.8,
+        "median_revenue_growth_pct": 38.22,
+        "median_fcf_margin_pct": 19.44,
+        "median_return_1y_pct": 113.86,
+        "breadth_above_50_day_pct": 75.0,
+        "positive_fcf_company_pct": 100.0,
+        "aggregate_market_cap": 8155197146968.3,
+        "top_two_market_cap_share_pct": 87.3,
+        "market_cap_concentration": "Highly concentrated",
+        "original_score_leader": {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "value": 86.6
+        },
+        "integrated_evidence_leader": {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "value": 62.9
+        },
+        "revenue_growth_leader": {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "value": 65.47
+        },
+        "capital_efficiency_leader": {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "value": 80.7
+        },
+        "relative_valuation_leader": {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "value": 75.0
+        },
+        "dominant_strength": "The latest standardized free cash flow is positive.",
+        "dominant_risk": "Net profitability is weak relative to peers.",
+        "research_strength_rank": 1
+      },
+      {
+        "subsector": "AI Software & Growth",
+        "profile": "Leading subsector evidence",
+        "research_strength_score": 79.3,
+        "company_count": 4,
+        "priced_company_count": 4,
+        "median_company_score": 84.3,
+        "median_integrated_evidence_score": 55.9,
+        "median_revenue_growth_pct": 20.91,
+        "median_fcf_margin_pct": 22.9,
+        "median_return_1y_pct": 12.79,
+        "breadth_above_50_day_pct": 100.0,
+        "positive_fcf_company_pct": 75.0,
+        "aggregate_market_cap": 500682882939.6,
+        "top_two_market_cap_share_pct": 100.0,
+        "market_cap_concentration": "Highly concentrated",
+        "original_score_leader": {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "value": 88.6
+        },
+        "integrated_evidence_leader": {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "value": 61.0
+        },
+        "revenue_growth_leader": {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "value": 56.18
+        },
+        "capital_efficiency_leader": {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "value": 81.9
+        },
+        "relative_valuation_leader": {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "value": 65.2
+        },
+        "dominant_strength": "The latest standardized free cash flow is positive.",
+        "dominant_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+        "research_strength_rank": 2
+      },
+      {
+        "subsector": "Cloud & AI Platforms",
+        "profile": "Leading subsector evidence",
+        "research_strength_score": 76.1,
+        "company_count": 4,
+        "priced_company_count": 4,
+        "median_company_score": 80.15,
+        "median_integrated_evidence_score": 53.65,
+        "median_revenue_growth_pct": 16.44,
+        "median_fcf_margin_pct": 20.19,
+        "median_return_1y_pct": 11.91,
+        "breadth_above_50_day_pct": 75.0,
+        "positive_fcf_company_pct": 100.0,
+        "aggregate_market_cap": 11270381684563.95,
+        "top_two_market_cap_share_pct": 73.4,
+        "market_cap_concentration": "Moderately concentrated",
+        "original_score_leader": {
+          "ticker": "GOOGL",
+          "name": "Alphabet",
+          "value": 84.0
+        },
+        "integrated_evidence_leader": {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "value": 66.3
+        },
+        "revenue_growth_leader": {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "value": 22.17
+        },
+        "capital_efficiency_leader": {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "value": 64.6
+        },
+        "relative_valuation_leader": {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "value": 85.4
+        },
+        "dominant_strength": "The latest standardized free cash flow is positive.",
+        "dominant_risk": "Free-cash-flow margin is weak relative to peers.",
+        "research_strength_rank": 3
+      }
+    ],
+    "method": "The separate Phase 12 subsector research-strength score combines the median original company score (30%), median integrated evidence score (25%), share of priced companies above their 50-day average (15%), share of reporting companies with positive standardized free cash flow (15%), and a transparent revenue-growth signal (15%). Company competitive-position scores use within-subsector percentiles and remain separate from the original ranking score.",
+    "limitations": [
+      "The prototype has only a small number of companies in each subsector, so rankings and medians can change materially when the universe expands.",
+      "Subsector labels are Stock Digest research classifications and may not match an issuer's formal reporting segments or a licensed industry taxonomy.",
+      "Aggregate market capitalization and concentration are descriptive snapshots, not measures of addressable market, economic moat, or future industry share.",
+      "The subsector strength and competitive-position scores summarize available quantitative evidence; they do not independently measure products, patents, management, customers, regulation, or private competitors.",
+      "Phase 12 remains separate from the original company score and does not rewrite official weekly rankings, historical snapshots, backtests, or likelihood calibration.",
+      "No Phase 12 label is a buy, sell, hold, sector-allocation, or investment recommendation."
     ]
   },
   "companies": [
@@ -5063,7 +5222,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 85.0,
+        "profile": "Subsector leader",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 87.5,
+          "integrated_evidence_percentile": 87.5,
+          "revenue_growth_percentile": 87.5,
+          "free_cash_flow_margin_percentile": 87.5,
+          "capital_efficiency_percentile": 87.5,
+          "relative_valuation_percentile": 62.5
+        },
+        "subsector_rank": 1,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 85.0
     },
     {
       "ticker": "AMD",
@@ -5813,7 +5989,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 45.6,
+        "profile": "Balanced competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 87.5,
+          "integrated_evidence_percentile": 12.5,
+          "revenue_growth_percentile": 37.5,
+          "free_cash_flow_margin_percentile": 50.0,
+          "capital_efficiency_percentile": 37.5,
+          "relative_valuation_percentile": 37.5
+        },
+        "subsector_rank": 2,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 45.6
     },
     {
       "ticker": "SNOW",
@@ -6530,7 +6723,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 65.0,
+        "profile": "Strong competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 62.5,
+          "integrated_evidence_percentile": 62.5,
+          "revenue_growth_percentile": 62.5,
+          "free_cash_flow_margin_percentile": 62.5,
+          "capital_efficiency_percentile": 62.5,
+          "relative_valuation_percentile": 87.5
+        },
+        "subsector_rank": 2,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 65.0
     },
     {
       "ticker": "GOOGL",
@@ -7278,7 +7488,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 46.9,
+        "profile": "Balanced competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 87.5,
+          "integrated_evidence_percentile": 37.5,
+          "revenue_growth_percentile": 37.5,
+          "free_cash_flow_margin_percentile": 16.7,
+          "capital_efficiency_percentile": 62.5,
+          "relative_valuation_percentile": 12.5
+        },
+        "subsector_rank": 3,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 46.9
     },
     {
       "ticker": "NVDA",
@@ -8014,7 +8241,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 80.1,
+        "profile": "Subsector leader",
+        "available_component_count": 5,
+        "components": {
+          "original_score_percentile": 62.5,
+          "integrated_evidence_percentile": 87.5,
+          "revenue_growth_percentile": 87.5,
+          "free_cash_flow_margin_percentile": null,
+          "capital_efficiency_percentile": 87.5,
+          "relative_valuation_percentile": 87.5
+        },
+        "subsector_rank": 1,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 80.1
     },
     {
       "ticker": "PATH",
@@ -8721,7 +8965,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 37.5,
+        "profile": "Developing competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 37.5,
+          "integrated_evidence_percentile": 37.5,
+          "revenue_growth_percentile": 37.5,
+          "free_cash_flow_margin_percentile": 37.5,
+          "capital_efficiency_percentile": 37.5,
+          "relative_valuation_percentile": 37.5
+        },
+        "subsector_rank": 3,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 37.5
     },
     {
       "ticker": "MSFT",
@@ -9458,7 +9719,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 55.6,
+        "profile": "Balanced competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 62.5,
+          "integrated_evidence_percentile": 62.5,
+          "revenue_growth_percentile": 62.5,
+          "free_cash_flow_margin_percentile": 50.0,
+          "capital_efficiency_percentile": 37.5,
+          "relative_valuation_percentile": 37.5
+        },
+        "subsector_rank": 2,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 55.6
     },
     {
       "ticker": "MRVL",
@@ -10174,7 +10452,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 44.4,
+        "profile": "Balanced competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 37.5,
+          "integrated_evidence_percentile": 62.5,
+          "revenue_growth_percentile": 62.5,
+          "free_cash_flow_margin_percentile": 16.7,
+          "capital_efficiency_percentile": 12.5,
+          "relative_valuation_percentile": 62.5
+        },
+        "subsector_rank": 3,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 44.4
     },
     {
       "ticker": "AVGO",
@@ -10915,7 +11210,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 34.4,
+        "profile": "Developing competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 12.5,
+          "integrated_evidence_percentile": 37.5,
+          "revenue_growth_percentile": 12.5,
+          "free_cash_flow_margin_percentile": 83.3,
+          "capital_efficiency_percentile": 62.5,
+          "relative_valuation_percentile": 12.5
+        },
+        "subsector_rank": 4,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 34.4
     },
     {
       "ticker": "META",
@@ -11654,7 +11966,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 74.4,
+        "profile": "Strong competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 37.5,
+          "integrated_evidence_percentile": 87.5,
+          "revenue_growth_percentile": 87.5,
+          "free_cash_flow_margin_percentile": 83.3,
+          "capital_efficiency_percentile": 87.5,
+          "relative_valuation_percentile": 87.5
+        },
+        "subsector_rank": 1,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 74.4
     },
     {
       "ticker": "AMZN",
@@ -12393,7 +12722,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 18.4,
+        "profile": "Developing competitive position",
+        "available_component_count": 5,
+        "components": {
+          "original_score_percentile": 12.5,
+          "integrated_evidence_percentile": 12.5,
+          "revenue_growth_percentile": 12.5,
+          "free_cash_flow_margin_percentile": null,
+          "capital_efficiency_percentile": 12.5,
+          "relative_valuation_percentile": 62.5
+        },
+        "subsector_rank": 4,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 18.4
     },
     {
       "ticker": "AI",
@@ -13115,7 +13461,24 @@
         "priority": "Baseline",
         "summary": "No prior Phase 11 daily snapshot is available yet.",
         "material_change": false
-      }
+      },
+      "competitive_position": {
+        "status": "Phase 12 peer-relative competitive-position research",
+        "score": 12.5,
+        "profile": "Developing competitive position",
+        "available_component_count": 6,
+        "components": {
+          "original_score_percentile": 12.5,
+          "integrated_evidence_percentile": 12.5,
+          "revenue_growth_percentile": 12.5,
+          "free_cash_flow_margin_percentile": 12.5,
+          "capital_efficiency_percentile": 12.5,
+          "relative_valuation_percentile": 12.5
+        },
+        "subsector_rank": 4,
+        "subsector_count": 4
+      },
+      "competitive_position_score": 12.5
     }
   ],
   "errors": [],
@@ -13145,7 +13508,8 @@
       "Phase 8 remains separate from the original score so the existing weekly track record and historical backtest are not silently rewritten.",
       "Phase 9 filing reactions are observational and can reflect market-wide or unrelated news; they are not causation findings or forecasts.",
       "Phase 10 is an automated synthesis of existing research layers and does not replace qualitative due diligence or create an investment recommendation.",
-      "Phase 11 alerts describe changes between preserved daily research snapshots and are not trade instructions or proof that a change will persist."
+      "Phase 11 alerts describe changes between preserved daily research snapshots and are not trade instructions or proof that a change will persist.",
+      "Phase 12 subsector and competitive-position scores are based on the small current prototype universe and do not measure market share, moat, or private competition."
     ],
     "phase_2_features": [
       "Peer medians and percentiles",
@@ -13214,6 +13578,13 @@
       "Published thresholds for score, rank, likelihood, price, profile, coverage, and filing changes",
       "High and moderate research-review priorities",
       "No change to the original company score, weekly rankings, backtest, or calibration"
+    ],
+    "phase_12_features": [
+      "AI subsector research-strength ranking",
+      "Subsector market breadth, growth, free-cash-flow, and concentration summaries",
+      "Original-score, integrated-evidence, growth, capital-efficiency, and relative-valuation leaders",
+      "Within-subsector company competitive-position scores and percentiles",
+      "No change to the original company score, official weekly rankings, snapshots, backtests, or likelihood calibration"
     ]
   }
 }
