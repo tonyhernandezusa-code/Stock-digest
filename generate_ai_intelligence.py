@@ -26,7 +26,9 @@ from past reported results through the present and into clearly labeled model-ge
 adds a capital-efficiency and financial-durability research layer that compares reported CapEx, R&D,
 operating cash flow, free cash flow, and balance-sheet capacity within each AI subsector. Phase 8 adds a
 separate relative-valuation and growth-quality layer using transparent market-cap-to-financial ratios. It
-keeps the original ranking model unchanged so the Phase 3 track record remains comparable over time.
+keeps the original ranking model unchanged so the Phase 3 track record remains comparable over time. Phase 9 adds
+a separate SEC filing catalyst-and-reaction monitor that classifies recent public filings and measures observed
+one-day and five-trading-day price reactions without changing the original ranking score.
 """
 
 from __future__ import annotations
@@ -435,13 +437,15 @@ def build_financial_record(companyfacts: dict[str, Any]) -> dict[str, Any]:
 
 
 def latest_filings(submissions: dict[str, Any], cik: int) -> list[dict[str, str]]:
+    """Return recent material and periodic SEC filings with available 8-K item codes."""
     recent = submissions.get("filings", {}).get("recent", {})
     forms = recent.get("form", [])
     dates = recent.get("filingDate", [])
     accessions = recent.get("accessionNumber", [])
     documents = recent.get("primaryDocument", [])
     descriptions = recent.get("primaryDocDescription", [])
-    items = []
+    item_codes = recent.get("items", [])
+    filings = []
     allowed = {"10-K", "10-Q", "8-K", "20-F", "6-K"}
     for index, form in enumerate(forms):
         if form not in allowed:
@@ -454,17 +458,18 @@ def latest_filings(submissions: dict[str, Any], cik: int) -> list[dict[str, str]
             continue
         accession_path = accession.replace("-", "")
         url = f"https://www.sec.gov/Archives/edgar/data/{cik}/{accession_path}/{document}"
-        items.append(
+        filings.append(
             {
                 "form": form,
                 "date": date,
                 "description": descriptions[index] if index < len(descriptions) else "",
+                "items": item_codes[index] if index < len(item_codes) else "",
                 "url": url,
             }
         )
-        if len(items) >= 4:
+        if len(filings) >= 12:
             break
-    return items
+    return filings
 
 
 def market_cap_tier(market_cap: float | None) -> str:
@@ -2276,6 +2281,261 @@ def add_relative_valuation_research(companies: list[dict[str, Any]]) -> dict[str
     }
 
 
+SEC_8K_EVENT_LABELS = {
+    "1.01": "Material agreement",
+    "1.02": "Termination of agreement",
+    "1.03": "Bankruptcy or receivership",
+    "1.05": "Material cybersecurity incident",
+    "2.01": "Acquisition or disposition",
+    "2.02": "Earnings / financial results",
+    "2.03": "Debt or financing obligation",
+    "2.04": "Triggering event affecting an obligation",
+    "2.05": "Exit or disposal activity",
+    "2.06": "Material impairment",
+    "3.01": "Listing or compliance notice",
+    "3.02": "Unregistered securities sale",
+    "3.03": "Security-holder rights change",
+    "4.01": "Auditor change or disagreement",
+    "4.02": "Non-reliance on prior financial statements",
+    "5.01": "Change in control",
+    "5.02": "Leadership or board change",
+    "5.03": "Charter or bylaw amendment",
+    "5.07": "Shareholder vote results",
+    "7.01": "Regulation FD disclosure",
+    "8.01": "Other material event",
+    "9.01": "Financial statements or exhibits",
+}
+
+
+def classify_filing_event(form: str, item_text: str, description: str = "") -> dict[str, Any]:
+    """Classify a filing using only the SEC form and disclosed 8-K item codes."""
+    form = str(form or "")
+    codes = []
+    for token in str(item_text or "").replace(";", ",").split(","):
+        cleaned = token.strip()
+        if cleaned and cleaned not in codes:
+            codes.append(cleaned)
+    labels = [SEC_8K_EVENT_LABELS[code] for code in codes if code in SEC_8K_EVENT_LABELS]
+    if form in {"10-Q"}:
+        category = "Quarterly financial report"
+    elif form in {"10-K"}:
+        category = "Annual financial report"
+    elif form in {"20-F"}:
+        category = "Foreign issuer annual report"
+    elif form in {"6-K"}:
+        category = "Foreign issuer current report"
+    elif labels:
+        category = " / ".join(labels[:2])
+    elif form == "8-K":
+        category = "Current material report"
+    else:
+        category = description.strip() or "SEC filing"
+    material_codes = [code for code in codes if code not in {"9.01"}]
+    return {
+        "category": category,
+        "item_codes": codes,
+        "material_item_count": len(material_codes),
+        "is_periodic_report": form in {"10-Q", "10-K", "20-F"},
+    }
+
+
+def filing_price_reaction(series: Any, filing_date: str) -> dict[str, float | None]:
+    """Measure closes after a filing versus the prior trading close.
+
+    The exact filing time is not available here, so the first-close measure can include a
+    filing submitted after that day's close. This limitation is disclosed on the webpage.
+    """
+    try:
+        target = datetime.fromisoformat(str(filing_date)).date()
+        clean = series.dropna()
+        dates = [stamp.date() for stamp in clean.index]
+        before = [index for index, date in enumerate(dates) if date < target]
+        after = [index for index, date in enumerate(dates) if date >= target]
+        if not before or not after:
+            return {"reaction_1d_pct": None, "reaction_5d_pct": None}
+        base = safe_float(clean.iloc[before[-1]])
+        first = safe_float(clean.iloc[after[0]])
+        fifth = safe_float(clean.iloc[after[4]]) if len(after) >= 5 else None
+        return {
+            "reaction_1d_pct": pct_change(first, base),
+            "reaction_5d_pct": pct_change(fifth, base),
+        }
+    except Exception:
+        return {"reaction_1d_pct": None, "reaction_5d_pct": None}
+
+
+def add_filing_event_research(
+    companies: list[dict[str, Any]], price_history: dict[str, Any]
+) -> dict[str, Any]:
+    """Add a deterministic SEC filing activity and observed market-reaction layer."""
+    now = datetime.now(timezone.utc)
+    all_categories: dict[str, int] = {}
+    total_events = 0
+    total_reactions = 0
+
+    for company in companies:
+        ticker = str(company.get("ticker") or "")
+        series = price_history.get(ticker)
+        events = []
+        for filing in company.get("latest_filings", []) or []:
+            classification = classify_filing_event(
+                str(filing.get("form") or ""),
+                str(filing.get("items") or ""),
+                str(filing.get("description") or ""),
+            )
+            reaction = (
+                filing_price_reaction(series, str(filing.get("date") or ""))
+                if series is not None else {"reaction_1d_pct": None, "reaction_5d_pct": None}
+            )
+            event = {
+                **filing,
+                **classification,
+                **reaction,
+            }
+            events.append(event)
+            all_categories[classification["category"]] = all_categories.get(classification["category"], 0) + 1
+
+        dated_events = []
+        for event in events:
+            try:
+                date = datetime.fromisoformat(str(event.get("date"))).replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                continue
+            dated_events.append((date, event))
+        dated_events.sort(key=lambda pair: pair[0], reverse=True)
+        events = [event for _, event in dated_events]
+        total_events += len(events)
+
+        cutoff_90 = now - timedelta(days=90)
+        cutoff_30 = now - timedelta(days=30)
+        events_90d = [event for date, event in dated_events if date >= cutoff_90]
+        material_30d = [
+            event for date, event in dated_events
+            if date >= cutoff_30 and (event.get("material_item_count") or 0) > 0
+        ]
+        one_day = [safe_float(event.get("reaction_1d_pct")) for event in events]
+        five_day = [safe_float(event.get("reaction_5d_pct")) for event in events]
+        one_day = [value for value in one_day if value is not None]
+        five_day = [value for value in five_day if value is not None]
+        total_reactions += len(five_day)
+        average_1d = round(statistics.fmean(one_day), 2) if one_day else None
+        average_5d = round(statistics.fmean(five_day), 2) if five_day else None
+        positive_5d = sum(value > 0 for value in five_day)
+        negative_5d = sum(value < 0 for value in five_day)
+        consistency = round(positive_5d / len(five_day) * 100.0, 1) if five_day else None
+
+        components = []
+        if average_5d is not None:
+            components.append((clamp(50.0 + average_5d * 4.0), 70))
+        if consistency is not None:
+            components.append((consistency, 30))
+        reaction_score = weighted_percentile_score(components)
+
+        if len(five_day) < 2:
+            profile = "Limited reaction history"
+        elif average_5d is not None and average_5d >= 2.0 and consistency is not None and consistency >= 60:
+            profile = "Positive recent reaction pattern"
+        elif average_5d is not None and average_5d <= -2.0 and consistency is not None and consistency <= 40:
+            profile = "Negative recent reaction pattern"
+        else:
+            profile = "Mixed recent reaction pattern"
+
+        if len(material_30d) >= 2 or (average_5d is not None and abs(average_5d) >= 5.0):
+            attention = "High"
+        elif material_30d or events_90d:
+            attention = "Moderate"
+        else:
+            attention = "Routine"
+
+        latest = events[0] if events else {}
+        latest_date = latest.get("date")
+        days_since_latest = None
+        if latest_date:
+            try:
+                days_since_latest = (now.date() - datetime.fromisoformat(str(latest_date)).date()).days
+            except ValueError:
+                pass
+
+        monitor = {
+            "status": "Observed SEC filing activity and price-reaction research",
+            "profile": profile,
+            "attention_level": attention,
+            "reaction_score": reaction_score,
+            "latest_filing_date": latest_date,
+            "days_since_latest_filing": days_since_latest,
+            "latest_event_category": latest.get("category"),
+            "filings_90d": len(events_90d),
+            "material_events_30d": len(material_30d),
+            "events_reviewed": len(events),
+            "events_with_5d_reaction": len(five_day),
+            "average_1d_reaction_pct": average_1d,
+            "average_5d_reaction_pct": average_5d,
+            "positive_5d_reactions": positive_5d,
+            "negative_5d_reactions": negative_5d,
+            "positive_5d_share_pct": consistency,
+            "events": events,
+        }
+        monitor["summary"] = (
+            f"{profile}. {len(events_90d)} tracked filing(s) were submitted in the last 90 days"
+            + (f", with an average five-trading-day reaction of {average_5d:+.2f}%" if average_5d is not None else "")
+            + "."
+        )
+        company["filing_monitor"] = monitor
+        company["filing_reaction_score"] = reaction_score
+
+    scored = [
+        company for company in companies
+        if safe_float(company.get("filing_monitor", {}).get("reaction_score")) is not None
+    ]
+    scored.sort(
+        key=lambda company: safe_float(company.get("filing_monitor", {}).get("reaction_score")) or -1,
+        reverse=True,
+    )
+    for rank, company in enumerate(scored, start=1):
+        company["filing_monitor"]["reaction_rank"] = rank
+
+    common_categories = [
+        {"category": category, "count": count}
+        for category, count in sorted(all_categories.items(), key=lambda item: (-item[1], item[0]))[:8]
+    ]
+    average_reactions = [
+        safe_float(company.get("filing_monitor", {}).get("average_5d_reaction_pct"))
+        for company in companies
+    ]
+    average_reactions = [value for value in average_reactions if value is not None]
+
+    return {
+        "status": "Phase 9 SEC filing catalyst and reaction monitor",
+        "companies_analyzed": sum(bool(company.get("filing_monitor", {}).get("events")) for company in companies),
+        "company_count": len(companies),
+        "events_reviewed": total_events,
+        "events_with_5d_reaction": total_reactions,
+        "median_company_5d_reaction_pct": round(statistics.median(average_reactions), 2) if average_reactions else None,
+        "positive_reaction_company_count": sum(
+            (safe_float(company.get("filing_monitor", {}).get("average_5d_reaction_pct")) or 0) > 0
+            for company in companies
+            if company.get("filing_monitor", {}).get("average_5d_reaction_pct") is not None
+        ),
+        "high_attention_company_count": sum(
+            company.get("filing_monitor", {}).get("attention_level") == "High" for company in companies
+        ),
+        "common_event_categories": common_categories,
+        "method": (
+            "Phase 9 classifies recent filings from SEC form types and disclosed 8-K item codes, then measures the first "
+            "available close and fifth trading close after each filing against the prior trading close. The reaction score "
+            "combines average five-day reaction (70%) and the share of positive five-day reactions (30%)."
+        ),
+        "limitations": [
+            "Filing categories are derived from SEC form types and item codes, not from a full natural-language review of every filing.",
+            "The SEC submissions feed does not provide exact market-session timing; a filing submitted after the close can make the first-close reaction imprecise.",
+            "Observed price reactions can reflect broad market, sector, macroeconomic, or unrelated company news rather than the filing alone.",
+            "The reaction score describes recent observed behavior and is not a forecast of the next filing reaction or future return.",
+            "Only the most recent tracked filings are included, and reaction samples can be small.",
+            "Phase 9 remains separate from the original company score and does not rewrite official weekly snapshots or historical backtests.",
+        ],
+    }
+
+
 HTML_TEMPLATE = r'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2297,9 +2557,9 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   </div>
 
   <div class="eyebrow">Stock Digest Research</div>
-  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 8 PREMIUM PREVIEW</span></div>
+  <div class="title-row"><h1>AI Market Intelligence</h1><span class="premium">PHASE 9 PREMIUM PREVIEW</span></div>
   <p class="timestamp" id="updated-at">Loading the latest AI company dataset...</p>
-  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 8 retains the weekly record, historical backtest, likelihood research, operating scenarios, and capital-efficiency layer, then adds separate peer-relative valuation and growth-quality research. The original ranking score remains unchanged so the existing track record stays comparable. Every score remains research rather than advice. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
+  <div class="notice"><strong>Research framework—not investment advice.</strong> The company score organizes reported financial facts and market momentum using the published methodology below. Phase 9 retains the weekly record, historical backtest, likelihood research, operating scenarios, capital-efficiency, and relative-valuation layers, then adds a separate SEC filing catalyst-and-reaction monitor. The original ranking score remains unchanged so the existing track record stays comparable. Every score remains research rather than advice. SEC figures can differ across issuers because companies use different permitted XBRL tags and fiscal calendars.</div>
 
   <div class="grid" id="summary-cards"></div>
 
@@ -2353,6 +2613,12 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   <div class="table-wrap" style="margin-top:12px"><table class="calibration-table"><thead><tr><th>Valuation rank</th><th>Company</th><th>Valuation profile</th><th>Relative score</th><th>Price / sales</th><th>EV / sales</th><th>FCF yield</th><th>Price / FCF</th><th>Revenue growth</th><th>FCF margin</th></tr></thead><tbody id="valuation-body"></tbody></table></div>
   <div class="notice backtest-note" id="valuation-limitations" style="margin-top:12px"></div>
 
+  <h2>Phase 9 SEC Filing Catalyst &amp; Reaction Monitor</h2>
+  <p class="section-note">Classifies recent SEC filings using form types and disclosed 8-K item codes, then measures the observed first-close and five-trading-day stock reactions. This is a disclosure and reaction monitor—not news sentiment, causation analysis, or a prediction.</p>
+  <div class="grid" id="filing-cards"></div>
+  <div class="table-wrap" style="margin-top:12px"><table class="calibration-table"><thead><tr><th>Reaction rank</th><th>Company</th><th>Attention</th><th>Latest filing</th><th>Latest category</th><th>Filings 90d</th><th>Average 1-day reaction</th><th>Average 5-day reaction</th><th>Positive 5-day share</th><th>Observed profile</th></tr></thead><tbody id="filing-body"></tbody></table></div>
+  <div class="notice backtest-note" id="filing-limitations" style="margin-top:12px"></div>
+
   <h2>Past to Present: AI Market Direction</h2>
   <p class="section-note">Equal-weighted Stock Digest AI Index compared with the Nasdaq-100 and S&amp;P 500. Constituents enter when their public trading history begins, so earlier periods contain fewer companies.</p>
   <div class="chart-card">
@@ -2375,8 +2641,8 @@ body.dark-mode{--bg:#0d0d0d;--text:#e9e9e9;--secondary:#b5b5b5;--muted:#8d8d8d;-
   <div class="detail" id="company-detail"><div class="detail-panel empty">Select a company from the ranking table.</div></div>
 
   <h2>How the preliminary score works</h2>
-  <div class="notice">Revenue growth 25% · standardized free-cash-flow strength 20% · financial strength 15% · profitability 10% · market momentum 20% · R&amp;D and capital-investment intensity 10%. Missing inputs are excluded and the remaining weights are renormalized. The score ranks financial and market characteristics. Phase 5 maps broad score bands to a conservative, backtest-based 12-month peer-outperformance research estimate using earlier observations for calibration and later observations for validation. Phase 6 then adds operating scenarios, Phase 7 adds capital-efficiency research, and Phase 8 adds a separate relative-valuation layer. The original ranking score is not retroactively changed. None of these features is a guarantee, target, analyst consensus estimate, intrinsic-value conclusion, or investment recommendation.</div>
-  <p class="source-note">Financial facts: SEC EDGAR Company Facts API. Recent filings: SEC Submissions API. Historical prices: Yahoo Finance through yfinance for prototype development. Stock Digest standardized free cash flow equals operating cash flow minus cash capital expenditures. Total company CapEx is not automatically labeled AI-only CapEx.</p>
+  <div class="notice">Revenue growth 25% · standardized free-cash-flow strength 20% · financial strength 15% · profitability 10% · market momentum 20% · R&amp;D and capital-investment intensity 10%. Missing inputs are excluded and the remaining weights are renormalized. The score ranks financial and market characteristics. Phase 5 maps broad score bands to a conservative, backtest-based 12-month peer-outperformance research estimate using earlier observations for calibration and later observations for validation. Phase 6 then adds operating scenarios, Phase 7 adds capital-efficiency research, Phase 8 adds a separate relative-valuation layer, and Phase 9 adds observed SEC filing and market-reaction research. The original ranking score is not retroactively changed. None of these features is a guarantee, target, analyst consensus estimate, intrinsic-value conclusion, or investment recommendation.</div>
+  <p class="source-note">Financial facts: SEC EDGAR Company Facts API. Recent filings and disclosed 8-K item codes: SEC Submissions API. Historical prices and filing-date reactions: Yahoo Finance through yfinance for prototype development. Stock Digest standardized free cash flow equals operating cash flow minus cash capital expenditures. Total company CapEx is not automatically labeled AI-only CapEx.</p>
 </div>
 <script>
 (function(){
@@ -2425,12 +2691,14 @@ function renderTable(){const rows=filteredCompanies();const body=document.getEle
 function metricTitle(metric){return {revenue:'Revenue',net_income:'Net income',free_cash_flow:'Free cash flow',capex:'Capital expenditures',rnd:'Research & development'}[metric]||metric;}
 function renderCompanyChart(company){const history=(company.history||[]).filter(r=>r[companyMetric]!=null);const c=chartColors();if(companyChart)companyChart.destroy();companyChart=new Chart(document.getElementById('company-history-chart'),{type:'line',data:{labels:history.map(r=>r.year),datasets:[{label:metricTitle(companyMetric),data:history.map(r=>r[companyMetric]),borderColor:c.ai,backgroundColor:'rgba(31,119,180,.12)',fill:true,tension:.18,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:c.text}},tooltip:{callbacks:{label:ctx=>metricTitle(companyMetric)+': '+money(ctx.raw)}}},scales:{x:{ticks:{color:c.text},grid:{color:c.grid}},y:{ticks:{color:c.text,callback:v=>numFmt.format(v)},grid:{color:c.grid}}}}});}
 function renderCompanyOutlookChart(company){const canvas=document.getElementById('company-outlook-chart');if(!canvas)return;if(outlookChart)outlookChart.destroy();const o=company.outlook||{},scenarios=o.scenarios||[];const hist=(company.history||[]).filter(r=>r.revenue!=null).slice(-5);if(!hist.length||!scenarios.length)return;const futureYears=(scenarios[0].projections||[]).map(r=>r.year);const labels=hist.map(r=>r.year).concat(futureYears);const actual=hist.map(r=>r.revenue).concat(futureYears.map(()=>null));const lastActual=hist[hist.length-1].revenue;const c=chartColors();const scenarioColors={Conservative:c.conservative,Base:c.ai,Optimistic:c.optimistic};const datasets=[{label:'Reported revenue',data:actual,borderColor:c.sp,backgroundColor:'rgba(119,119,119,.10)',pointRadius:3,borderWidth:2}];scenarios.forEach(s=>{const values=hist.slice(0,-1).map(()=>null).concat([lastActual]).concat((s.projections||[]).map(r=>r.revenue));datasets.push({label:s.name+' scenario',data:values,borderColor:scenarioColors[s.name]||c.ai,borderDash:s.name==='Base'?[]:[6,4],pointRadius:3,borderWidth:s.name==='Base'?2.5:1.8,tension:.15});});outlookChart=new Chart(canvas,{type:'line',data:{labels:labels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:c.text}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+money(ctx.raw)}}},scales:{x:{ticks:{color:c.text},grid:{color:c.grid}},y:{ticks:{color:c.text,callback:v=>numFmt.format(v)},grid:{color:c.grid},title:{display:true,text:'Revenue',color:c.text}}}}});}
-function renderCompanyDetail(ticker,shouldScroll=true){const c=DATA.companies.find(x=>x.ticker===ticker);if(!c)return;selectedTicker=ticker;const components=c.score_components||{};const componentHtml=Object.entries(components).map(([k,v])=>'<div class="component-row"><span>'+esc(componentLabel(k))+'</span><div class="bar"><span style="width:'+(v==null?0:v)+'%"></span></div><strong>'+(v==null?'—':Number(v).toFixed(0))+'</strong></div>').join('');const filings=(c.latest_filings||[]).map(f=>'<li><a target="_blank" rel="noopener" href="'+esc(f.url)+'">'+esc(f.form)+' — '+esc(f.date)+'</a> '+esc(f.description||'')+'</li>').join('')||'<li>No recent filings were retrieved.</li>';const strengths=(c.strengths||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const risks=(c.risks||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const warnings=(c.data_warnings||[]);const warningHtml=warnings.length?'<div class="warning-box"><strong>Missing-data warnings</strong><ul>'+warnings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'<div class="notice" style="margin-top:12px"><strong>Data coverage:</strong> No major standardized field is currently missing from the Phase 3 coverage check.</div>';const peerRows=(c.peer_snapshot||[]).map(p=>'<tr class="'+(p.ticker===c.ticker?'selected-peer':'')+'"><td>'+esc(p.name)+' ('+esc(p.ticker)+')</td><td>'+esc(p.score==null?'N/A':Number(p.score).toFixed(1))+'</td><td>'+pct(p.revenue_growth_pct)+'</td><td>'+pct(p.fcf_margin_pct)+'</td><td>'+pct(p.return_1y_pct)+'</td></tr>').join('');const peerMetrics=(c.peer_metrics||[]).map(m=>'<tr><td>'+esc(m.label)+'</td><td>'+formatPeerValue(m.key,m.company_value)+'</td><td>'+formatPeerValue(m.key,m.peer_median)+'</td><td>'+esc(m.peer_percentile==null?'N/A':Number(m.peer_percentile).toFixed(0)+'th')+'</td></tr>').join('');const qualityClass=c.data_quality==='High'?'quality-high':c.data_quality==='Limited'?'quality-limited':'';const outlook=c.outlook||{};const scenarios=outlook.scenarios||[];const scenarioRows=scenarios.map(s=>{const p=s.projections||[];const y1=p[0]||{},y2=p[1]||{},y3=p[2]||{};return '<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+plainPct(s.annual_revenue_growth_pct)+'</td><td>'+money(y1.revenue)+'</td><td>'+money(y2.revenue)+'</td><td>'+money(y3.revenue)+'</td><td>'+plainPct(s.fcf_margin_pct)+'</td><td class="'+signedClass(y3.free_cash_flow)+'">'+money(y3.free_cash_flow)+'</td></tr>';}).join('');document.getElementById('company-detail').innerHTML='<div class="detail-panel"><div class="eyebrow">'+esc(c.subsector)+' · '+esc(c.market_cap_tier)+'</div><h3>'+esc(c.name)+' ('+esc(c.ticker)+')</h3><p class="summary-text">'+esc(c.automated_summary||'No summary available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Company score</div><div class="value">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</div></div><div class="mini"><div class="label">12-mo research likelihood</div><div class="value">'+plainPct(c.outperformance_likelihood_12m_pct)+'</div><div class="subvalue">'+esc(c.likelihood_status||'Not available')+'</div></div><div class="mini"><div class="label">Research outlook</div><div class="value">'+esc(outlook.label||'N/A')+'</div><div class="subvalue">'+esc(outlook.confidence||'N/A')+' scenario confidence</div></div><div class="mini"><div class="label">3-year revenue CAGR</div><div class="value">'+plainPct(outlook.historical_revenue_cagr_3y_pct)+'</div><div class="subvalue">Reported history</div></div><div class="mini"><div class="label">Overall rank</div><div class="value">'+esc(c.overall_rank||'N/A')+'</div></div><div class="mini"><div class="label">Subsector rank</div><div class="value">'+esc(c.subsector_rank||'N/A')+' of '+esc(c.peer_count||'N/A')+'</div></div><div class="mini"><div class="label">Cap-group rank</div><div class="value">'+esc(c.cap_group_rank||'N/A')+' of '+esc(c.cap_group_count||'N/A')+'</div></div><div class="mini"><div class="label">Data coverage</div><div class="value '+qualityClass+'">'+esc(c.data_coverage_pct==null?'N/A':Number(c.data_coverage_pct).toFixed(0)+'%')+'</div><div class="subvalue">'+esc(c.data_quality||'Unknown')+'</div></div><div class="mini"><div class="label">Market cap</div><div class="value">'+money(c.market_cap)+'</div></div><div class="mini"><div class="label">Revenue growth</div><div class="value '+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</div></div><div class="mini"><div class="label">FCF margin</div><div class="value '+signedClass(c.fcf_margin_pct)+'">'+pct(c.fcf_margin_pct)+'</div></div><div class="mini"><div class="label">Reported CapEx</div><div class="value">'+money(c.latest_capex)+'</div></div><div class="mini"><div class="label">R&amp;D</div><div class="value">'+money(c.latest_rnd)+'</div></div></div><div class="analysis-grid"><div class="analysis-box"><h4>Measured strengths</h4><ul>'+strengths+'</ul></div><div class="analysis-box"><h4>Measured risks</h4><ul>'+risks+'</ul></div></div>'+warningHtml+'<h3 style="margin-top:18px">10-Year Reported History</h3><div class="metric-buttons" id="metric-buttons">'+['revenue','net_income','free_cash_flow','capex','rnd'].map(m=>'<button data-metric="'+m+'" class="'+(m===companyMetric?'active':'')+'">'+metricTitle(m)+'</button>').join('')+'</div><div class="chart-wrap" style="height:330px"><canvas id="company-history-chart"></canvas></div><h3 style="margin-top:20px">Past–Present–Future Operating Scenarios</h3><p class="section-note">'+esc(outlook.summary||outlook.status||'No operating scenario is available.')+'</p><div class="chart-wrap" style="height:330px"><canvas id="company-outlook-chart"></canvas></div><div class="table-wrap"><table class="peer-table"><thead><tr><th>Scenario</th><th>Annual growth</th><th>Year 1 revenue</th><th>Year 2 revenue</th><th>Year 3 revenue</th><th>FCF margin</th><th>Year 3 FCF</th></tr></thead><tbody>'+scenarioRows+'</tbody></table></div><p class="source-note">Model-generated operating scenarios only. They are not company guidance, analyst consensus estimates, price targets, or recommendations.</p>'+capitalDetailHtml(c)+valuationDetailHtml(c)+'<h3 style="margin-top:20px">Peer comparison</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Metric</th><th>Company</th><th>Peer median</th><th>Peer percentile</th></tr></thead><tbody>'+peerMetrics+'</tbody></table></div><h3 style="margin-top:20px">Companies in this subsector</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Company</th><th>Score</th><th>Revenue growth</th><th>FCF margin</th><th>1-year return</th></tr></thead><tbody>'+peerRows+'</tbody></table></div></div><div class="detail-panel"><h3>Score components</h3>'+componentHtml+'<h3 style="margin-top:20px">Recent SEC filings</h3><ul class="filings">'+filings+'</ul><p class="source-note">Latest fiscal year: '+esc(c.latest_fiscal_year||'N/A')+' · Market price date: '+esc(c.price_date||'N/A')+' · SEC CIK: '+esc(c.cik||'N/A')+'</p><p class="source-note">Peer percentiles use only the companies currently included in the same prototype subsector. They will become more meaningful as the company universe expands.</p></div>';document.querySelectorAll('#metric-buttons button').forEach(btn=>btn.addEventListener('click',function(){companyMetric=this.dataset.metric;renderCompanyDetail(ticker,false);}));renderCompanyChart(c);renderCompanyOutlookChart(c);if(shouldScroll)document.getElementById('company-detail').scrollIntoView({behavior:'smooth',block:'start'});}
+function renderFilingEvents(){const model=DATA.filing_event_research||{},companies=(DATA.companies||[]).filter(c=>c.filing_monitor&&c.filing_monitor.events_reviewed>0).slice().sort((a,b)=>(a.filing_monitor.reaction_rank||999)-(b.filing_monitor.reaction_rank||999));const cards=[['Companies analyzed',model.companies_analyzed||0,'of '+(model.company_count||0)+' tracked'],['Filing events reviewed',model.events_reviewed||0,'Recent periodic and current reports'],['Events with 5-day reactions',model.events_with_5d_reaction||0,'Observed price-history matches'],['Median company 5-day reaction',plainPct(model.median_company_5d_reaction_pct),'Median of company averages'],['Positive reaction companies',model.positive_reaction_company_count||0,'Average 5-day reaction above zero'],['High-attention companies',model.high_attention_company_count||0,'Recent activity or large reactions']];document.getElementById('filing-cards').innerHTML=cards.map(c=>'<div class="card"><div class="label">'+esc(c[0])+'</div><div class="value">'+esc(c[1])+'</div><div class="subvalue">'+esc(c[2])+'</div></div>').join('');document.getElementById('filing-body').innerHTML=companies.map(c=>{const d=c.filing_monitor||{};return '<tr data-filing-ticker="'+esc(c.ticker)+'"><td>'+esc(d.reaction_rank||'—')+'</td><td><span class="company-link">'+esc(c.name)+' ('+esc(c.ticker)+')</span></td><td><span class="tag">'+esc(d.attention_level||'N/A')+'</span></td><td>'+esc(d.latest_filing_date||'N/A')+'</td><td>'+esc(d.latest_event_category||'N/A')+'</td><td>'+esc(d.filings_90d==null?'N/A':d.filings_90d)+'</td><td class="'+signedClass(d.average_1d_reaction_pct)+'">'+pct(d.average_1d_reaction_pct)+'</td><td class="'+signedClass(d.average_5d_reaction_pct)+'">'+pct(d.average_5d_reaction_pct)+'</td><td>'+plainPct(d.positive_5d_share_pct)+'</td><td><strong>'+esc(d.profile||'N/A')+'</strong></td></tr>';}).join('')||'<tr><td colspan="10" class="empty">SEC filing reaction research is awaiting recent filings and matching price history.</td></tr>';document.querySelectorAll('tr[data-filing-ticker]').forEach(row=>row.addEventListener('click',()=>renderCompanyDetail(row.dataset.filingTicker,true)));const limits=model.limitations||[];document.getElementById('filing-limitations').innerHTML='<strong>How to read Phase 9</strong><ul>'+limits.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><span class="source-note">'+esc(model.method||'')+'</span>';}
+function filingDetailHtml(c){const d=c.filing_monitor||{},events=d.events||[];const rows=events.map(e=>'<tr><td><a target="_blank" rel="noopener" href="'+esc(e.url)+'">'+esc(e.form)+' — '+esc(e.date)+'</a></td><td>'+esc(e.category||'N/A')+'</td><td>'+esc((e.item_codes||[]).join(', ')||'—')+'</td><td class="'+signedClass(e.reaction_1d_pct)+'">'+pct(e.reaction_1d_pct)+'</td><td class="'+signedClass(e.reaction_5d_pct)+'">'+pct(e.reaction_5d_pct)+'</td></tr>').join('')||'<tr><td colspan="5" class="empty">No recent filing events were retrieved.</td></tr>';return '<h3 style="margin-top:20px">SEC Filing Catalyst &amp; Reaction Monitor</h3><p class="section-note">'+esc(d.summary||d.status||'No filing-reaction profile is available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Observed profile</div><div class="value">'+esc(d.profile||'N/A')+'</div></div><div class="mini"><div class="label">Attention level</div><div class="value">'+esc(d.attention_level||'N/A')+'</div></div><div class="mini"><div class="label">Reaction score</div><div class="value">'+esc(d.reaction_score==null?'N/A':Number(d.reaction_score).toFixed(1))+'</div><div class="subvalue">Rank '+esc(d.reaction_rank||'N/A')+'</div></div><div class="mini"><div class="label">Filings in 90 days</div><div class="value">'+esc(d.filings_90d==null?'N/A':d.filings_90d)+'</div></div><div class="mini"><div class="label">Average 1-day reaction</div><div class="value '+signedClass(d.average_1d_reaction_pct)+'">'+pct(d.average_1d_reaction_pct)+'</div></div><div class="mini"><div class="label">Average 5-day reaction</div><div class="value '+signedClass(d.average_5d_reaction_pct)+'">'+pct(d.average_5d_reaction_pct)+'</div></div><div class="mini"><div class="label">Positive 5-day share</div><div class="value">'+plainPct(d.positive_5d_share_pct)+'</div></div><div class="mini"><div class="label">Events reviewed</div><div class="value">'+esc(d.events_reviewed==null?'N/A':d.events_reviewed)+'</div></div></div><div class="table-wrap" style="margin-top:12px"><table class="peer-table"><thead><tr><th>Filing</th><th>SEC event category</th><th>8-K items</th><th>1-day reaction</th><th>5-day reaction</th></tr></thead><tbody>'+rows+'</tbody></table></div><p class="source-note">Price reactions are observations, not proof that a filing caused the move. Exact filing-session timing is not available in this prototype.</p>';}
+function renderCompanyDetail(ticker,shouldScroll=true){const c=DATA.companies.find(x=>x.ticker===ticker);if(!c)return;selectedTicker=ticker;const components=c.score_components||{};const componentHtml=Object.entries(components).map(([k,v])=>'<div class="component-row"><span>'+esc(componentLabel(k))+'</span><div class="bar"><span style="width:'+(v==null?0:v)+'%"></span></div><strong>'+(v==null?'—':Number(v).toFixed(0))+'</strong></div>').join('');const filings=(c.latest_filings||[]).map(f=>'<li><a target="_blank" rel="noopener" href="'+esc(f.url)+'">'+esc(f.form)+' — '+esc(f.date)+'</a> '+esc(f.description||'')+'</li>').join('')||'<li>No recent filings were retrieved.</li>';const strengths=(c.strengths||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const risks=(c.risks||[]).map(x=>'<li>'+esc(x)+'</li>').join('');const warnings=(c.data_warnings||[]);const warningHtml=warnings.length?'<div class="warning-box"><strong>Missing-data warnings</strong><ul>'+warnings.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>':'<div class="notice" style="margin-top:12px"><strong>Data coverage:</strong> No major standardized field is currently missing from the Phase 3 coverage check.</div>';const peerRows=(c.peer_snapshot||[]).map(p=>'<tr class="'+(p.ticker===c.ticker?'selected-peer':'')+'"><td>'+esc(p.name)+' ('+esc(p.ticker)+')</td><td>'+esc(p.score==null?'N/A':Number(p.score).toFixed(1))+'</td><td>'+pct(p.revenue_growth_pct)+'</td><td>'+pct(p.fcf_margin_pct)+'</td><td>'+pct(p.return_1y_pct)+'</td></tr>').join('');const peerMetrics=(c.peer_metrics||[]).map(m=>'<tr><td>'+esc(m.label)+'</td><td>'+formatPeerValue(m.key,m.company_value)+'</td><td>'+formatPeerValue(m.key,m.peer_median)+'</td><td>'+esc(m.peer_percentile==null?'N/A':Number(m.peer_percentile).toFixed(0)+'th')+'</td></tr>').join('');const qualityClass=c.data_quality==='High'?'quality-high':c.data_quality==='Limited'?'quality-limited':'';const outlook=c.outlook||{};const scenarios=outlook.scenarios||[];const scenarioRows=scenarios.map(s=>{const p=s.projections||[];const y1=p[0]||{},y2=p[1]||{},y3=p[2]||{};return '<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+plainPct(s.annual_revenue_growth_pct)+'</td><td>'+money(y1.revenue)+'</td><td>'+money(y2.revenue)+'</td><td>'+money(y3.revenue)+'</td><td>'+plainPct(s.fcf_margin_pct)+'</td><td class="'+signedClass(y3.free_cash_flow)+'">'+money(y3.free_cash_flow)+'</td></tr>';}).join('');document.getElementById('company-detail').innerHTML='<div class="detail-panel"><div class="eyebrow">'+esc(c.subsector)+' · '+esc(c.market_cap_tier)+'</div><h3>'+esc(c.name)+' ('+esc(c.ticker)+')</h3><p class="summary-text">'+esc(c.automated_summary||'No summary available.')+'</p><div class="mini-grid"><div class="mini"><div class="label">Company score</div><div class="value">'+esc(c.score==null?'N/A':Number(c.score).toFixed(1))+'</div></div><div class="mini"><div class="label">12-mo research likelihood</div><div class="value">'+plainPct(c.outperformance_likelihood_12m_pct)+'</div><div class="subvalue">'+esc(c.likelihood_status||'Not available')+'</div></div><div class="mini"><div class="label">Research outlook</div><div class="value">'+esc(outlook.label||'N/A')+'</div><div class="subvalue">'+esc(outlook.confidence||'N/A')+' scenario confidence</div></div><div class="mini"><div class="label">3-year revenue CAGR</div><div class="value">'+plainPct(outlook.historical_revenue_cagr_3y_pct)+'</div><div class="subvalue">Reported history</div></div><div class="mini"><div class="label">Overall rank</div><div class="value">'+esc(c.overall_rank||'N/A')+'</div></div><div class="mini"><div class="label">Subsector rank</div><div class="value">'+esc(c.subsector_rank||'N/A')+' of '+esc(c.peer_count||'N/A')+'</div></div><div class="mini"><div class="label">Cap-group rank</div><div class="value">'+esc(c.cap_group_rank||'N/A')+' of '+esc(c.cap_group_count||'N/A')+'</div></div><div class="mini"><div class="label">Data coverage</div><div class="value '+qualityClass+'">'+esc(c.data_coverage_pct==null?'N/A':Number(c.data_coverage_pct).toFixed(0)+'%')+'</div><div class="subvalue">'+esc(c.data_quality||'Unknown')+'</div></div><div class="mini"><div class="label">Market cap</div><div class="value">'+money(c.market_cap)+'</div></div><div class="mini"><div class="label">Revenue growth</div><div class="value '+signedClass(c.revenue_growth_pct)+'">'+pct(c.revenue_growth_pct)+'</div></div><div class="mini"><div class="label">FCF margin</div><div class="value '+signedClass(c.fcf_margin_pct)+'">'+pct(c.fcf_margin_pct)+'</div></div><div class="mini"><div class="label">Reported CapEx</div><div class="value">'+money(c.latest_capex)+'</div></div><div class="mini"><div class="label">R&amp;D</div><div class="value">'+money(c.latest_rnd)+'</div></div></div><div class="analysis-grid"><div class="analysis-box"><h4>Measured strengths</h4><ul>'+strengths+'</ul></div><div class="analysis-box"><h4>Measured risks</h4><ul>'+risks+'</ul></div></div>'+warningHtml+'<h3 style="margin-top:18px">10-Year Reported History</h3><div class="metric-buttons" id="metric-buttons">'+['revenue','net_income','free_cash_flow','capex','rnd'].map(m=>'<button data-metric="'+m+'" class="'+(m===companyMetric?'active':'')+'">'+metricTitle(m)+'</button>').join('')+'</div><div class="chart-wrap" style="height:330px"><canvas id="company-history-chart"></canvas></div><h3 style="margin-top:20px">Past–Present–Future Operating Scenarios</h3><p class="section-note">'+esc(outlook.summary||outlook.status||'No operating scenario is available.')+'</p><div class="chart-wrap" style="height:330px"><canvas id="company-outlook-chart"></canvas></div><div class="table-wrap"><table class="peer-table"><thead><tr><th>Scenario</th><th>Annual growth</th><th>Year 1 revenue</th><th>Year 2 revenue</th><th>Year 3 revenue</th><th>FCF margin</th><th>Year 3 FCF</th></tr></thead><tbody>'+scenarioRows+'</tbody></table></div><p class="source-note">Model-generated operating scenarios only. They are not company guidance, analyst consensus estimates, price targets, or recommendations.</p>'+capitalDetailHtml(c)+valuationDetailHtml(c)+filingDetailHtml(c)+'<h3 style="margin-top:20px">Peer comparison</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Metric</th><th>Company</th><th>Peer median</th><th>Peer percentile</th></tr></thead><tbody>'+peerMetrics+'</tbody></table></div><h3 style="margin-top:20px">Companies in this subsector</h3><div class="table-wrap"><table class="peer-table"><thead><tr><th>Company</th><th>Score</th><th>Revenue growth</th><th>FCF margin</th><th>1-year return</th></tr></thead><tbody>'+peerRows+'</tbody></table></div></div><div class="detail-panel"><h3>Score components</h3>'+componentHtml+'<h3 style="margin-top:20px">Recent SEC filings</h3><ul class="filings">'+filings+'</ul><p class="source-note">Latest fiscal year: '+esc(c.latest_fiscal_year||'N/A')+' · Market price date: '+esc(c.price_date||'N/A')+' · SEC CIK: '+esc(c.cik||'N/A')+'</p><p class="source-note">Peer percentiles use only the companies currently included in the same prototype subsector. They will become more meaningful as the company universe expands.</p></div>';document.querySelectorAll('#metric-buttons button').forEach(btn=>btn.addEventListener('click',function(){companyMetric=this.dataset.metric;renderCompanyDetail(ticker,false);}));renderCompanyChart(c);renderCompanyOutlookChart(c);if(shouldScroll)document.getElementById('company-detail').scrollIntoView({behavior:'smooth',block:'start'});}
 
 document.querySelectorAll('#range-buttons button').forEach(btn=>btn.addEventListener('click',function(){rangeYears=Number(this.dataset.years);document.querySelectorAll('#range-buttons button').forEach(x=>x.classList.toggle('active',x===this));renderMarketChart();}));
 ['company-search','subsector-filter','cap-filter'].forEach(id=>document.getElementById(id).addEventListener(id==='company-search'?'input':'change',renderTable));
 document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',function(){const key=this.dataset.sort;if(sortKey===key)sortDirection=sortDirection==='asc'?'desc':'asc';else{sortKey=key;sortDirection=['name','ticker','subsector','market_cap_tier'].includes(key)?'asc':'desc';}renderTable();}));
-fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();renderTrackRecord();renderBacktest();renderLikelihood();renderOutlook();renderCapitalEfficiency();renderValuation();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
+fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(data=>{DATA=data;document.getElementById('updated-at').textContent='Updated '+(data.generated_at||'unknown')+' · '+(data.companies||[]).length+' companies · '+(data.status||'prototype');renderSummary();renderWeeklyLeaders();renderTrackRecord();renderBacktest();renderLikelihood();renderOutlook();renderCapitalEfficiency();renderValuation();renderFilingEvents();populateFilters();renderTable();renderMarketChart();if(DATA.companies.length)renderCompanyDetail(DATA.companies[0].ticker,false);}).catch(err=>{document.getElementById('updated-at').textContent='The AI dataset could not be loaded.';document.getElementById('summary-cards').innerHTML='<div class="notice">Run generate_ai_intelligence.py to create ai_company_data.json. Error: '+esc(err.message)+'</div>';});
 })();
 </script>
 </body>
@@ -2441,9 +2709,9 @@ fetch('ai_company_data.json?ts='+Date.now()).then(r=>{if(!r.ok)throw new Error('
 
 def seed_data() -> dict[str, Any]:
     return {
-        "schema_version": 8,
+        "schema_version": 9,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "status": "awaiting first live refresh",
+        "status": "awaiting first Phase 9 live refresh",
         "market_summary": {},
         "market_index": [],
         "weekly_leaders": {"week_start": None, "as_of": None, "status": "Awaiting first refresh", "leaders": []},
@@ -2453,7 +2721,8 @@ def seed_data() -> dict[str, Any]:
         "likelihood_research": {"status": "Awaiting first Phase 8 live refresh", "bands": [], "limitations": []},
         "outlook_research": {"status": "Awaiting first Phase 8 live refresh", "companies_modeled": 0, "limitations": []},
         "capital_efficiency_research": {"status": "Awaiting first Phase 8 live refresh", "companies_scored": 0, "limitations": []},
-        "relative_valuation_research": {"status": "Awaiting first Phase 8 live refresh", "companies_scored": 0, "limitations": []},
+        "relative_valuation_research": {"status": "Awaiting first Phase 9 live refresh", "companies_scored": 0, "limitations": []},
+        "filing_event_research": {"status": "Awaiting first Phase 9 live refresh", "companies_analyzed": 0, "limitations": []},
         "companies": [
             {
                 **company,
@@ -2555,6 +2824,7 @@ def main() -> None:
     outlook_research = add_outlook_scenarios(ranked)
     capital_efficiency_research = add_capital_efficiency_research(ranked)
     relative_valuation_research = add_relative_valuation_research(ranked)
+    filing_event_research = add_filing_event_research(ranked, price_history)
     weekly_snapshots = create_or_preserve_weekly_snapshots(old_data, ranked)
     weekly_leaders = build_live_weekly_leaders(weekly_snapshots, ranked)
     performance_scorecard = build_performance_scorecard(weekly_snapshots, ranked, price_history)
@@ -2564,9 +2834,9 @@ def main() -> None:
         company.pop("_backtest_facts", None)
 
     output = {
-        "schema_version": 8,
+        "schema_version": 9,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "status": "live Phase 8 valuation and growth-quality prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
+        "status": "live Phase 9 SEC filing catalyst and reaction prototype" if any(c.get("score") is not None for c in companies) else "partial / cached prototype",
         "market_summary": build_market_summary(companies, market_index),
         "market_index": market_index or old_data.get("market_index", []),
         "weekly_leaders": weekly_leaders,
@@ -2577,6 +2847,7 @@ def main() -> None:
         "outlook_research": outlook_research,
         "capital_efficiency_research": capital_efficiency_research,
         "relative_valuation_research": relative_valuation_research,
+        "filing_event_research": filing_event_research,
         "companies": ranked,
         "errors": errors,
         "methodology": {
@@ -2603,6 +2874,7 @@ def main() -> None:
                 "Phase 7 combined CapEx-plus-R&D figures are analytical totals, not GAAP subtotals or AI-only investment measures.",
                 "Phase 8 valuation ratios use latest annual reported financial facts and current prototype market capitalization; they are relative research, not fair-value estimates.",
                 "Phase 8 remains separate from the original score so the existing weekly track record and historical backtest are not silently rewritten.",
+                "Phase 9 filing reactions are observational and can reflect market-wide or unrelated news; they are not causation findings or forecasts.",
             ],
             "phase_2_features": [
                 "Peer medians and percentiles",
@@ -2650,6 +2922,13 @@ def main() -> None:
                 "Growth-adjusted price-to-sales research",
                 "Valuation profile labels and subsector percentiles",
                 "Separate model version that preserves the original ranking track record",
+            ],
+            "phase_9_features": [
+                "SEC form and 8-K item-code event classification",
+                "Observed first-close and five-trading-day filing reactions",
+                "Ninety-day disclosure activity and attention levels",
+                "Company filing-reaction profiles and separate reaction ranking",
+                "No change to the original company score or weekly track record",
             ],
         },
     }
