@@ -1,11 +1,11 @@
 {
   "schema_version": 12,
-  "generated_at": "2026-10-12T21:45:31.373022+00:00",
+  "generated_at": "2026-10-13T19:53:00.742369+00:00",
   "status": "live Phase 13 learning-mode and subsector research prototype",
   "market_summary": {
     "direction": "Strong Uptrend",
-    "return_30d_pct": 8.21,
-    "return_1y_pct": 49.59,
+    "return_30d_pct": 9.11,
+    "return_1y_pct": 50.84,
     "above_50_day": 10,
     "above_200_day": 11,
     "priced_company_count": 12,
@@ -490,7 +490,7 @@
     },
     {
       "date": "2018-04-20",
-      "ai_index": 179.274,
+      "ai_index": 179.273,
       "nasdaq100": 138.822,
       "sp500": 125.209
     },
@@ -670,7 +670,7 @@
     },
     {
       "date": "2018-11-16",
-      "ai_index": 185.017,
+      "ai_index": 185.016,
       "nasdaq100": 142.971,
       "sp500": 128.31
     },
@@ -1018,7 +1018,7 @@
     },
     {
       "date": "2019-12-27",
-      "ai_index": 294.328,
+      "ai_index": 294.327,
       "nasdaq100": 182.611,
       "sp500": 151.932
     },
@@ -1306,7 +1306,7 @@
     },
     {
       "date": "2020-11-27",
-      "ai_index": 445.144,
+      "ai_index": 445.143,
       "nasdaq100": 255.215,
       "sp500": 170.61
     },
@@ -1528,7 +1528,7 @@
     },
     {
       "date": "2021-08-13",
-      "ai_index": 490.42,
+      "ai_index": 490.419,
       "nasdaq100": 315.144,
       "sp500": 209.514
     },
@@ -1546,7 +1546,7 @@
     },
     {
       "date": "2021-09-03",
-      "ai_index": 512.555,
+      "ai_index": 512.554,
       "nasdaq100": 325.891,
       "sp500": 212.676
     },
@@ -1600,7 +1600,7 @@
     },
     {
       "date": "2021-11-05",
-      "ai_index": 597.933,
+      "ai_index": 597.932,
       "nasdaq100": 340.6,
       "sp500": 220.278
     },
@@ -1690,7 +1690,7 @@
     },
     {
       "date": "2022-02-18",
-      "ai_index": 490.344,
+      "ai_index": 490.343,
       "nasdaq100": 291.677,
       "sp500": 203.928
     },
@@ -1714,7 +1714,7 @@
     },
     {
       "date": "2022-03-18",
-      "ai_index": 513.523,
+      "ai_index": 513.522,
       "nasdaq100": 300.224,
       "sp500": 209.286
     },
@@ -1744,7 +1744,7 @@
     },
     {
       "date": "2022-04-22",
-      "ai_index": 417.981,
+      "ai_index": 417.98,
       "nasdaq100": 278.089,
       "sp500": 200.313
     },
@@ -2110,7 +2110,7 @@
     },
     {
       "date": "2023-06-23",
-      "ai_index": 597.245,
+      "ai_index": 597.244,
       "nasdaq100": 310.039,
       "sp500": 203.903
     },
@@ -2206,7 +2206,7 @@
     },
     {
       "date": "2023-10-13",
-      "ai_index": 613.663,
+      "ai_index": 613.662,
       "nasdaq100": 312.197,
       "sp500": 202.939
     },
@@ -2284,13 +2284,13 @@
     },
     {
       "date": "2024-01-12",
-      "ai_index": 759.535,
+      "ai_index": 759.534,
       "nasdaq100": 350.459,
       "sp500": 224.324
     },
     {
       "date": "2024-01-19",
-      "ai_index": 833.103,
+      "ai_index": 833.102,
       "nasdaq100": 360.476,
       "sp500": 226.949
     },
@@ -2302,7 +2302,7 @@
     },
     {
       "date": "2024-02-02",
-      "ai_index": 882.165,
+      "ai_index": 882.164,
       "nasdaq100": 367.32,
       "sp500": 232.52
     },
@@ -2368,7 +2368,7 @@
     },
     {
       "date": "2024-04-19",
-      "ai_index": 891.093,
+      "ai_index": 891.092,
       "nasdaq100": 354.722,
       "sp500": 232.924
     },
@@ -2386,7 +2386,7 @@
     },
     {
       "date": "2024-05-10",
-      "ai_index": 989.782,
+      "ai_index": 989.781,
       "nasdaq100": 378.114,
       "sp500": 244.903
     },
@@ -2398,13 +2398,13 @@
     },
     {
       "date": "2024-05-24",
-      "ai_index": 1107.652,
+      "ai_index": 1107.651,
       "nasdaq100": 391.588,
       "sp500": 248.75
     },
     {
       "date": "2024-05-31",
-      "ai_index": 1109.456,
+      "ai_index": 1109.455,
       "nasdaq100": 385.931,
       "sp500": 247.474
     },
@@ -2422,7 +2422,7 @@
     },
     {
       "date": "2024-06-21",
-      "ai_index": 1225.738,
+      "ai_index": 1225.737,
       "nasdaq100": 410.161,
       "sp500": 256.248
     },
@@ -2440,19 +2440,19 @@
     },
     {
       "date": "2024-07-12",
-      "ai_index": 1277.295,
+      "ai_index": 1277.294,
       "nasdaq100": 423.299,
       "sp500": 263.316
     },
     {
       "date": "2024-07-19",
-      "ai_index": 1159.358,
+      "ai_index": 1159.357,
       "nasdaq100": 406.459,
       "sp500": 258.142
     },
     {
       "date": "2024-07-26",
-      "ai_index": 1108.882,
+      "ai_index": 1108.881,
       "nasdaq100": 396.07,
       "sp500": 255.989
     },
@@ -2470,7 +2470,7 @@
     },
     {
       "date": "2024-08-16",
-      "ai_index": 1196.055,
+      "ai_index": 1196.054,
       "nasdaq100": 406.165,
       "sp500": 260.451
     },
@@ -2500,7 +2500,7 @@
     },
     {
       "date": "2024-09-20",
-      "ai_index": 1179.83,
+      "ai_index": 1179.829,
       "nasdaq100": 412.057,
       "sp500": 267.405
     },
@@ -2548,13 +2548,13 @@
     },
     {
       "date": "2024-11-15",
-      "ai_index": 1319.213,
+      "ai_index": 1319.212,
       "nasdaq100": 424.603,
       "sp500": 275.286
     },
     {
       "date": "2024-11-22",
-      "ai_index": 1325.753,
+      "ai_index": 1325.752,
       "nasdaq100": 432.559,
       "sp500": 279.916
     },
@@ -2566,7 +2566,7 @@
     },
     {
       "date": "2024-12-06",
-      "ai_index": 1380.693,
+      "ai_index": 1380.692,
       "nasdaq100": 450.173,
       "sp500": 285.586
     },
@@ -2584,7 +2584,7 @@
     },
     {
       "date": "2024-12-27",
-      "ai_index": 1375.529,
+      "ai_index": 1375.528,
       "nasdaq100": 447.066,
       "sp500": 279.986
     },
@@ -2602,7 +2602,7 @@
     },
     {
       "date": "2025-01-17",
-      "ai_index": 1374.681,
+      "ai_index": 1374.68,
       "nasdaq100": 446.403,
       "sp500": 281.197
     },
@@ -2620,7 +2620,7 @@
     },
     {
       "date": "2025-02-07",
-      "ai_index": 1335.314,
+      "ai_index": 1335.313,
       "nasdaq100": 447.447,
       "sp500": 282.572
     },
@@ -2674,7 +2674,7 @@
     },
     {
       "date": "2025-04-11",
-      "ai_index": 1101.615,
+      "ai_index": 1101.614,
       "nasdaq100": 389.125,
       "sp500": 251.5
     },
@@ -2686,7 +2686,7 @@
     },
     {
       "date": "2025-04-25",
-      "ai_index": 1141.168,
+      "ai_index": 1141.167,
       "nasdaq100": 404.584,
       "sp500": 259.089
     },
@@ -2722,7 +2722,7 @@
     },
     {
       "date": "2025-06-06",
-      "ai_index": 1412.14,
+      "ai_index": 1412.139,
       "nasdaq100": 453.078,
       "sp500": 281.37
     },
@@ -2740,7 +2740,7 @@
     },
     {
       "date": "2025-06-27",
-      "ai_index": 1563.849,
+      "ai_index": 1563.848,
       "nasdaq100": 469.159,
       "sp500": 289.469
     },
@@ -2758,7 +2758,7 @@
     },
     {
       "date": "2025-07-18",
-      "ai_index": 1686.511,
+      "ai_index": 1686.51,
       "nasdaq100": 480.22,
       "sp500": 295.27
     },
@@ -2788,7 +2788,7 @@
     },
     {
       "date": "2025-08-22",
-      "ai_index": 1745.587,
+      "ai_index": 1745.586,
       "nasdaq100": 489.228,
       "sp500": 303.248
     },
@@ -2806,7 +2806,7 @@
     },
     {
       "date": "2025-09-12",
-      "ai_index": 1790.532,
+      "ai_index": 1790.531,
       "nasdaq100": 501.597,
       "sp500": 308.752
     },
@@ -2818,13 +2818,13 @@
     },
     {
       "date": "2025-09-26",
-      "ai_index": 1793.348,
+      "ai_index": 1793.347,
       "nasdaq100": 510.167,
       "sp500": 311.538
     },
     {
       "date": "2025-10-03",
-      "ai_index": 1848.62,
+      "ai_index": 1848.619,
       "nasdaq100": 516.032,
       "sp500": 314.918
     },
@@ -2842,7 +2842,7 @@
     },
     {
       "date": "2025-10-24",
-      "ai_index": 1981.581,
+      "ai_index": 1981.58,
       "nasdaq100": 527.954,
       "sp500": 318.477
     },
@@ -2866,7 +2866,7 @@
     },
     {
       "date": "2025-11-21",
-      "ai_index": 1828.9,
+      "ai_index": 1828.899,
       "nasdaq100": 504.665,
       "sp500": 309.629
     },
@@ -2878,19 +2878,19 @@
     },
     {
       "date": "2025-12-05",
-      "ai_index": 1949.649,
+      "ai_index": 1949.648,
       "nasdaq100": 534.906,
       "sp500": 322.168
     },
     {
       "date": "2025-12-12",
-      "ai_index": 1868.126,
+      "ai_index": 1868.125,
       "nasdaq100": 524.593,
       "sp500": 320.152
     },
     {
       "date": "2025-12-19",
-      "ai_index": 1900.28,
+      "ai_index": 1900.279,
       "nasdaq100": 527.705,
       "sp500": 320.485
     },
@@ -2938,7 +2938,7 @@
     },
     {
       "date": "2026-02-13",
-      "ai_index": 1811.125,
+      "ai_index": 1811.124,
       "nasdaq100": 514.933,
       "sp500": 320.563
     },
@@ -2986,13 +2986,13 @@
     },
     {
       "date": "2026-04-10",
-      "ai_index": 1953.737,
+      "ai_index": 1953.736,
       "nasdaq100": 522.919,
       "sp500": 319.659
     },
     {
       "date": "2026-04-17",
-      "ai_index": 2131.314,
+      "ai_index": 2131.313,
       "nasdaq100": 555.317,
       "sp500": 334.157
     },
@@ -3010,7 +3010,7 @@
     },
     {
       "date": "2026-05-08",
-      "ai_index": 2467.566,
+      "ai_index": 2467.565,
       "nasdaq100": 608.669,
       "sp500": 346.952
     },
@@ -3022,7 +3022,7 @@
     },
     {
       "date": "2026-05-22",
-      "ai_index": 2487.442,
+      "ai_index": 2487.441,
       "nasdaq100": 613.804,
       "sp500": 350.448
     },
@@ -3034,7 +3034,7 @@
     },
     {
       "date": "2026-06-05",
-      "ai_index": 2454.645,
+      "ai_index": 2454.644,
       "nasdaq100": 602.894,
       "sp500": 346.24
     },
@@ -3052,19 +3052,19 @@
     },
     {
       "date": "2026-06-26",
-      "ai_index": 2410.818,
+      "ai_index": 2410.817,
       "nasdaq100": 606.238,
       "sp500": 344.846
     },
     {
       "date": "2026-07-03",
-      "ai_index": 2426.886,
+      "ai_index": 2426.885,
       "nasdaq100": 610.631,
       "sp500": 350.906
     },
     {
       "date": "2026-07-10",
-      "ai_index": 2583.554,
+      "ai_index": 2583.553,
       "nasdaq100": 620.955,
       "sp500": 355.227
     },
@@ -3082,7 +3082,7 @@
     },
     {
       "date": "2026-07-31",
-      "ai_index": 2394.285,
+      "ai_index": 2394.284,
       "nasdaq100": 588.666,
       "sp500": 351.21
     },
@@ -3094,7 +3094,7 @@
     },
     {
       "date": "2026-08-14",
-      "ai_index": 2645.806,
+      "ai_index": 2645.805,
       "nasdaq100": 625.557,
       "sp500": 365.092
     },
@@ -3106,7 +3106,7 @@
     },
     {
       "date": "2026-08-28",
-      "ai_index": 2538.685,
+      "ai_index": 2538.684,
       "nasdaq100": 612.801,
       "sp500": 361.622
     },
@@ -3130,7 +3130,7 @@
     },
     {
       "date": "2026-09-25",
-      "ai_index": 2822.803,
+      "ai_index": 2822.802,
       "nasdaq100": 637.258,
       "sp500": 363.106
     },
@@ -3142,21 +3142,21 @@
     },
     {
       "date": "2026-10-09",
-      "ai_index": 2853.98,
+      "ai_index": 2853.979,
       "nasdaq100": 642.984,
       "sp500": 366.3
     },
     {
       "date": "2026-10-16",
-      "ai_index": 2811.857,
-      "nasdaq100": 638.436,
-      "sp500": 366.099
+      "ai_index": 2835.251,
+      "nasdaq100": 635.797,
+      "sp500": 366.046
     }
   ],
   "weekly_leaders": {
     "week_start": "2026-10-12",
     "captured_at": "2026-10-12T21:45:31.358274+00:00",
-    "as_of": "2026-10-12T21:45:31.358281+00:00",
+    "as_of": "2026-10-13T19:53:00.733007+00:00",
     "status": "Official weekly snapshot with daily live performance updates",
     "leaders": [
       {
@@ -3168,14 +3168,14 @@
         "subsector": "AI Software & Growth",
         "market_cap_tier": "Mega-Cap",
         "official_score": 89.4,
-        "live_score": 89.4,
+        "live_score": 89.3,
         "entry_price": 209.0,
         "entry_price_date": "2026-10-12",
-        "current_price": 209.0,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 208.455,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": -0.26,
+        "peer_return_since_selection_pct": 0.59,
+        "relative_return_pct": -0.85,
         "data_coverage_pct": 100.0,
         "key_strength": "Revenue growth is among the stronger results in its peer group.",
         "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
@@ -3195,11 +3195,11 @@
         "live_score": 86.8,
         "entry_price": 594.24,
         "entry_price_date": "2026-10-12",
-        "current_price": 594.24,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 602.58,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 1.4,
+        "peer_return_since_selection_pct": 0.84,
+        "relative_return_pct": 0.56,
         "data_coverage_pct": 100.0,
         "key_strength": "The latest standardized free cash flow is positive.",
         "key_risk": "Net profitability is weak relative to peers.",
@@ -3216,17 +3216,17 @@
         "subsector": "Cloud & AI Platforms",
         "market_cap_tier": "Unclassified",
         "official_score": 85.3,
-        "live_score": 85.3,
+        "live_score": 85.4,
         "entry_price": 742.96,
         "entry_price_date": "2026-10-12",
-        "current_price": 742.96,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 763.36,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 2.75,
+        "peer_return_since_selection_pct": 0.92,
+        "relative_return_pct": 1.83,
         "data_coverage_pct": 90.0,
         "key_strength": "Revenue growth is among the stronger results in its peer group.",
-        "key_risk": "One-year price momentum trails the peer group.",
+        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
         "research_likelihood_12m_pct": 41.7,
         "likelihood_score_band": "80 and above",
         "likelihood_status": "Research only"
@@ -3240,14 +3240,14 @@
         "subsector": "AI Software & Growth",
         "market_cap_tier": "Large-Cap",
         "official_score": 85.1,
-        "live_score": 85.1,
+        "live_score": 85.0,
         "entry_price": 360.37,
         "entry_price_date": "2026-10-12",
-        "current_price": 360.37,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 358.2,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": -0.6,
+        "peer_return_since_selection_pct": 0.59,
+        "relative_return_pct": -1.19,
         "data_coverage_pct": 90.0,
         "key_strength": "One-year price momentum ranks favorably within the peer group.",
         "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
@@ -3267,14 +3267,14 @@
         "live_score": 83.5,
         "entry_price": 541.15,
         "entry_price_date": "2026-10-12",
-        "current_price": 541.15,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 544.42,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 0.6,
+        "peer_return_since_selection_pct": 0.92,
+        "relative_return_pct": -0.32,
         "data_coverage_pct": 100.0,
         "key_strength": "Net profitability is strong relative to peers.",
-        "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+        "key_risk": "One-year price momentum trails the peer group.",
         "research_likelihood_12m_pct": 41.7,
         "likelihood_score_band": "80 and above",
         "likelihood_status": "Research only"
@@ -3291,11 +3291,11 @@
         "live_score": 83.3,
         "entry_price": 265.86,
         "entry_price_date": "2026-10-12",
-        "current_price": 265.86,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 267.07,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 0.46,
+        "peer_return_since_selection_pct": 0.84,
+        "relative_return_pct": -0.38,
         "data_coverage_pct": 100.0,
         "key_strength": "One-year price momentum ranks favorably within the peer group.",
         "key_risk": "Free-cash-flow margin is weak relative to peers.",
@@ -3312,14 +3312,14 @@
         "subsector": "Cloud & AI Platforms",
         "market_cap_tier": "Mega-Cap",
         "official_score": 83.0,
-        "live_score": 83.0,
+        "live_score": 82.8,
         "entry_price": 352.72,
         "entry_price_date": "2026-10-12",
-        "current_price": 352.72,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 354.375,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 0.47,
+        "peer_return_since_selection_pct": 0.92,
+        "relative_return_pct": -0.45,
         "data_coverage_pct": 100.0,
         "key_strength": "One-year price momentum ranks favorably within the peer group.",
         "key_risk": "Free-cash-flow margin is weak relative to peers.",
@@ -3336,14 +3336,14 @@
         "subsector": "Semiconductors & Infrastructure",
         "market_cap_tier": "Mega-Cap",
         "official_score": 80.3,
-        "live_score": 80.3,
+        "live_score": 80.1,
         "entry_price": 226.32,
         "entry_price_date": "2026-10-12",
-        "current_price": 226.32,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 227.93,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 0.71,
+        "peer_return_since_selection_pct": 0.84,
+        "relative_return_pct": -0.13,
         "data_coverage_pct": 90.0,
         "key_strength": "Revenue growth is among the stronger results in its peer group.",
         "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
@@ -3363,11 +3363,11 @@
         "live_score": 77.8,
         "entry_price": 13.32,
         "entry_price_date": "2026-10-12",
-        "current_price": 13.32,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 13.355,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 0.26,
+        "peer_return_since_selection_pct": 0.59,
+        "relative_return_pct": -0.33,
         "data_coverage_pct": 80.0,
         "key_strength": "The latest standardized free cash flow is positive.",
         "key_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
@@ -3384,14 +3384,14 @@
         "subsector": "Semiconductors & Infrastructure",
         "market_cap_tier": "Mega-Cap",
         "official_score": 71.1,
-        "live_score": 71.1,
+        "live_score": 70.7,
         "entry_price": 354.73,
         "entry_price_date": "2026-10-12",
-        "current_price": 354.73,
-        "current_price_date": "2026-10-12",
-        "return_since_selection_pct": 0.0,
-        "peer_return_since_selection_pct": 0.0,
-        "relative_return_pct": 0.0,
+        "current_price": 357.61,
+        "current_price_date": "2026-10-13",
+        "return_since_selection_pct": 0.81,
+        "peer_return_since_selection_pct": 0.84,
+        "relative_return_pct": -0.03,
         "data_coverage_pct": 100.0,
         "key_strength": "Free-cash-flow margin compares favorably with peers.",
         "key_risk": "Revenue growth trails most companies in its peer group.",
@@ -6634,95 +6634,95 @@
         "captured_at": "2026-08-04T23:55:46.072565+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 9.41,
-        "average_excess_to_date_pct": 0.98
+        "average_return_to_date_pct": 10.15,
+        "average_excess_to_date_pct": 0.82
       },
       {
         "week_start": "2026-08-10",
         "captured_at": "2026-08-10T16:13:10.041192+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 7.59,
-        "average_excess_to_date_pct": 0.61
+        "average_return_to_date_pct": 8.34,
+        "average_excess_to_date_pct": 0.47
       },
       {
         "week_start": "2026-08-17",
         "captured_at": "2026-08-17T13:55:09.877167+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 7.36,
-        "average_excess_to_date_pct": -0.09
+        "average_return_to_date_pct": 8.11,
+        "average_excess_to_date_pct": -0.25
       },
       {
         "week_start": "2026-08-24",
         "captured_at": "2026-08-24T14:04:39.661794+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 11.5,
-        "average_excess_to_date_pct": 0.53
+        "average_return_to_date_pct": 12.31,
+        "average_excess_to_date_pct": 0.39
       },
       {
         "week_start": "2026-08-31",
         "captured_at": "2026-08-31T19:31:29.646979+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 8.42,
-        "average_excess_to_date_pct": 0.26
+        "average_return_to_date_pct": 9.2,
+        "average_excess_to_date_pct": 0.13
       },
       {
         "week_start": "2026-09-07",
         "captured_at": "2026-09-07T18:16:23.565716+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 8.81,
-        "average_excess_to_date_pct": 0.33
+        "average_return_to_date_pct": 9.57,
+        "average_excess_to_date_pct": 0.19
       },
       {
         "week_start": "2026-09-14",
         "captured_at": "2026-09-14T18:39:48.385915+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 8.76,
-        "average_excess_to_date_pct": 0.64
+        "average_return_to_date_pct": 9.48,
+        "average_excess_to_date_pct": 0.51
       },
       {
         "week_start": "2026-09-21",
         "captured_at": "2026-09-21T18:44:55.836507+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 2.62,
-        "average_excess_to_date_pct": 0.15
+        "average_return_to_date_pct": 3.28,
+        "average_excess_to_date_pct": -0.0
       },
       {
         "week_start": "2026-09-28",
         "captured_at": "2026-09-28T20:08:53.910893+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 4.7,
-        "average_excess_to_date_pct": -0.18
+        "average_return_to_date_pct": 5.37,
+        "average_excess_to_date_pct": -0.34
       },
       {
         "week_start": "2026-10-05",
         "captured_at": "2026-10-06T18:56:32.831480+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": -0.74,
-        "average_excess_to_date_pct": 0.25
+        "average_return_to_date_pct": -0.11,
+        "average_excess_to_date_pct": 0.12
       },
       {
         "week_start": "2026-10-12",
         "captured_at": "2026-10-12T21:45:31.358274+00:00",
         "top_company": "Palantir Technologies",
         "selection_count": 10,
-        "average_return_to_date_pct": 0.0,
-        "average_excess_to_date_pct": 0.0
+        "average_return_to_date_pct": 0.66,
+        "average_excess_to_date_pct": -0.13
       }
     ]
   },
   "historical_backtest": {
     "status": "Preliminary point-in-time retrospective backtest; not a probability forecast",
     "period_start": "2021-10-29",
-    "period_end": "2026-10-12",
+    "period_end": "2026-10-13",
     "rebalance_frequency": "Monthly, using the final available trading date of each month",
     "tested_months": 61,
     "current_universe_size": 12,
@@ -7036,8 +7036,8 @@
     "companies_scored": 12,
     "company_count": 12,
     "median_score": 47.9,
-    "median_price_to_sales_x": 25.89,
-    "median_enterprise_value_to_sales_x": 26.07,
+    "median_price_to_sales_x": 26.08,
+    "median_enterprise_value_to_sales_x": 26.27,
     "positive_fcf_yield_count": 7,
     "profiles": {
       "Growth-supported premium": 1,
@@ -7113,7 +7113,7 @@
     "status": "Phase 10 integrated evidence and company research briefs",
     "companies_scored": 12,
     "company_count": 12,
-    "median_score": 56.05,
+    "median_score": 56.0,
     "favorable_count": 0,
     "constructive_count": 3,
     "balanced_count": 7,
@@ -17610,47 +17610,243 @@
           "latest_event_category": "Quarterly financial report"
         }
       ]
+    },
+    {
+      "snapshot_date": "2026-10-13",
+      "captured_at": "2026-10-13T19:53:00.732856+00:00",
+      "capture_policy": "First successful AI Intelligence refresh of the New York calendar date",
+      "companies": [
+        {
+          "ticker": "PLTR",
+          "name": "Palantir Technologies",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 1,
+          "score": 89.3,
+          "integrated_research_score": 62.8,
+          "integrated_stance": "Constructive evidence balance",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Growth-supported premium",
+          "latest_price": 208.455,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-08-04",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "AMD",
+          "name": "Advanced Micro Devices",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 2,
+          "score": 86.8,
+          "integrated_research_score": 54.7,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 602.58,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-09-28",
+          "latest_event_category": "Unregistered securities sale"
+        },
+        {
+          "ticker": "META",
+          "name": "Meta Platforms",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 3,
+          "score": 85.4,
+          "integrated_research_score": 63.0,
+          "integrated_stance": "Constructive evidence balance",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Heavy but self-funded investment",
+          "relative_valuation_profile": "Relatively favorable valuation mix",
+          "latest_price": 763.36,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-07-30",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "SNOW",
+          "name": "Snowflake",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 4,
+          "score": 85.0,
+          "integrated_research_score": 58.7,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively favorable valuation mix",
+          "latest_price": 358.2,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-10-02",
+          "latest_event_category": "Material agreement / Debt or financing obligation"
+        },
+        {
+          "ticker": "MSFT",
+          "name": "Microsoft",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 5,
+          "score": 83.5,
+          "integrated_research_score": 52.9,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Balanced capital deployment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 544.42,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-09-02",
+          "latest_event_category": "Regulation FD disclosure / Financial statements or exhibits"
+        },
+        {
+          "ticker": "MRVL",
+          "name": "Marvell Technology",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 6,
+          "score": 83.3,
+          "integrated_research_score": 51.0,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 267.07,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-09-25",
+          "latest_event_category": "Other material event / Financial statements or exhibits"
+        },
+        {
+          "ticker": "GOOGL",
+          "name": "Alphabet",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 7,
+          "score": 82.8,
+          "integrated_research_score": 55.4,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Balanced capital deployment",
+          "relative_valuation_profile": "Balanced relative valuation",
+          "latest_price": 354.375,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-08-10",
+          "latest_event_category": "Other material event / Financial statements or exhibits"
+        },
+        {
+          "ticker": "NVDA",
+          "name": "NVIDIA",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 8,
+          "score": 80.1,
+          "integrated_research_score": 64.4,
+          "integrated_stance": "Constructive evidence balance",
+          "outperformance_likelihood_12m_pct": 41.7,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Capital-light growth",
+          "relative_valuation_profile": "Relatively favorable valuation mix",
+          "latest_price": 227.93,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-09-03",
+          "latest_event_category": "Other material event"
+        },
+        {
+          "ticker": "PATH",
+          "name": "UiPath",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 9,
+          "score": 77.8,
+          "integrated_research_score": 56.6,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 48.9,
+          "outlook_label": "Balanced research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Relatively demanding valuation mix",
+          "latest_price": 13.355,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 80.0,
+          "latest_filing_date": "2026-09-08",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "AVGO",
+          "name": "Broadcom",
+          "subsector": "Semiconductors & Infrastructure",
+          "overall_rank": 10,
+          "score": 70.7,
+          "integrated_research_score": 57.8,
+          "integrated_stance": "Balanced / mixed evidence",
+          "outperformance_likelihood_12m_pct": 48.9,
+          "outlook_label": "Balanced research outlook",
+          "capital_profile": "Self-funded reinvestment",
+          "relative_valuation_profile": "Balanced relative valuation",
+          "latest_price": 357.61,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 100.0,
+          "latest_filing_date": "2026-09-10",
+          "latest_event_category": "Quarterly financial report"
+        },
+        {
+          "ticker": "AMZN",
+          "name": "Amazon",
+          "subsector": "Cloud & AI Platforms",
+          "overall_rank": 11,
+          "score": 68.0,
+          "integrated_research_score": 46.3,
+          "integrated_stance": "Cautious evidence balance",
+          "outperformance_likelihood_12m_pct": 31.0,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Balanced capital deployment",
+          "relative_valuation_profile": "Balanced relative valuation",
+          "latest_price": 259.14,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 80.0,
+          "latest_filing_date": "2026-09-14",
+          "latest_event_category": "Other material event / Financial statements or exhibits"
+        },
+        {
+          "ticker": "AI",
+          "name": "C3.ai",
+          "subsector": "AI Software & Growth",
+          "overall_rank": 12,
+          "score": 36.9,
+          "integrated_research_score": 29.6,
+          "integrated_stance": "Cautious evidence balance",
+          "outperformance_likelihood_12m_pct": 26.3,
+          "outlook_label": "Cautious research outlook",
+          "capital_profile": "Cash-consuming expansion",
+          "relative_valuation_profile": "Speculative / negative cash flow",
+          "latest_price": 11.955,
+          "price_date": "2026-10-13",
+          "data_coverage_pct": 90.0,
+          "latest_filing_date": "2026-09-09",
+          "latest_event_category": "Quarterly financial report"
+        }
+      ]
     }
   ],
   "daily_change_monitor": {
     "status": "Phase 11 daily change monitor with research alert thresholds",
-    "as_of": "2026-10-12T21:45:31.358090+00:00",
-    "snapshot_date": "2026-10-12",
-    "comparison_date": "2026-10-09",
-    "snapshots_recorded": 47,
-    "companies_with_material_change": 1,
+    "as_of": "2026-10-13T19:53:00.732891+00:00",
+    "snapshot_date": "2026-10-13",
+    "comparison_date": "2026-10-12",
+    "snapshots_recorded": 48,
+    "companies_with_material_change": 0,
     "high_priority_count": 0,
-    "moderate_priority_count": 1,
+    "moderate_priority_count": 0,
     "new_filing_count": 0,
-    "largest_absolute_score_change": 0.4,
-    "alerts": [
-      {
-        "ticker": "META",
-        "name": "Meta Platforms",
-        "subsector": "Cloud & AI Platforms",
-        "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
-        "priority": "Moderate",
-        "material_change": true,
-        "summary": "Observed market price changed +3.4% since the prior snapshot",
-        "score_delta": 0.4,
-        "integrated_evidence_delta": 0.1,
-        "rank_change": 1,
-        "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": 3.42,
-        "data_coverage_delta_pct_points": 0.0,
-        "outlook_changed": false,
-        "integrated_stance_changed": false,
-        "capital_profile_changed": false,
-        "valuation_profile_changed": false,
-        "new_filing": false,
-        "latest_filing_date": "2026-07-30",
-        "latest_event_category": "Quarterly financial report",
-        "messages": [
-          "Observed market price changed +3.4% since the prior snapshot"
-        ]
-      }
-    ],
+    "largest_absolute_score_change": null,
+    "alerts": [],
     "method": "Phase 11 compares the current refresh with the most recent prior preserved New York-date snapshot. It flags changes that cross published thresholds in scores, ranks, likelihoods, outlook/profile labels, market price, data coverage, or SEC filing activity.",
     "limitations": [
       "A daily alert means the research state changed; it does not determine whether the change is favorable, durable, or investable.",
@@ -17667,7 +17863,7 @@
     "median_competitive_position_score": 46.25,
     "average_subsector_breadth_pct": 83.3,
     "strongest_subsector": "Cloud & AI Platforms",
-    "strongest_subsector_score": 81.0,
+    "strongest_subsector_score": 80.9,
     "highest_growth_subsector": "Semiconductors & Infrastructure",
     "highest_growth_median_pct": 38.22,
     "highest_fcf_subsector": "AI Software & Growth",
@@ -17676,28 +17872,28 @@
       {
         "subsector": "Cloud & AI Platforms",
         "profile": "Leading subsector evidence",
-        "research_strength_score": 81.0,
+        "research_strength_score": 80.9,
         "company_count": 4,
         "priced_company_count": 4,
-        "median_company_score": 83.25,
-        "median_integrated_evidence_score": 54.2,
+        "median_company_score": 83.15,
+        "median_integrated_evidence_score": 54.15,
         "median_revenue_growth_pct": 16.44,
         "median_fcf_margin_pct": 20.19,
-        "median_return_1y_pct": 13.37,
+        "median_return_1y_pct": 12.38,
         "breadth_above_50_day_pct": 100.0,
         "positive_fcf_company_pct": 100.0,
-        "aggregate_market_cap": 11131471503795.81,
-        "top_two_market_cap_share_pct": 74.9,
+        "aggregate_market_cap": 11171787025258.3,
+        "top_two_market_cap_share_pct": 75.0,
         "market_cap_concentration": "Moderately concentrated",
         "original_score_leader": {
           "ticker": "META",
           "name": "Meta Platforms",
-          "value": 85.3
+          "value": 85.4
         },
         "integrated_evidence_leader": {
           "ticker": "META",
           "name": "Meta Platforms",
-          "value": 62.9
+          "value": 63.0
         },
         "revenue_growth_leader": {
           "ticker": "META",
@@ -17715,24 +17911,24 @@
           "value": 85.4
         },
         "dominant_strength": "The latest standardized free cash flow is positive.",
-        "dominant_risk": "One-year price momentum trails the peer group.",
+        "dominant_risk": "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
         "research_strength_rank": 1
       },
       {
         "subsector": "Semiconductors & Infrastructure",
         "profile": "Leading subsector evidence",
-        "research_strength_score": 79.9,
+        "research_strength_score": 79.8,
         "company_count": 4,
         "priced_company_count": 4,
-        "median_company_score": 81.8,
-        "median_integrated_evidence_score": 56.3,
+        "median_company_score": 81.7,
+        "median_integrated_evidence_score": 56.25,
         "median_revenue_growth_pct": 38.22,
         "median_fcf_margin_pct": 19.44,
-        "median_return_1y_pct": 100.19,
+        "median_return_1y_pct": 99.88,
         "breadth_above_50_day_pct": 75.0,
         "positive_fcf_company_pct": 100.0,
-        "aggregate_market_cap": 8350876324969.53,
-        "top_two_market_cap_share_pct": 85.6,
+        "aggregate_market_cap": 8418101269831.01,
+        "top_two_market_cap_share_pct": 85.5,
         "market_cap_concentration": "Highly concentrated",
         "original_score_leader": {
           "ticker": "AMD",
@@ -17742,7 +17938,7 @@
         "integrated_evidence_leader": {
           "ticker": "NVDA",
           "name": "NVIDIA",
-          "value": 64.5
+          "value": 64.4
         },
         "revenue_growth_leader": {
           "ticker": "NVDA",
@@ -17769,25 +17965,25 @@
         "research_strength_score": 75.1,
         "company_count": 4,
         "priced_company_count": 4,
-        "median_company_score": 81.45,
+        "median_company_score": 81.4,
         "median_integrated_evidence_score": 57.65,
         "median_revenue_growth_pct": 20.91,
         "median_fcf_margin_pct": 22.9,
-        "median_return_1y_pct": -1.38,
+        "median_return_1y_pct": -2.22,
         "breadth_above_50_day_pct": 75.0,
         "positive_fcf_company_pct": 75.0,
-        "aggregate_market_cap": 629384643907.12,
+        "aggregate_market_cap": 627310696539.36,
         "top_two_market_cap_share_pct": 100.0,
         "market_cap_concentration": "Highly concentrated",
         "original_score_leader": {
           "ticker": "PLTR",
           "name": "Palantir Technologies",
-          "value": 89.4
+          "value": 89.3
         },
         "integrated_evidence_leader": {
           "ticker": "PLTR",
           "name": "Palantir Technologies",
-          "value": 62.9
+          "value": 62.8
         },
         "revenue_growth_leader": {
           "ticker": "PLTR",
@@ -17825,13 +18021,13 @@
       "name": "Palantir Technologies",
       "subsector": "AI Software & Growth",
       "market_cap_tier": "Mega-Cap",
-      "score": 89.4,
+      "score": 89.3,
       "score_components": {
         "growth": 100.0,
         "free_cash_flow": 100.0,
         "financial_strength": 100.0,
         "profitability": 100.0,
-        "momentum": 72.8,
+        "momentum": 72.4,
         "strategic_investment": 48.5
       },
       "history": [
@@ -18024,21 +18220,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001321655.json",
-      "latest_price": 209.0,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 24.98,
-      "return_1y_pct": 19.13,
+      "latest_price": 208.455,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 24.65,
+      "return_1y_pct": 17.63,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 502205473000.0,
+      "market_cap": 500895894135.0,
       "overall_rank": 1,
       "subsector_rank": 1,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 89.4,
-          "peer_median": 81.45,
+          "company_value": 89.3,
+          "peer_median": 81.4,
           "peer_percentile": 87.5
         },
         {
@@ -18065,8 +18261,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 19.13,
-          "peer_median": -1.38,
+          "company_value": 17.63,
+          "peer_median": -2.22,
           "peer_percentile": 62.5
         }
       ],
@@ -18075,18 +18271,18 @@
         {
           "ticker": "PLTR",
           "name": "Palantir Technologies",
-          "score": 89.4,
+          "score": 89.3,
           "revenue_growth_pct": 56.18,
           "fcf_margin_pct": 46.94,
-          "return_1y_pct": 19.13
+          "return_1y_pct": 17.63
         },
         {
           "ticker": "SNOW",
           "name": "Snowflake",
-          "score": 85.1,
+          "score": 85.0,
           "revenue_growth_pct": 29.16,
           "fcf_margin_pct": 23.92,
-          "return_1y_pct": 48.81
+          "return_1y_pct": 44.86
         },
         {
           "ticker": "PATH",
@@ -18094,15 +18290,15 @@
           "score": 77.8,
           "revenue_growth_pct": 12.65,
           "fcf_margin_pct": 21.87,
-          "return_1y_pct": -21.88
+          "return_1y_pct": -22.08
         },
         {
           "ticker": "AI",
           "name": "C3.ai",
-          "score": 37.0,
+          "score": 36.9,
           "revenue_growth_pct": -35.67,
           "fcf_margin_pct": -76.77,
-          "return_1y_pct": -35.18
+          "return_1y_pct": -38.28
         }
       ],
       "data_coverage_pct": 100.0,
@@ -18258,14 +18454,14 @@
         "status": "Peer-relative valuation research score",
         "profile": "Growth-supported premium",
         "score": 50.4,
-        "enterprise_value": 492796374000.0,
-        "price_to_sales_x": 112.21,
-        "enterprise_value_to_sales_x": 110.11,
-        "price_to_free_cash_flow_x": 239.08,
-        "price_to_earnings_x": 309.04,
+        "enterprise_value": 491486795135.0,
+        "price_to_sales_x": 111.92,
+        "enterprise_value_to_sales_x": 109.82,
+        "price_to_free_cash_flow_x": 238.45,
+        "price_to_earnings_x": 308.24,
         "free_cash_flow_yield_pct": 0.42,
         "earnings_yield_pct": 0.32,
-        "growth_adjusted_price_to_sales": 1.997,
+        "growth_adjusted_price_to_sales": 1.992,
         "peer_percentiles": {
           "price_to_sales": 16.7,
           "enterprise_value_to_sales": 50.0,
@@ -18276,13 +18472,13 @@
           "fcf_margin": 87.5
         },
         "peer_medians": {
-          "price_to_sales_x": 27.14,
-          "enterprise_value_to_sales_x": 110.11,
+          "price_to_sales_x": 26.98,
+          "enterprise_value_to_sales_x": 109.82,
           "revenue_growth_pct": 20.91,
           "fcf_margin_pct": 22.9
         },
         "available_component_count": 7,
-        "summary": "Growth-supported premium. Market capitalization equals 112.21 times latest reported revenue, and standardized free-cash-flow yield is 0.42%.",
+        "summary": "Growth-supported premium. Market capitalization equals 111.92 times latest reported revenue, and standardized free-cash-flow yield is 0.42%.",
         "overall_rank": 6,
         "subsector_rank": 2,
         "subsector_count": 4
@@ -18294,7 +18490,7 @@
         "attention_level": "High",
         "reaction_score": 67.1,
         "latest_filing_date": "2026-08-04",
-        "days_since_latest_filing": 69,
+        "days_since_latest_filing": 70,
         "latest_event_category": "Quarterly financial report",
         "filings_90d": 2,
         "material_events_30d": 0,
@@ -18493,21 +18689,21 @@
       "filing_reaction_score": 67.1,
       "integrated_research": {
         "status": "Phase 10 automated evidence synthesis; not investment advice",
-        "score": 62.9,
+        "score": 62.8,
         "stance": "Constructive evidence balance",
         "confidence": "High",
         "available_component_count": 6,
         "data_coverage_pct": 100.0,
         "component_scores": {
-          "original_company_score": 89.4,
+          "original_company_score": 89.3,
           "backtest_likelihood": 41.7,
           "operating_outlook_signal": 30.0,
           "capital_efficiency": 81.9,
           "relative_valuation": 50.4,
           "filing_reaction": 67.1
         },
-        "past_summary": "Reported revenue changed at a +32.9% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +46.9%. The observed one-year stock-price return was +19.1% through the latest market-data date.",
-        "present_summary": "The current original company score is 89.4, ranked 1 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Growth-supported premium. Latest tracked SEC disclosure category: Quarterly financial report on 2026-08-04.",
+        "past_summary": "Reported revenue changed at a +32.9% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +46.9%. The observed one-year stock-price return was +17.6% through the latest market-data date.",
+        "present_summary": "The current original company score is 89.3, ranked 1 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Growth-supported premium. Latest tracked SEC disclosure category: Quarterly financial report on 2026-08-04.",
         "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 39.2% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 41.7%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "Revenue growth is among the stronger results in its peer group.",
@@ -18528,22 +18724,22 @@
           "Test future reported revenue against the Phase 6 base scenario assumption of 39.2% annual growth.",
           "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
         ],
-        "overall_rank": 2,
+        "overall_rank": 3,
         "subsector_rank": 1,
         "subsector_count": 4
       },
-      "integrated_research_score": 62.9,
+      "integrated_research_score": 62.8,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.4,
-        "integrated_evidence_delta": 0.2,
+        "score_delta": -0.1,
+        "integrated_evidence_delta": -0.1,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": 1.05,
+        "price_change_pct": -0.26,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -18794,13 +18990,13 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json",
-      "latest_price": 594.24,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 15.13,
-      "return_1y_pct": 176.52,
+      "latest_price": 602.58,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 16.75,
+      "return_1y_pct": 178.43,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 970081968958.08,
+      "market_cap": 983696810808.36,
       "overall_rank": 2,
       "subsector_rank": 1,
       "peer_metrics": [
@@ -18808,7 +19004,7 @@
           "key": "score",
           "label": "Company score",
           "company_value": 86.8,
-          "peer_median": 81.8,
+          "peer_median": 81.7,
           "peer_percentile": 87.5
         },
         {
@@ -18835,8 +19031,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 176.52,
-          "peer_median": 100.19,
+          "company_value": 178.43,
+          "peer_median": 99.88,
           "peer_percentile": 62.5
         }
       ],
@@ -18848,7 +19044,7 @@
           "score": 86.8,
           "revenue_growth_pct": 34.34,
           "fcf_margin_pct": 19.44,
-          "return_1y_pct": 176.52
+          "return_1y_pct": 178.43
         },
         {
           "ticker": "MRVL",
@@ -18856,23 +19052,23 @@
           "score": 83.3,
           "revenue_growth_pct": 42.09,
           "fcf_margin_pct": 17.04,
-          "return_1y_pct": 211.07
+          "return_1y_pct": 199.27
         },
         {
           "ticker": "NVDA",
           "name": "NVIDIA",
-          "score": 80.3,
+          "score": 80.1,
           "revenue_growth_pct": 65.47,
           "fcf_margin_pct": null,
-          "return_1y_pct": 23.86
+          "return_1y_pct": 21.32
         },
         {
           "ticker": "AVGO",
           "name": "Broadcom",
-          "score": 71.1,
+          "score": 70.7,
           "revenue_growth_pct": 23.87,
           "fcf_margin_pct": 42.13,
-          "return_1y_pct": 10.08
+          "return_1y_pct": 1.0
         }
       ],
       "data_coverage_pct": 100.0,
@@ -19027,14 +19223,14 @@
         "status": "Peer-relative valuation research score",
         "profile": "Relatively demanding valuation mix",
         "score": 38.8,
-        "enterprise_value": 960196968958.08,
-        "price_to_sales_x": 28.01,
-        "enterprise_value_to_sales_x": 27.72,
-        "price_to_free_cash_flow_x": 144.04,
-        "price_to_earnings_x": 223.78,
-        "free_cash_flow_yield_pct": 0.69,
-        "earnings_yield_pct": 0.45,
-        "growth_adjusted_price_to_sales": 0.816,
+        "enterprise_value": 973811810808.36,
+        "price_to_sales_x": 28.4,
+        "enterprise_value_to_sales_x": 28.11,
+        "price_to_free_cash_flow_x": 146.06,
+        "price_to_earnings_x": 226.92,
+        "free_cash_flow_yield_pct": 0.68,
+        "earnings_yield_pct": 0.44,
+        "growth_adjusted_price_to_sales": 0.827,
         "peer_percentiles": {
           "price_to_sales": 37.5,
           "enterprise_value_to_sales": 37.5,
@@ -19045,13 +19241,13 @@
           "fcf_margin": 50.0
         },
         "peer_medians": {
-          "price_to_sales_x": 27.26,
-          "enterprise_value_to_sales_x": 27.39,
+          "price_to_sales_x": 27.56,
+          "enterprise_value_to_sales_x": 27.7,
           "revenue_growth_pct": 38.22,
           "fcf_margin_pct": 19.44
         },
         "available_component_count": 7,
-        "summary": "Relatively demanding valuation mix. Market capitalization equals 28.01 times latest reported revenue, and standardized free-cash-flow yield is 0.69%.",
+        "summary": "Relatively demanding valuation mix. Market capitalization equals 28.40 times latest reported revenue, and standardized free-cash-flow yield is 0.68%.",
         "overall_rank": 8,
         "subsector_rank": 3,
         "subsector_count": 4
@@ -19063,7 +19259,7 @@
         "attention_level": "Moderate",
         "reaction_score": 48.1,
         "latest_filing_date": "2026-09-28",
-        "days_since_latest_filing": 14,
+        "days_since_latest_filing": 15,
         "latest_event_category": "Unregistered securities sale",
         "filings_90d": 5,
         "material_events_30d": 1,
@@ -19284,7 +19480,7 @@
           "relative_valuation": 38.8,
           "filing_reaction": 48.1
         },
-        "past_summary": "Reported revenue changed at a +13.6% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +19.4%. The observed one-year stock-price return was +176.5% through the latest market-data date.",
+        "past_summary": "Reported revenue changed at a +13.6% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +19.4%. The observed one-year stock-price return was +178.4% through the latest market-data date.",
         "present_summary": "The current original company score is 86.8, ranked 2 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively demanding valuation mix. Latest tracked SEC disclosure category: Unregistered securities sale on 2026-09-28.",
         "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 28.1% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 41.7%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
@@ -19313,7 +19509,7 @@
       "integrated_research_score": 54.7,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
@@ -19321,7 +19517,7 @@
         "integrated_evidence_delta": 0.0,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -2.99,
+        "price_change_pct": 1.4,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -19355,13 +19551,13 @@
       "name": "Meta Platforms",
       "subsector": "Cloud & AI Platforms",
       "market_cap_tier": "Unclassified",
-      "score": 85.3,
+      "score": 85.4,
       "score_components": {
         "growth": 94.3,
         "free_cash_flow": 100.0,
         "financial_strength": 51.9,
         "profitability": 100.0,
-        "momentum": 69.7,
+        "momentum": 70.0,
         "strategic_investment": 100.0
       },
       "history": [
@@ -19571,10 +19767,10 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
-      "latest_price": 742.96,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 14.74,
-      "return_1y_pct": 5.7,
+      "latest_price": 763.36,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 17.89,
+      "return_1y_pct": 7.02,
       "above_50_day": true,
       "above_200_day": true,
       "overall_rank": 3,
@@ -19583,8 +19779,8 @@
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 85.3,
-          "peer_median": 83.25,
+          "company_value": 85.4,
+          "peer_median": 83.15,
           "peer_percentile": 87.5
         },
         {
@@ -19611,9 +19807,9 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 5.7,
-          "peer_median": 13.37,
-          "peer_percentile": 12.5
+          "company_value": 7.02,
+          "peer_median": 12.38,
+          "peer_percentile": 37.5
         }
       ],
       "peer_count": 4,
@@ -19621,10 +19817,10 @@
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 85.3,
+          "score": 85.4,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": 5.7
+          "return_1y_pct": 7.02
         },
         {
           "ticker": "MSFT",
@@ -19637,18 +19833,18 @@
         {
           "ticker": "GOOGL",
           "name": "Alphabet",
-          "score": 83.0,
+          "score": 82.8,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 49.49
+          "return_1y_pct": 45.52
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 68.1,
+          "score": 68.0,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 19.95
+          "return_1y_pct": 17.75
         }
       ],
       "data_coverage_pct": 90.0,
@@ -19663,7 +19859,7 @@
         "Cash and short-term investments exceed reported debt."
       ],
       "risks": [
-        "One-year price momentum trails the peer group."
+        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
       ],
       "cap_group_rank": 1,
       "cap_group_count": 2,
@@ -19824,8 +20020,8 @@
           "fcf_margin": 83.3
         },
         "peer_medians": {
-          "price_to_sales_x": 10.71,
-          "enterprise_value_to_sales_x": 10.36,
+          "price_to_sales_x": 10.76,
+          "enterprise_value_to_sales_x": 10.41,
           "revenue_growth_pct": 16.44,
           "fcf_margin_pct": 20.19
         },
@@ -19842,7 +20038,7 @@
         "attention_level": "Moderate",
         "reaction_score": 51.7,
         "latest_filing_date": "2026-07-30",
-        "days_since_latest_filing": 74,
+        "days_since_latest_filing": 75,
         "latest_event_category": "Quarterly financial report",
         "filings_90d": 2,
         "material_events_30d": 0,
@@ -20040,21 +20236,21 @@
       "filing_reaction_score": 51.7,
       "integrated_research": {
         "status": "Phase 10 automated evidence synthesis; not investment advice",
-        "score": 62.9,
+        "score": 63.0,
         "stance": "Constructive evidence balance",
         "confidence": "High",
         "available_component_count": 6,
         "data_coverage_pct": 90.0,
         "component_scores": {
-          "original_company_score": 85.3,
+          "original_company_score": 85.4,
           "backtest_likelihood": 41.7,
           "operating_outlook_signal": 30.0,
           "capital_efficiency": 60.8,
           "relative_valuation": 85.4,
           "filing_reaction": 51.7
         },
-        "past_summary": "Reported revenue changed at a +19.9% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +22.9%. The observed one-year stock-price return was +5.7% through the latest market-data date.",
-        "present_summary": "The current original company score is 85.3, ranked 3 overall. Capital profile: Heavy but self-funded investment. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Quarterly financial report on 2026-07-30.",
+        "past_summary": "Reported revenue changed at a +19.9% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +22.9%. The observed one-year stock-price return was +7.0% through the latest market-data date.",
+        "present_summary": "The current original company score is 85.4, ranked 3 overall. Capital profile: Heavy but self-funded investment. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Quarterly financial report on 2026-07-30.",
         "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 19.9% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 41.7%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "Revenue growth is among the stronger results in its peer group.",
@@ -20064,7 +20260,7 @@
           "Relative-valuation and growth-quality score is comparatively favorable at 85.4."
         ],
         "counter_evidence": [
-          "One-year price momentum trails the peer group.",
+          "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
           "Backtest-based peer-outperformance research estimate is below 45% at 41.7%.",
           "The operating-scenario framework currently produces a cautious research outlook.",
           "Recent tracked SEC filings have had a negative average five-trading-day observed reaction."
@@ -20076,22 +20272,22 @@
           "Test future reported revenue against the Phase 6 base scenario assumption of 19.9% annual growth.",
           "Continue tracking the Phase 5 validation sample before treating the likelihood estimate as stable."
         ],
-        "overall_rank": 3,
+        "overall_rank": 2,
         "subsector_rank": 1,
         "subsector_count": 4
       },
-      "integrated_research_score": 62.9,
+      "integrated_research_score": 63.0,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
-        "priority": "Moderate",
-        "material_change": true,
-        "summary": "Observed market price changed +3.4% since the prior snapshot",
-        "score_delta": 0.4,
+        "comparison_date": "2026-10-12",
+        "priority": "Routine",
+        "material_change": false,
+        "summary": "No Phase 11 material-change threshold was crossed.",
+        "score_delta": 0.1,
         "integrated_evidence_delta": 0.1,
-        "rank_change": 1,
+        "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": 3.42,
+        "price_change_pct": 2.75,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -20100,9 +20296,7 @@
         "new_filing": false,
         "latest_filing_date": "2026-07-30",
         "latest_event_category": "Quarterly financial report",
-        "messages": [
-          "Observed market price changed +3.4% since the prior snapshot"
-        ]
+        "messages": []
       },
       "competitive_position": {
         "status": "Phase 12 peer-relative competitive-position research",
@@ -20127,13 +20321,13 @@
       "name": "Snowflake",
       "subsector": "AI Software & Growth",
       "market_cap_tier": "Large-Cap",
-      "score": 85.1,
+      "score": 85.0,
       "score_components": {
         "growth": 100.0,
         "free_cash_flow": 100.0,
         "financial_strength": 100.0,
         "profitability": 0.0,
-        "momentum": 79.7,
+        "momentum": 78.8,
         "strategic_investment": 91.9
       },
       "history": [
@@ -20325,21 +20519,21 @@
         "debt_noncurrent": null
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001640147.json",
-      "latest_price": 360.37,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 9.54,
-      "return_1y_pct": 48.81,
+      "latest_price": 358.2,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 8.88,
+      "return_1y_pct": 44.86,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 127138536000.0,
+      "market_cap": 126372960000.0,
       "overall_rank": 4,
       "subsector_rank": 2,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 85.1,
-          "peer_median": 81.45,
+          "company_value": 85.0,
+          "peer_median": 81.4,
           "peer_percentile": 62.5
         },
         {
@@ -20366,8 +20560,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 48.81,
-          "peer_median": -1.38,
+          "company_value": 44.86,
+          "peer_median": -2.22,
           "peer_percentile": 87.5
         }
       ],
@@ -20376,18 +20570,18 @@
         {
           "ticker": "PLTR",
           "name": "Palantir Technologies",
-          "score": 89.4,
+          "score": 89.3,
           "revenue_growth_pct": 56.18,
           "fcf_margin_pct": 46.94,
-          "return_1y_pct": 19.13
+          "return_1y_pct": 17.63
         },
         {
           "ticker": "SNOW",
           "name": "Snowflake",
-          "score": 85.1,
+          "score": 85.0,
           "revenue_growth_pct": 29.16,
           "fcf_margin_pct": 23.92,
-          "return_1y_pct": 48.81
+          "return_1y_pct": 44.86
         },
         {
           "ticker": "PATH",
@@ -20395,15 +20589,15 @@
           "score": 77.8,
           "revenue_growth_pct": 12.65,
           "fcf_margin_pct": 21.87,
-          "return_1y_pct": -21.88
+          "return_1y_pct": -22.08
         },
         {
           "ticker": "AI",
           "name": "C3.ai",
-          "score": 37.0,
+          "score": 36.9,
           "revenue_growth_pct": -35.67,
           "fcf_margin_pct": -76.77,
-          "return_1y_pct": -35.18
+          "return_1y_pct": -38.28
         }
       ],
       "data_coverage_pct": 90.0,
@@ -20561,13 +20755,13 @@
         "profile": "Relatively favorable valuation mix",
         "score": 65.2,
         "enterprise_value": null,
-        "price_to_sales_x": 27.14,
+        "price_to_sales_x": 26.98,
         "enterprise_value_to_sales_x": null,
-        "price_to_free_cash_flow_x": 113.48,
+        "price_to_free_cash_flow_x": 112.8,
         "price_to_earnings_x": null,
-        "free_cash_flow_yield_pct": 0.88,
+        "free_cash_flow_yield_pct": 0.89,
         "earnings_yield_pct": -1.05,
-        "growth_adjusted_price_to_sales": 0.931,
+        "growth_adjusted_price_to_sales": 0.925,
         "peer_percentiles": {
           "price_to_sales": 50.0,
           "enterprise_value_to_sales": null,
@@ -20578,13 +20772,13 @@
           "fcf_margin": 62.5
         },
         "peer_medians": {
-          "price_to_sales_x": 27.14,
-          "enterprise_value_to_sales_x": 110.11,
+          "price_to_sales_x": 26.98,
+          "enterprise_value_to_sales_x": 109.82,
           "revenue_growth_pct": 20.91,
           "fcf_margin_pct": 22.9
         },
         "available_component_count": 6,
-        "summary": "Relatively favorable valuation mix. Market capitalization equals 27.14 times latest reported revenue, and standardized free-cash-flow yield is 0.88%.",
+        "summary": "Relatively favorable valuation mix. Market capitalization equals 26.98 times latest reported revenue, and standardized free-cash-flow yield is 0.89%.",
         "overall_rank": 3,
         "subsector_rank": 1,
         "subsector_count": 4
@@ -20596,7 +20790,7 @@
         "attention_level": "Moderate",
         "reaction_score": 55.2,
         "latest_filing_date": "2026-10-02",
-        "days_since_latest_filing": 10,
+        "days_since_latest_filing": 11,
         "latest_event_category": "Material agreement / Debt or financing obligation",
         "filings_90d": 4,
         "material_events_30d": 1,
@@ -20801,15 +20995,15 @@
         "available_component_count": 6,
         "data_coverage_pct": 90.0,
         "component_scores": {
-          "original_company_score": 85.1,
+          "original_company_score": 85.0,
           "backtest_likelihood": 41.7,
           "operating_outlook_signal": 30.0,
           "capital_efficiency": 52.2,
           "relative_valuation": 65.2,
           "filing_reaction": 55.2
         },
-        "past_summary": "Reported revenue changed at a +31.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +23.9%. The observed one-year stock-price return was +48.8% through the latest market-data date.",
-        "present_summary": "The current original company score is 85.1, ranked 4 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Material agreement / Debt or financing obligation on 2026-10-02.",
+        "past_summary": "Reported revenue changed at a +31.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +23.9%. The observed one-year stock-price return was +44.9% through the latest market-data date.",
+        "present_summary": "The current original company score is 85.0, ranked 4 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Material agreement / Debt or financing obligation on 2026-10-02.",
         "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 27.9% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 41.7%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "One-year price momentum ranks favorably within the peer group.",
@@ -20837,15 +21031,15 @@
       "integrated_research_score": 58.7,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.1,
+        "score_delta": -0.1,
         "integrated_evidence_delta": 0.0,
-        "rank_change": -1,
+        "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -1.57,
+        "price_change_pct": -0.6,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -21096,13 +21290,13 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
-      "latest_price": 541.15,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 9.18,
+      "latest_price": 544.42,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 9.84,
       "return_1y_pct": 6.78,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 4018333942454.65,
+      "market_cap": 4042615476210.22,
       "overall_rank": 5,
       "subsector_rank": 2,
       "peer_metrics": [
@@ -21110,7 +21304,7 @@
           "key": "score",
           "label": "Company score",
           "company_value": 83.5,
-          "peer_median": 83.25,
+          "peer_median": 83.15,
           "peer_percentile": 62.5
         },
         {
@@ -21138,8 +21332,8 @@
           "key": "return_1y_pct",
           "label": "1-year return",
           "company_value": 6.78,
-          "peer_median": 13.37,
-          "peer_percentile": 37.5
+          "peer_median": 12.38,
+          "peer_percentile": 12.5
         }
       ],
       "peer_count": 4,
@@ -21147,10 +21341,10 @@
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 85.3,
+          "score": 85.4,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": 5.7
+          "return_1y_pct": 7.02
         },
         {
           "ticker": "MSFT",
@@ -21163,18 +21357,18 @@
         {
           "ticker": "GOOGL",
           "name": "Alphabet",
-          "score": 83.0,
+          "score": 82.8,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 49.49
+          "return_1y_pct": 45.52
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 68.1,
+          "score": 68.0,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 19.95
+          "return_1y_pct": 17.75
         }
       ],
       "data_coverage_pct": 100.0,
@@ -21187,7 +21381,7 @@
         "The share price is above both its 50-day and 200-day averages."
       ],
       "risks": [
-        "No major quantitative warning was identified, but qualitative and valuation risks still require review."
+        "One-year price momentum trails the peer group."
       ],
       "cap_group_rank": 3,
       "cap_group_count": 8,
@@ -21330,14 +21524,14 @@
         "status": "Peer-relative valuation research score",
         "profile": "Relatively demanding valuation mix",
         "score": 37.9,
-        "enterprise_value": 3981784942454.65,
-        "price_to_sales_x": 12.11,
-        "enterprise_value_to_sales_x": 12.0,
-        "price_to_free_cash_flow_x": 59.99,
-        "price_to_earnings_x": 30.04,
-        "free_cash_flow_yield_pct": 1.67,
-        "earnings_yield_pct": 3.33,
-        "growth_adjusted_price_to_sales": 0.681,
+        "enterprise_value": 4006066476210.22,
+        "price_to_sales_x": 12.18,
+        "enterprise_value_to_sales_x": 12.07,
+        "price_to_free_cash_flow_x": 60.35,
+        "price_to_earnings_x": 30.23,
+        "free_cash_flow_yield_pct": 1.66,
+        "earnings_yield_pct": 3.31,
+        "growth_adjusted_price_to_sales": 0.685,
         "peer_percentiles": {
           "price_to_sales": 16.7,
           "enterprise_value_to_sales": 16.7,
@@ -21348,13 +21542,13 @@
           "fcf_margin": 50.0
         },
         "peer_medians": {
-          "price_to_sales_x": 10.71,
-          "enterprise_value_to_sales_x": 10.36,
+          "price_to_sales_x": 10.76,
+          "enterprise_value_to_sales_x": 10.41,
           "revenue_growth_pct": 16.44,
           "fcf_margin_pct": 20.19
         },
         "available_component_count": 7,
-        "summary": "Relatively demanding valuation mix. Market capitalization equals 12.11 times latest reported revenue, and standardized free-cash-flow yield is 1.67%.",
+        "summary": "Relatively demanding valuation mix. Market capitalization equals 12.18 times latest reported revenue, and standardized free-cash-flow yield is 1.66%.",
         "overall_rank": 9,
         "subsector_rank": 4,
         "subsector_count": 4
@@ -21366,7 +21560,7 @@
         "attention_level": "Moderate",
         "reaction_score": 41.4,
         "latest_filing_date": "2026-09-02",
-        "days_since_latest_filing": 40,
+        "days_since_latest_filing": 41,
         "latest_event_category": "Regulation FD disclosure / Financial statements or exhibits",
         "filings_90d": 3,
         "material_events_30d": 0,
@@ -21588,7 +21782,7 @@
           "The share price is above both its 50-day and 200-day averages."
         ],
         "counter_evidence": [
-          "No major quantitative warning was identified, but qualitative and valuation risks still require review.",
+          "One-year price momentum trails the peer group.",
           "Backtest-based peer-outperformance research estimate is below 45% at 41.7%.",
           "Relative-valuation score is demanding at 37.9.",
           "The operating-scenario framework currently produces a cautious research outlook.",
@@ -21608,15 +21802,15 @@
       "integrated_research_score": 52.9,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.2,
-        "integrated_evidence_delta": 0.1,
+        "score_delta": 0.0,
+        "integrated_evidence_delta": 0.0,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": 0.83,
+        "price_change_pct": 0.6,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -21840,13 +22034,13 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001835632.json",
-      "latest_price": 265.86,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 12.63,
-      "return_1y_pct": 211.07,
+      "latest_price": 267.07,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 13.14,
+      "return_1y_pct": 199.27,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 233132634000.0,
+      "market_cap": 234193683000.0,
       "overall_rank": 6,
       "subsector_rank": 2,
       "peer_metrics": [
@@ -21854,7 +22048,7 @@
           "key": "score",
           "label": "Company score",
           "company_value": 83.3,
-          "peer_median": 81.8,
+          "peer_median": 81.7,
           "peer_percentile": 62.5
         },
         {
@@ -21881,8 +22075,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 211.07,
-          "peer_median": 100.19,
+          "company_value": 199.27,
+          "peer_median": 99.88,
           "peer_percentile": 87.5
         }
       ],
@@ -21894,7 +22088,7 @@
           "score": 86.8,
           "revenue_growth_pct": 34.34,
           "fcf_margin_pct": 19.44,
-          "return_1y_pct": 176.52
+          "return_1y_pct": 178.43
         },
         {
           "ticker": "MRVL",
@@ -21902,23 +22096,23 @@
           "score": 83.3,
           "revenue_growth_pct": 42.09,
           "fcf_margin_pct": 17.04,
-          "return_1y_pct": 211.07
+          "return_1y_pct": 199.27
         },
         {
           "ticker": "NVDA",
           "name": "NVIDIA",
-          "score": 80.3,
+          "score": 80.1,
           "revenue_growth_pct": 65.47,
           "fcf_margin_pct": null,
-          "return_1y_pct": 23.86
+          "return_1y_pct": 21.32
         },
         {
           "ticker": "AVGO",
           "name": "Broadcom",
-          "score": 71.1,
+          "score": 70.7,
           "revenue_growth_pct": 23.87,
           "fcf_margin_pct": 42.13,
-          "return_1y_pct": 10.08
+          "return_1y_pct": 1.0
         }
       ],
       "data_coverage_pct": 100.0,
@@ -22073,14 +22267,14 @@
         "status": "Peer-relative valuation research score",
         "profile": "Relatively demanding valuation mix",
         "score": 28.8,
-        "enterprise_value": 234162734000.0,
-        "price_to_sales_x": 28.45,
-        "enterprise_value_to_sales_x": 28.58,
-        "price_to_free_cash_flow_x": 166.95,
-        "price_to_earnings_x": 87.31,
+        "enterprise_value": 235223783000.0,
+        "price_to_sales_x": 28.58,
+        "enterprise_value_to_sales_x": 28.7,
+        "price_to_free_cash_flow_x": 167.71,
+        "price_to_earnings_x": 87.71,
         "free_cash_flow_yield_pct": 0.6,
-        "earnings_yield_pct": 1.15,
-        "growth_adjusted_price_to_sales": 0.676,
+        "earnings_yield_pct": 1.14,
+        "growth_adjusted_price_to_sales": 0.679,
         "peer_percentiles": {
           "price_to_sales": 12.5,
           "enterprise_value_to_sales": 12.5,
@@ -22091,13 +22285,13 @@
           "fcf_margin": 16.7
         },
         "peer_medians": {
-          "price_to_sales_x": 27.26,
-          "enterprise_value_to_sales_x": 27.39,
+          "price_to_sales_x": 27.56,
+          "enterprise_value_to_sales_x": 27.7,
           "revenue_growth_pct": 38.22,
           "fcf_margin_pct": 19.44
         },
         "available_component_count": 7,
-        "summary": "Relatively demanding valuation mix. Market capitalization equals 28.45 times latest reported revenue, and standardized free-cash-flow yield is 0.60%.",
+        "summary": "Relatively demanding valuation mix. Market capitalization equals 28.58 times latest reported revenue, and standardized free-cash-flow yield is 0.60%.",
         "overall_rank": 12,
         "subsector_rank": 4,
         "subsector_count": 4
@@ -22109,7 +22303,7 @@
         "attention_level": "High",
         "reaction_score": 85.1,
         "latest_filing_date": "2026-09-25",
-        "days_since_latest_filing": 17,
+        "days_since_latest_filing": 18,
         "latest_event_category": "Other material event / Financial statements or exhibits",
         "filings_90d": 4,
         "material_events_30d": 1,
@@ -22333,7 +22527,7 @@
           "relative_valuation": 28.8,
           "filing_reaction": 85.1
         },
-        "past_summary": "Reported revenue changed at a +11.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +17.0%. The observed one-year stock-price return was +211.1% through the latest market-data date.",
+        "past_summary": "Reported revenue changed at a +11.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +17.0%. The observed one-year stock-price return was +199.3% through the latest market-data date.",
         "present_summary": "The current original company score is 83.3, ranked 6 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively demanding valuation mix. Latest tracked SEC disclosure category: Other material event / Financial statements or exhibits on 2026-09-25.",
         "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 30.4% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 41.7%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
@@ -22363,7 +22557,7 @@
       "integrated_research_score": 51.0,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
@@ -22371,7 +22565,7 @@
         "integrated_evidence_delta": 0.0,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -2.97,
+        "price_change_pct": 0.46,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -22405,13 +22599,13 @@
       "name": "Alphabet",
       "subsector": "Cloud & AI Platforms",
       "market_cap_tier": "Mega-Cap",
-      "score": 83.0,
+      "score": 82.8,
       "score_components": {
         "growth": 80.2,
         "free_cash_flow": 90.0,
         "financial_strength": 70.8,
         "profitability": 100.0,
-        "momentum": 79.9,
+        "momentum": 79.0,
         "strategic_investment": 83.0
       },
       "history": [
@@ -22622,21 +22816,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
-      "latest_price": 352.72,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 4.2,
-      "return_1y_pct": 49.49,
+      "latest_price": 354.375,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 4.69,
+      "return_1y_pct": 45.52,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 4313765600000.0,
+      "market_cap": 4334006250000.0,
       "overall_rank": 7,
       "subsector_rank": 3,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 83.0,
-          "peer_median": 83.25,
+          "company_value": 82.8,
+          "peer_median": 83.15,
           "peer_percentile": 37.5
         },
         {
@@ -22663,8 +22857,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 49.49,
-          "peer_median": 13.37,
+          "company_value": 45.52,
+          "peer_median": 12.38,
           "peer_percentile": 87.5
         }
       ],
@@ -22673,10 +22867,10 @@
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 85.3,
+          "score": 85.4,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": 5.7
+          "return_1y_pct": 7.02
         },
         {
           "ticker": "MSFT",
@@ -22689,18 +22883,18 @@
         {
           "ticker": "GOOGL",
           "name": "Alphabet",
-          "score": 83.0,
+          "score": 82.8,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 49.49
+          "return_1y_pct": 45.52
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 68.1,
+          "score": 68.0,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 19.95
+          "return_1y_pct": 17.75
         }
       ],
       "data_coverage_pct": 100.0,
@@ -22856,14 +23050,14 @@
         "status": "Peer-relative valuation research score",
         "profile": "Balanced relative valuation",
         "score": 45.4,
-        "enterprise_value": 4171455600000.0,
-        "price_to_sales_x": 10.71,
-        "enterprise_value_to_sales_x": 10.36,
-        "price_to_free_cash_flow_x": 58.88,
-        "price_to_earnings_x": 32.64,
-        "free_cash_flow_yield_pct": 1.7,
-        "earnings_yield_pct": 3.06,
-        "growth_adjusted_price_to_sales": 0.71,
+        "enterprise_value": 4191696250000.0,
+        "price_to_sales_x": 10.76,
+        "enterprise_value_to_sales_x": 10.41,
+        "price_to_free_cash_flow_x": 59.15,
+        "price_to_earnings_x": 32.79,
+        "free_cash_flow_yield_pct": 1.69,
+        "earnings_yield_pct": 3.05,
+        "growth_adjusted_price_to_sales": 0.713,
         "peer_percentiles": {
           "price_to_sales": 50.0,
           "enterprise_value_to_sales": 50.0,
@@ -22874,13 +23068,13 @@
           "fcf_margin": 16.7
         },
         "peer_medians": {
-          "price_to_sales_x": 10.71,
-          "enterprise_value_to_sales_x": 10.36,
+          "price_to_sales_x": 10.76,
+          "enterprise_value_to_sales_x": 10.41,
           "revenue_growth_pct": 16.44,
           "fcf_margin_pct": 20.19
         },
         "available_component_count": 7,
-        "summary": "Balanced relative valuation. Market capitalization equals 10.71 times latest reported revenue, and standardized free-cash-flow yield is 1.70%.",
+        "summary": "Balanced relative valuation. Market capitalization equals 10.76 times latest reported revenue, and standardized free-cash-flow yield is 1.69%.",
         "overall_rank": 7,
         "subsector_rank": 3,
         "subsector_count": 4
@@ -22892,7 +23086,7 @@
         "attention_level": "Moderate",
         "reaction_score": 51.1,
         "latest_filing_date": "2026-08-10",
-        "days_since_latest_filing": 63,
+        "days_since_latest_filing": 64,
         "latest_event_category": "Other material event / Financial statements or exhibits",
         "filings_90d": 3,
         "material_events_30d": 0,
@@ -23100,21 +23294,21 @@
       "filing_reaction_score": 51.1,
       "integrated_research": {
         "status": "Phase 10 automated evidence synthesis; not investment advice",
-        "score": 55.5,
+        "score": 55.4,
         "stance": "Balanced / mixed evidence",
         "confidence": "High",
         "available_component_count": 6,
         "data_coverage_pct": 100.0,
         "component_scores": {
-          "original_company_score": 83.0,
+          "original_company_score": 82.8,
           "backtest_likelihood": 41.7,
           "operating_outlook_signal": 30.0,
           "capital_efficiency": 55.8,
           "relative_valuation": 45.4,
           "filing_reaction": 51.1
         },
-        "past_summary": "Reported revenue changed at a +16.1% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +18.2%. The observed one-year stock-price return was +49.5% through the latest market-data date.",
-        "present_summary": "The current original company score is 83.0, ranked 7 overall. Capital profile: Balanced capital deployment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Other material event / Financial statements or exhibits on 2026-08-10.",
+        "past_summary": "Reported revenue changed at a +16.1% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +18.2%. The observed one-year stock-price return was +45.5% through the latest market-data date.",
+        "present_summary": "The current original company score is 82.8, ranked 7 overall. Capital profile: Balanced capital deployment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Other material event / Financial statements or exhibits on 2026-08-10.",
         "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes 15.8% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 41.7%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "One-year price momentum ranks favorably within the peer group.",
@@ -23139,18 +23333,18 @@
         "subsector_rank": 2,
         "subsector_count": 4
       },
-      "integrated_research_score": 55.5,
+      "integrated_research_score": 55.4,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.2,
-        "integrated_evidence_delta": 0.1,
+        "score_delta": -0.2,
+        "integrated_evidence_delta": -0.1,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": 0.38,
+        "price_change_pct": 0.47,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -23184,13 +23378,13 @@
       "name": "NVIDIA",
       "subsector": "Semiconductors & Infrastructure",
       "market_cap_tier": "Mega-Cap",
-      "score": 80.3,
+      "score": 80.1,
       "score_components": {
         "growth": 100.0,
         "free_cash_flow": null,
         "financial_strength": 68.2,
         "profitability": 100.0,
-        "momentum": 73.9,
+        "momentum": 73.3,
         "strategic_investment": 42.0
       },
       "history": [
@@ -23397,21 +23591,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
-      "latest_price": 226.32,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 3.68,
-      "return_1y_pct": 23.86,
+      "latest_price": 227.93,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 4.42,
+      "return_1y_pct": 21.32,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 5454312000000.0,
+      "market_cap": 5493113000000.0,
       "overall_rank": 8,
       "subsector_rank": 3,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 80.3,
-          "peer_median": 81.8,
+          "company_value": 80.1,
+          "peer_median": 81.7,
           "peer_percentile": 37.5
         },
         {
@@ -23438,8 +23632,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 23.86,
-          "peer_median": 100.19,
+          "company_value": 21.32,
+          "peer_median": 99.88,
           "peer_percentile": 37.5
         }
       ],
@@ -23451,7 +23645,7 @@
           "score": 86.8,
           "revenue_growth_pct": 34.34,
           "fcf_margin_pct": 19.44,
-          "return_1y_pct": 176.52
+          "return_1y_pct": 178.43
         },
         {
           "ticker": "MRVL",
@@ -23459,23 +23653,23 @@
           "score": 83.3,
           "revenue_growth_pct": 42.09,
           "fcf_margin_pct": 17.04,
-          "return_1y_pct": 211.07
+          "return_1y_pct": 199.27
         },
         {
           "ticker": "NVDA",
           "name": "NVIDIA",
-          "score": 80.3,
+          "score": 80.1,
           "revenue_growth_pct": 65.47,
           "fcf_margin_pct": null,
-          "return_1y_pct": 23.86
+          "return_1y_pct": 21.32
         },
         {
           "ticker": "AVGO",
           "name": "Broadcom",
-          "score": 71.1,
+          "score": 70.7,
           "revenue_growth_pct": 23.87,
           "fcf_margin_pct": 42.13,
-          "return_1y_pct": 10.08
+          "return_1y_pct": 1.0
         }
       ],
       "data_coverage_pct": 90.0,
@@ -23633,14 +23827,14 @@
         "status": "Peer-relative valuation research score",
         "profile": "Relatively favorable valuation mix",
         "score": 87.5,
-        "enterprise_value": 5416113000000.0,
-        "price_to_sales_x": 25.26,
-        "enterprise_value_to_sales_x": 25.08,
+        "enterprise_value": 5454914000000.0,
+        "price_to_sales_x": 25.44,
+        "enterprise_value_to_sales_x": 25.26,
         "price_to_free_cash_flow_x": null,
-        "price_to_earnings_x": 45.43,
+        "price_to_earnings_x": 45.75,
         "free_cash_flow_yield_pct": null,
-        "earnings_yield_pct": 2.2,
-        "growth_adjusted_price_to_sales": 0.386,
+        "earnings_yield_pct": 2.19,
+        "growth_adjusted_price_to_sales": 0.389,
         "peer_percentiles": {
           "price_to_sales": 87.5,
           "enterprise_value_to_sales": 87.5,
@@ -23651,13 +23845,13 @@
           "fcf_margin": null
         },
         "peer_medians": {
-          "price_to_sales_x": 27.26,
-          "enterprise_value_to_sales_x": 27.39,
+          "price_to_sales_x": 27.56,
+          "enterprise_value_to_sales_x": 27.7,
           "revenue_growth_pct": 38.22,
           "fcf_margin_pct": 19.44
         },
         "available_component_count": 5,
-        "summary": "Relatively favorable valuation mix. Market capitalization equals 25.26 times latest reported revenue.",
+        "summary": "Relatively favorable valuation mix. Market capitalization equals 25.44 times latest reported revenue.",
         "overall_rank": 1,
         "subsector_rank": 1,
         "subsector_count": 4
@@ -23669,7 +23863,7 @@
         "attention_level": "Moderate",
         "reaction_score": 46.5,
         "latest_filing_date": "2026-09-03",
-        "days_since_latest_filing": 39,
+        "days_since_latest_filing": 40,
         "latest_event_category": "Other material event",
         "filings_90d": 4,
         "material_events_30d": 0,
@@ -23870,21 +24064,21 @@
       "filing_reaction_score": 46.5,
       "integrated_research": {
         "status": "Phase 10 automated evidence synthesis; not investment advice",
-        "score": 64.5,
+        "score": 64.4,
         "stance": "Constructive evidence balance",
         "confidence": "High",
         "available_component_count": 6,
         "data_coverage_pct": 90.0,
         "component_scores": {
-          "original_company_score": 80.3,
+          "original_company_score": 80.1,
           "backtest_likelihood": 41.7,
           "operating_outlook_signal": 30.0,
           "capital_efficiency": 80.7,
           "relative_valuation": 87.5,
           "filing_reaction": 46.5
         },
-        "past_summary": "Reported revenue changed at a +100.0% annualized rate over the latest three-year span available. The observed one-year stock-price return was +23.9% through the latest market-data date.",
-        "present_summary": "The current original company score is 80.3, ranked 8 overall. Capital profile: Capital-light growth. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Other material event on 2026-09-03.",
+        "past_summary": "Reported revenue changed at a +100.0% annualized rate over the latest three-year span available. The observed one-year stock-price return was +21.3% through the latest market-data date.",
+        "present_summary": "The current original company score is 80.1, ranked 8 overall. Capital profile: Capital-light growth. Relative valuation profile: Relatively favorable valuation mix. Latest tracked SEC disclosure category: Other material event on 2026-09-03.",
         "future_summary": "The operating-scenario label is cautious research outlook with moderate scenario confidence. The transparent base scenario assumes 40.0% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 41.7%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "Revenue growth is among the stronger results in its peer group.",
@@ -23910,18 +24104,18 @@
         "subsector_rank": 1,
         "subsector_count": 4
       },
-      "integrated_research_score": 64.5,
+      "integrated_research_score": 64.4,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.3,
-        "integrated_evidence_delta": 0.1,
+        "score_delta": -0.2,
+        "integrated_evidence_delta": -0.1,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -1.5,
+        "price_change_pct": 0.71,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -23961,7 +24155,7 @@
         "free_cash_flow": 98.1,
         "financial_strength": 100.0,
         "profitability": 85.1,
-        "momentum": 46.6,
+        "momentum": 46.5,
         "strategic_investment": 65.1
       },
       "history": [
@@ -24143,10 +24337,10 @@
         "debt_noncurrent": null
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001734722.json",
-      "latest_price": 13.32,
-      "price_date": "2026-10-12",
-      "return_30d_pct": -3.13,
-      "return_1y_pct": -21.88,
+      "latest_price": 13.355,
+      "price_date": "2026-10-13",
+      "return_30d_pct": -2.87,
+      "return_1y_pct": -22.08,
       "above_50_day": false,
       "above_200_day": true,
       "overall_rank": 9,
@@ -24156,7 +24350,7 @@
           "key": "score",
           "label": "Company score",
           "company_value": 77.8,
-          "peer_median": 81.45,
+          "peer_median": 81.4,
           "peer_percentile": 37.5
         },
         {
@@ -24183,8 +24377,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": -21.88,
-          "peer_median": -1.38,
+          "company_value": -22.08,
+          "peer_median": -2.22,
           "peer_percentile": 37.5
         }
       ],
@@ -24193,18 +24387,18 @@
         {
           "ticker": "PLTR",
           "name": "Palantir Technologies",
-          "score": 89.4,
+          "score": 89.3,
           "revenue_growth_pct": 56.18,
           "fcf_margin_pct": 46.94,
-          "return_1y_pct": 19.13
+          "return_1y_pct": 17.63
         },
         {
           "ticker": "SNOW",
           "name": "Snowflake",
-          "score": 85.1,
+          "score": 85.0,
           "revenue_growth_pct": 29.16,
           "fcf_margin_pct": 23.92,
-          "return_1y_pct": 48.81
+          "return_1y_pct": 44.86
         },
         {
           "ticker": "PATH",
@@ -24212,15 +24406,15 @@
           "score": 77.8,
           "revenue_growth_pct": 12.65,
           "fcf_margin_pct": 21.87,
-          "return_1y_pct": -21.88
+          "return_1y_pct": -22.08
         },
         {
           "ticker": "AI",
           "name": "C3.ai",
-          "score": 37.0,
+          "score": 36.9,
           "revenue_growth_pct": -35.67,
           "fcf_margin_pct": -76.77,
-          "return_1y_pct": -35.18
+          "return_1y_pct": -38.28
         }
       ],
       "data_coverage_pct": 80.0,
@@ -24394,8 +24588,8 @@
           "fcf_margin": 37.5
         },
         "peer_medians": {
-          "price_to_sales_x": 27.14,
-          "enterprise_value_to_sales_x": 110.11,
+          "price_to_sales_x": 26.98,
+          "enterprise_value_to_sales_x": 109.82,
           "revenue_growth_pct": 20.91,
           "fcf_margin_pct": 22.9
         },
@@ -24412,7 +24606,7 @@
         "attention_level": "Moderate",
         "reaction_score": 56.8,
         "latest_filing_date": "2026-09-08",
-        "days_since_latest_filing": 34,
+        "days_since_latest_filing": 35,
         "latest_event_category": "Quarterly financial report",
         "filings_90d": 2,
         "material_events_30d": 0,
@@ -24626,7 +24820,7 @@
           "relative_valuation": 37.5,
           "filing_reaction": 56.8
         },
-        "past_summary": "Reported revenue changed at a +15.0% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +21.9%. The observed one-year stock-price return was -21.9% through the latest market-data date.",
+        "past_summary": "Reported revenue changed at a +15.0% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +21.9%. The observed one-year stock-price return was -22.1% through the latest market-data date.",
         "present_summary": "The current original company score is 77.8, ranked 9 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Relatively demanding valuation mix. Latest tracked SEC disclosure category: Quarterly financial report on 2026-09-08.",
         "future_summary": "The operating-scenario label is balanced research outlook with high scenario confidence. The transparent base scenario assumes 15.5% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 48.9%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
@@ -24651,15 +24845,15 @@
       "integrated_research_score": 56.6,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.3,
-        "integrated_evidence_delta": 0.1,
+        "score_delta": 0.0,
+        "integrated_evidence_delta": 0.0,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -1.15,
+        "price_change_pct": 0.26,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -24693,13 +24887,13 @@
       "name": "Broadcom",
       "subsector": "Semiconductors & Infrastructure",
       "market_cap_tier": "Mega-Cap",
-      "score": 71.1,
+      "score": 70.7,
       "score_components": {
         "growth": 97.7,
         "free_cash_flow": 100.0,
         "financial_strength": 28.7,
         "profitability": 100.0,
-        "momentum": 34.0,
+        "momentum": 31.9,
         "strategic_investment": 55.4
       },
       "history": [
@@ -24910,21 +25104,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001730168.json",
-      "latest_price": 354.73,
-      "price_date": "2026-10-12",
-      "return_30d_pct": -1.83,
-      "return_1y_pct": 10.08,
+      "latest_price": 357.61,
+      "price_date": "2026-10-13",
+      "return_30d_pct": -1.03,
+      "return_1y_pct": 1.0,
       "above_50_day": false,
       "above_200_day": false,
-      "market_cap": 1693349722011.45,
+      "market_cap": 1707097776022.65,
       "overall_rank": 10,
       "subsector_rank": 4,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 71.1,
-          "peer_median": 81.8,
+          "company_value": 70.7,
+          "peer_median": 81.7,
           "peer_percentile": 12.5
         },
         {
@@ -24951,8 +25145,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 10.08,
-          "peer_median": 100.19,
+          "company_value": 1.0,
+          "peer_median": 99.88,
           "peer_percentile": 12.5
         }
       ],
@@ -24964,7 +25158,7 @@
           "score": 86.8,
           "revenue_growth_pct": 34.34,
           "fcf_margin_pct": 19.44,
-          "return_1y_pct": 176.52
+          "return_1y_pct": 178.43
         },
         {
           "ticker": "MRVL",
@@ -24972,23 +25166,23 @@
           "score": 83.3,
           "revenue_growth_pct": 42.09,
           "fcf_margin_pct": 17.04,
-          "return_1y_pct": 211.07
+          "return_1y_pct": 199.27
         },
         {
           "ticker": "NVDA",
           "name": "NVIDIA",
-          "score": 80.3,
+          "score": 80.1,
           "revenue_growth_pct": 65.47,
           "fcf_margin_pct": null,
-          "return_1y_pct": 23.86
+          "return_1y_pct": 21.32
         },
         {
           "ticker": "AVGO",
           "name": "Broadcom",
-          "score": 71.1,
+          "score": 70.7,
           "revenue_growth_pct": 23.87,
           "fcf_margin_pct": 42.13,
-          "return_1y_pct": 10.08
+          "return_1y_pct": 1.0
         }
       ],
       "data_coverage_pct": 100.0,
@@ -25145,14 +25339,14 @@
         "status": "Peer-relative valuation research score",
         "profile": "Balanced relative valuation",
         "score": 56.2,
-        "enterprise_value": 1728793722011.45,
-        "price_to_sales_x": 26.51,
-        "enterprise_value_to_sales_x": 27.06,
-        "price_to_free_cash_flow_x": 62.92,
-        "price_to_earnings_x": 73.22,
-        "free_cash_flow_yield_pct": 1.59,
-        "earnings_yield_pct": 1.37,
-        "growth_adjusted_price_to_sales": 1.11,
+        "enterprise_value": 1742541776022.65,
+        "price_to_sales_x": 26.72,
+        "enterprise_value_to_sales_x": 27.28,
+        "price_to_free_cash_flow_x": 63.43,
+        "price_to_earnings_x": 73.82,
+        "free_cash_flow_yield_pct": 1.58,
+        "earnings_yield_pct": 1.35,
+        "growth_adjusted_price_to_sales": 1.119,
         "peer_percentiles": {
           "price_to_sales": 62.5,
           "enterprise_value_to_sales": 62.5,
@@ -25163,13 +25357,13 @@
           "fcf_margin": 83.3
         },
         "peer_medians": {
-          "price_to_sales_x": 27.26,
-          "enterprise_value_to_sales_x": 27.39,
+          "price_to_sales_x": 27.56,
+          "enterprise_value_to_sales_x": 27.7,
           "revenue_growth_pct": 38.22,
           "fcf_margin_pct": 19.44
         },
         "available_component_count": 7,
-        "summary": "Balanced relative valuation. Market capitalization equals 26.51 times latest reported revenue, and standardized free-cash-flow yield is 1.59%.",
+        "summary": "Balanced relative valuation. Market capitalization equals 26.72 times latest reported revenue, and standardized free-cash-flow yield is 1.58%.",
         "overall_rank": 5,
         "subsector_rank": 2,
         "subsector_count": 4
@@ -25181,7 +25375,7 @@
         "attention_level": "Moderate",
         "reaction_score": 55.7,
         "latest_filing_date": "2026-09-10",
-        "days_since_latest_filing": 32,
+        "days_since_latest_filing": 33,
         "latest_event_category": "Quarterly financial report",
         "filings_90d": 2,
         "material_events_30d": 0,
@@ -25382,21 +25576,21 @@
       "filing_reaction_score": 55.7,
       "integrated_research": {
         "status": "Phase 10 automated evidence synthesis; not investment advice",
-        "score": 57.9,
+        "score": 57.8,
         "stance": "Balanced / mixed evidence",
         "confidence": "High",
         "available_component_count": 6,
         "data_coverage_pct": 100.0,
         "component_scores": {
-          "original_company_score": 71.1,
+          "original_company_score": 70.7,
           "backtest_likelihood": 48.9,
           "operating_outlook_signal": 52.0,
           "capital_efficiency": 51.9,
           "relative_valuation": 56.2,
           "filing_reaction": 55.7
         },
-        "past_summary": "Reported revenue changed at a +24.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +42.1%. The observed one-year stock-price return was +10.1% through the latest market-data date.",
-        "present_summary": "The current original company score is 71.1, ranked 10 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Quarterly financial report on 2026-09-10.",
+        "past_summary": "Reported revenue changed at a +24.4% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was +42.1%. The observed one-year stock-price return was +1.0% through the latest market-data date.",
+        "present_summary": "The current original company score is 70.7, ranked 10 overall. Capital profile: Self-funded reinvestment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Quarterly financial report on 2026-09-10.",
         "future_summary": "The operating-scenario label is balanced research outlook with high scenario confidence. The transparent base scenario assumes 27.6% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 48.9%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "Free-cash-flow margin compares favorably with peers.",
@@ -25420,18 +25614,18 @@
         "subsector_rank": 2,
         "subsector_count": 4
       },
-      "integrated_research_score": 57.9,
+      "integrated_research_score": 57.8,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.2,
-        "integrated_evidence_delta": 0.0,
+        "score_delta": -0.4,
+        "integrated_evidence_delta": -0.1,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -2.09,
+        "price_change_pct": 0.81,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -25465,13 +25659,13 @@
       "name": "Amazon",
       "subsector": "Cloud & AI Platforms",
       "market_cap_tier": "Mega-Cap",
-      "score": 68.1,
+      "score": 68.0,
       "score_components": {
         "growth": 74.8,
         "free_cash_flow": null,
         "financial_strength": 48.2,
         "profitability": 71.7,
-        "momentum": 73.0,
+        "momentum": 72.5,
         "strategic_investment": null
       },
       "history": [
@@ -25676,21 +25870,21 @@
         "debt_noncurrent": "LongTermDebtNoncurrent"
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
-      "latest_price": 259.53,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 1.07,
-      "return_1y_pct": 19.95,
+      "latest_price": 259.14,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 0.92,
+      "return_1y_pct": 17.75,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 2799371961341.16,
+      "market_cap": 2795165299048.08,
       "overall_rank": 11,
       "subsector_rank": 4,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 68.1,
-          "peer_median": 83.25,
+          "company_value": 68.0,
+          "peer_median": 83.15,
           "peer_percentile": 12.5
         },
         {
@@ -25717,8 +25911,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": 19.95,
-          "peer_median": 13.37,
+          "company_value": 17.75,
+          "peer_median": 12.38,
           "peer_percentile": 62.5
         }
       ],
@@ -25727,10 +25921,10 @@
         {
           "ticker": "META",
           "name": "Meta Platforms",
-          "score": 85.3,
+          "score": 85.4,
           "revenue_growth_pct": 22.17,
           "fcf_margin_pct": 22.94,
-          "return_1y_pct": 5.7
+          "return_1y_pct": 7.02
         },
         {
           "ticker": "MSFT",
@@ -25743,18 +25937,18 @@
         {
           "ticker": "GOOGL",
           "name": "Alphabet",
-          "score": 83.0,
+          "score": 82.8,
           "revenue_growth_pct": 15.09,
           "fcf_margin_pct": 18.19,
-          "return_1y_pct": 49.49
+          "return_1y_pct": 45.52
         },
         {
           "ticker": "AMZN",
           "name": "Amazon",
-          "score": 68.1,
+          "score": 68.0,
           "revenue_growth_pct": 12.38,
           "fcf_margin_pct": null,
-          "return_1y_pct": 19.95
+          "return_1y_pct": 17.75
         }
       ],
       "data_coverage_pct": 80.0,
@@ -25911,13 +26105,13 @@
         "status": "Peer-relative valuation research score",
         "profile": "Balanced relative valuation",
         "score": 63.7,
-        "enterprise_value": 2808607961341.16,
+        "enterprise_value": 2804401299048.08,
         "price_to_sales_x": 3.9,
-        "enterprise_value_to_sales_x": 3.92,
+        "enterprise_value_to_sales_x": 3.91,
         "price_to_free_cash_flow_x": null,
-        "price_to_earnings_x": 36.04,
+        "price_to_earnings_x": 35.99,
         "free_cash_flow_yield_pct": null,
-        "earnings_yield_pct": 2.77,
+        "earnings_yield_pct": 2.78,
         "growth_adjusted_price_to_sales": 0.315,
         "peer_percentiles": {
           "price_to_sales": 83.3,
@@ -25929,8 +26123,8 @@
           "fcf_margin": null
         },
         "peer_medians": {
-          "price_to_sales_x": 10.71,
-          "enterprise_value_to_sales_x": 10.36,
+          "price_to_sales_x": 10.76,
+          "enterprise_value_to_sales_x": 10.41,
           "revenue_growth_pct": 16.44,
           "fcf_margin_pct": 20.19
         },
@@ -25947,7 +26141,7 @@
         "attention_level": "High",
         "reaction_score": 75.0,
         "latest_filing_date": "2026-09-14",
-        "days_since_latest_filing": 28,
+        "days_since_latest_filing": 29,
         "latest_event_category": "Other material event / Financial statements or exhibits",
         "filings_90d": 4,
         "material_events_30d": 1,
@@ -26157,15 +26351,15 @@
         "available_component_count": 6,
         "data_coverage_pct": 80.0,
         "component_scores": {
-          "original_company_score": 68.1,
+          "original_company_score": 68.0,
           "backtest_likelihood": 31.0,
           "operating_outlook_signal": 30.0,
           "capital_efficiency": 12.5,
           "relative_valuation": 63.7,
           "filing_reaction": 75.0
         },
-        "past_summary": "Reported revenue changed at a +11.7% annualized rate over the latest three-year span available. The observed one-year stock-price return was +19.9% through the latest market-data date.",
-        "present_summary": "The current original company score is 68.1, ranked 11 overall. Capital profile: Balanced capital deployment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Other material event / Financial statements or exhibits on 2026-09-14.",
+        "past_summary": "Reported revenue changed at a +11.7% annualized rate over the latest three-year span available. The observed one-year stock-price return was +17.8% through the latest market-data date.",
+        "present_summary": "The current original company score is 68.0, ranked 11 overall. Capital profile: Balanced capital deployment. Relative valuation profile: Balanced relative valuation. Latest tracked SEC disclosure category: Other material event / Financial statements or exhibits on 2026-09-14.",
         "future_summary": "The operating-scenario label is cautious research outlook with moderate scenario confidence. The transparent base scenario assumes 13.2% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 31.0%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "The share price is above both its 50-day and 200-day averages.",
@@ -26192,15 +26386,15 @@
       "integrated_research_score": 46.3,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.3,
-        "integrated_evidence_delta": 0.1,
+        "score_delta": -0.1,
+        "integrated_evidence_delta": 0.0,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -0.7,
+        "price_change_pct": -0.15,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
@@ -26234,13 +26428,13 @@
       "name": "C3.ai",
       "subsector": "AI Software & Growth",
       "market_cap_tier": "Micro-Cap",
-      "score": 37.0,
+      "score": 36.9,
       "score_components": {
         "growth": 0.0,
         "free_cash_flow": 0.0,
         "financial_strength": 100.0,
         "profitability": 0.0,
-        "momentum": 60.1,
+        "momentum": 59.4,
         "strategic_investment": 100.0
       },
       "history": [
@@ -26432,21 +26626,21 @@
         "debt_noncurrent": null
       },
       "sec_companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001577526.json",
-      "latest_price": 11.61,
-      "price_date": "2026-10-12",
-      "return_30d_pct": 10.15,
-      "return_1y_pct": -35.18,
+      "latest_price": 11.955,
+      "price_date": "2026-10-13",
+      "return_30d_pct": 13.43,
+      "return_1y_pct": -38.28,
       "above_50_day": true,
       "above_200_day": true,
-      "market_cap": 40634907.12,
+      "market_cap": 41842404.36,
       "overall_rank": 12,
       "subsector_rank": 4,
       "peer_metrics": [
         {
           "key": "score",
           "label": "Company score",
-          "company_value": 37.0,
-          "peer_median": 81.45,
+          "company_value": 36.9,
+          "peer_median": 81.4,
           "peer_percentile": 12.5
         },
         {
@@ -26473,8 +26667,8 @@
         {
           "key": "return_1y_pct",
           "label": "1-year return",
-          "company_value": -35.18,
-          "peer_median": -1.38,
+          "company_value": -38.28,
+          "peer_median": -2.22,
           "peer_percentile": 12.5
         }
       ],
@@ -26483,18 +26677,18 @@
         {
           "ticker": "PLTR",
           "name": "Palantir Technologies",
-          "score": 89.4,
+          "score": 89.3,
           "revenue_growth_pct": 56.18,
           "fcf_margin_pct": 46.94,
-          "return_1y_pct": 19.13
+          "return_1y_pct": 17.63
         },
         {
           "ticker": "SNOW",
           "name": "Snowflake",
-          "score": 85.1,
+          "score": 85.0,
           "revenue_growth_pct": 29.16,
           "fcf_margin_pct": 23.92,
-          "return_1y_pct": 48.81
+          "return_1y_pct": 44.86
         },
         {
           "ticker": "PATH",
@@ -26502,15 +26696,15 @@
           "score": 77.8,
           "revenue_growth_pct": 12.65,
           "fcf_margin_pct": 21.87,
-          "return_1y_pct": -21.88
+          "return_1y_pct": -22.08
         },
         {
           "ticker": "AI",
           "name": "C3.ai",
-          "score": 37.0,
+          "score": 36.9,
           "revenue_growth_pct": -35.67,
           "fcf_margin_pct": -76.77,
-          "return_1y_pct": -35.18
+          "return_1y_pct": -38.28
         }
       ],
       "data_coverage_pct": 90.0,
@@ -26669,12 +26863,12 @@
         "profile": "Speculative / negative cash flow",
         "score": 34.5,
         "enterprise_value": null,
-        "price_to_sales_x": 0.16,
+        "price_to_sales_x": 0.17,
         "enterprise_value_to_sales_x": null,
         "price_to_free_cash_flow_x": null,
         "price_to_earnings_x": null,
-        "free_cash_flow_yield_pct": -472.83,
-        "earnings_yield_pct": -1157.55,
+        "free_cash_flow_yield_pct": -459.19,
+        "earnings_yield_pct": -1124.14,
         "growth_adjusted_price_to_sales": null,
         "peer_percentiles": {
           "price_to_sales": 83.3,
@@ -26686,13 +26880,13 @@
           "fcf_margin": 12.5
         },
         "peer_medians": {
-          "price_to_sales_x": 27.14,
-          "enterprise_value_to_sales_x": 110.11,
+          "price_to_sales_x": 26.98,
+          "enterprise_value_to_sales_x": 109.82,
           "revenue_growth_pct": 20.91,
           "fcf_margin_pct": 22.9
         },
         "available_component_count": 5,
-        "summary": "Speculative / negative cash flow. Market capitalization equals 0.16 times latest reported revenue, and standardized free-cash-flow yield is -472.83%.",
+        "summary": "Speculative / negative cash flow. Market capitalization equals 0.17 times latest reported revenue, and standardized free-cash-flow yield is -459.19%.",
         "overall_rank": 11,
         "subsector_rank": 4,
         "subsector_count": 4
@@ -26704,7 +26898,7 @@
         "attention_level": "Moderate",
         "reaction_score": 35.2,
         "latest_filing_date": "2026-09-09",
-        "days_since_latest_filing": 33,
+        "days_since_latest_filing": 34,
         "latest_event_category": "Quarterly financial report",
         "filings_90d": 4,
         "material_events_30d": 0,
@@ -26901,21 +27095,21 @@
       "filing_reaction_score": 35.2,
       "integrated_research": {
         "status": "Phase 10 automated evidence synthesis; not investment advice",
-        "score": 29.7,
+        "score": 29.6,
         "stance": "Cautious evidence balance",
         "confidence": "High",
         "available_component_count": 6,
         "data_coverage_pct": 90.0,
         "component_scores": {
-          "original_company_score": 37.0,
+          "original_company_score": 36.9,
           "backtest_likelihood": 26.3,
           "operating_outlook_signal": 30.0,
           "capital_efficiency": 12.5,
           "relative_valuation": 34.5,
           "filing_reaction": 35.2
         },
-        "past_summary": "Reported revenue changed at a -2.1% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was -76.8%. The observed one-year stock-price return was -35.2% through the latest market-data date.",
-        "present_summary": "The current original company score is 37.0, ranked 12 overall. Capital profile: Cash-consuming expansion. Relative valuation profile: Speculative / negative cash flow. Latest tracked SEC disclosure category: Quarterly financial report on 2026-09-09.",
+        "past_summary": "Reported revenue changed at a -2.1% annualized rate over the latest three-year span available. Latest standardized free-cash-flow margin was -76.8%. The observed one-year stock-price return was -38.3% through the latest market-data date.",
+        "present_summary": "The current original company score is 36.9, ranked 12 overall. Capital profile: Cash-consuming expansion. Relative valuation profile: Speculative / negative cash flow. Latest tracked SEC disclosure category: Quarterly financial report on 2026-09-09.",
         "future_summary": "The operating-scenario label is cautious research outlook with high scenario confidence. The transparent base scenario assumes -9.8% annual revenue growth for three years. The separate backtest-based 12-month peer-outperformance research estimate is 26.3%, subject to its displayed sample and validation limits.",
         "supporting_evidence": [
           "The share price is above both its 50-day and 200-day averages."
@@ -26938,18 +27132,18 @@
         "subsector_rank": 4,
         "subsector_count": 4
       },
-      "integrated_research_score": 29.7,
+      "integrated_research_score": 29.6,
       "daily_change": {
         "status": "Compared with the most recent prior Phase 11 daily snapshot",
-        "comparison_date": "2026-10-09",
+        "comparison_date": "2026-10-12",
         "priority": "Routine",
         "material_change": false,
         "summary": "No Phase 11 material-change threshold was crossed.",
-        "score_delta": 0.1,
-        "integrated_evidence_delta": 0.1,
+        "score_delta": -0.1,
+        "integrated_evidence_delta": -0.1,
         "rank_change": 0,
         "likelihood_delta_pct_points": 0.0,
-        "price_change_pct": -0.47,
+        "price_change_pct": 2.97,
         "data_coverage_delta_pct_points": 0.0,
         "outlook_changed": false,
         "integrated_stance_changed": false,
